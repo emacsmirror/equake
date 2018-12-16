@@ -114,6 +114,8 @@
 ;;             frame-types 'ns (=Next Step) and 'w32 (=Windows). Maybe even on
 ;;             Wayland via Xwayland?
 ;;   New comments: Doesn't really work on stumpwm, it seems. Trouble also on awesomewm.
+;;               also trouble if monitor-attributes doesn't include name [as on TP X200]
+;;               now falls back to using geometry field as name in that case, hopefully unique
 
 (setq equake/restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
 
@@ -125,7 +127,9 @@
   "Set tab movement bindings."
   (local-set-key (kbd "C-+") 'equake/eshell-new-tab)
   (local-set-key (kbd "C-{") 'equake/eshell-prev-tab)
-  (local-set-key (kbd "C-}") 'equake/eshell-next-tab))
+  (local-set-key (kbd "C-}") 'equake/eshell-next-tab)
+  (local-set-key (kbd "C-M-{") 'equake/move-tab-left)
+  (local-set-key (kbd "C-M-}") 'equake/move-tab-right))
 
 (add-hook 'eshell-mode-hook 'equake/key-bindings)
 
@@ -247,7 +251,7 @@
     (set-background-color "#000022")    ; set background colour
     (set-foreground-color "#eeeeee")   ; set foreground colour
     (rename-buffer (concat "EQUAKE[" monitorid "]0") )          ; set buffer/tab-name
-    (setq equake/tab-list (append equake/tab-list (list (cons monitorid (list 0)))))         ; set equake tab-list to an initial singleton list
+    (setq equake/tab-list (append equake/tab-list (list (cons monitorid (list 0)))))         ; set equake local tab-list to an initial singleton list
     (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)
     (setq inhibit-message t)	      ; no messages in buffer
     (equake/hide-orphaned-tab-frames (frame-list))) ; hide any stray orphaned tab frames
@@ -344,18 +348,61 @@
 	((not (equal (car tablist) tab)) ; if not, then cdr the list and test again
 	 (equake/find-next-etab (cdr tablist) tab))))
 
+(defun equake/move-tab (monitor tablist moving-tab direction)
+  "Move the current tab one position to the right (direction=1) or left (direction=-1) in the list."
+  (let ((examined-tab (car tablist)))	; get entire local monitor tab-list
+    (let ((monitor-tab-list (cdr examined-tab))) ; just the local monitor list of tabs
+      (if tablist
+	  (if (equal (car examined-tab) monitor) ; if the monitor label matches
+	      (progn (if (< (length monitor-tab-list) 2) ; if only one tab, stop with message to user
+			 (message "Only one tab")
+		       (progn (let ((orig-pos (cl-position moving-tab monitor-tab-list))) ; find the original position of tab we're moving
+				(let ((target-pos (+ orig-pos direction)) ; find the target position of the moving tab
+				      (reconstructed-local-tab 'nil)) 
+				  (cond ((< target-pos 0)
+					 (progn (setq target-pos (- (length monitor-tab-list) 1))
+						(setq monitor-tab-list (remove moving-tab monitor-tab-list))
+						(setq monitor-tab-list (append monitor-tab-list (list moving-tab)))))
+					((> target-pos (- (length monitor-tab-list) 1))
+					 (progn (setq target-pos 0)
+						(setq monitor-tab-list (remove moving-tab monitor-tab-list))
+						(setq monitor-tab-list (append (list moving-tab) monitor-tab-list))))
+					(t (progn (let ((target-temp-id (nth target-pos monitor-tab-list))) ; store the original content of target position
+						    (setf (nth target-pos monitor-tab-list) moving-tab (nth orig-pos monitor-tab-list) target-temp-id ))))) ; modify the list positions accordingly)))
+				  (setq reconstructed-local-tab (list (cons monitor monitor-tab-list))) ; cons monitor name with modified tab-list
+				  (setq equake/tab-list (remove examined-tab equake/tab-list)) ; remove the entire local monitor tab-list from global etab-list
+				  (setq equake/tab-list (append equake/tab-list reconstructed-local-tab)) ; append the named, modified monitor tab list to the global equake tab list
+				  (setq mode-line-format (list (equake/mode-line "" (equake/find-monitor-list monitor equake/tab-list)))) ; update mode-line
+				  (force-mode-line-update)))))) ; force refresh mode-line
+	    (equake/move-tab monitor (cdr tablist) moving-tab direction)) ; check next monitor-local tab-list
+	(message (concat "error: no relevant monitor " monitor " in ")))))) ; error if for some reason no such-name monitor
+
+(defun equake/move-tab-right ()
+  "Move current tab one position to the right."
+  (interactive)
+  (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
+    (let ((current-etab  (string-to-number (string-remove-prefix (concat "EQUAKE[" monitorid "]") (buffer-name (current-buffer)))))) ; get local tab number
+    (equake/move-tab monitorid equake/tab-list current-etab 1)))) ; call general tab move function
+
+(defun equake/move-tab-left ()
+  "Move current tab one position to the left."
+  (interactive)
+  (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
+    (let ((current-etab  (string-to-number (string-remove-prefix (concat "EQUAKE[" monitorid "]") (buffer-name (current-buffer)))))) ; get local tab number
+    (equake/move-tab monitorid equake/tab-list current-etab -1)))) ; call general tab move function
+
 (defun equake/eshell-next-tab ()
   "Switch to the next tab."
   (interactive)
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
-  (if (< (equake/count-tabs monitorid (buffer-list) 0) 2)
-      (print "No other tab to switch to.")
-    (progn
-      (let ((current-tab (string-to-number (substring (buffer-name) (+ 1 (search "]" (buffer-name))) (length (buffer-name))))))
-	(let ((next-tab (equake/find-next-etab (cdr (equake/find-monitor-list monitorid equake/tab-list)) current-tab)))
-	  (if (equal next-tab 'nil) ; switch to first tab if at end of list
-	      (switch-to-buffer (concat "EQUAKE[" monitorid "]" (number-to-string (car (cdr (equake/find-monitor-list monitorid equake/tab-list))))))
-            (switch-to-buffer (concat "EQUAKE[" monitorid "]" (number-to-string next-tab))))))))))
+    (if (< (equake/count-tabs monitorid (buffer-list) 0) 2)
+	(print "No other tab to switch to.")
+      (progn
+	(let ((current-tab (string-to-number (substring (buffer-name) (+ 1 (search "]" (buffer-name))) (length (buffer-name))))))
+	  (let ((next-tab (equake/find-next-etab (cdr (equake/find-monitor-list monitorid equake/tab-list)) current-tab)))
+	    (if (equal next-tab 'nil)	; switch to first tab if at end of list
+		(switch-to-buffer (concat "EQUAKE[" monitorid "]" (number-to-string (car (cdr (equake/find-monitor-list monitorid equake/tab-list))))))
+	      (switch-to-buffer (concat "EQUAKE[" monitorid "]" (number-to-string next-tab))))))))))
 
 (defun equake/eshell-prev-tab ()
   "Switch to the previous tab."

@@ -183,7 +183,7 @@
 	name
       (let ((name (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
 	(if name
-	    name
+	    (format "%s" name)
 	  (message "screen-id error!"))))))
 
 (defun equake/get-monitor-width (attributes)

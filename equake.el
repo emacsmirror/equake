@@ -358,15 +358,13 @@
 			 (message "Only one tab")
 		       (progn (let ((orig-pos (cl-position moving-tab monitor-tab-list))) ; find the original position of tab we're moving
 				(let ((target-pos (+ orig-pos direction)) ; find the target position of the moving tab
-				      (reconstructed-local-tab 'nil)) 
-				  (cond ((< target-pos 0)
-					 (progn (setq target-pos (- (length monitor-tab-list) 1))
-						(setq monitor-tab-list (remove moving-tab monitor-tab-list))
-						(setq monitor-tab-list (append monitor-tab-list (list moving-tab)))))
+				      (reconstructed-local-tab 'nil))	  ; initialise local variable 
+				  (cond ((< target-pos 0)		  ; if trying to move tab beyond left edge
+					 (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab 
+						(setq monitor-tab-list (append monitor-tab-list (list moving-tab))))) ; add tab to right edge
 					((> target-pos (- (length monitor-tab-list) 1))
-					 (progn (setq target-pos 0)
-						(setq monitor-tab-list (remove moving-tab monitor-tab-list))
-						(setq monitor-tab-list (append (list moving-tab) monitor-tab-list))))
+					 (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
+						(setq monitor-tab-list (append (list moving-tab) monitor-tab-list)))) ; add tab to left edge
 					(t (progn (let ((target-temp-id (nth target-pos monitor-tab-list))) ; store the original content of target position
 						    (setf (nth target-pos monitor-tab-list) moving-tab (nth orig-pos monitor-tab-list) target-temp-id ))))) ; modify the list positions accordingly)))
 				  (setq reconstructed-local-tab (list (cons monitor monitor-tab-list))) ; cons monitor name with modified tab-list

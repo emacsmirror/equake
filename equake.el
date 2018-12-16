@@ -7,7 +7,7 @@
 ;; URL: TODO
 ;; Package-Version: 0.1
 ;; Version: 0.1
-;; Created: 2018-12-14
+;; Created: 2018-12-12
 ;; Keywords: eshell, dropdown, terminal,
 
 ;; This file is NOT part of GNU Emacs.
@@ -113,6 +113,7 @@
 ;;   Comments: In theory it should work on Mac & Windows, since frame.el.gz defines
 ;;             frame-types 'ns (=Next Step) and 'w32 (=Windows). Maybe even on
 ;;             Wayland via Xwayland?
+;;   New comments: Doesn't really work on stumpwm, it seems. Trouble also on awesomewm.
 
 (setq equake/restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
 
@@ -161,41 +162,78 @@
   "Remove stray screens from equake tab list."
   (let ((cur-tab (car tablist)))
     (if cur-tab
-    (if (equal (car cur-tab) monitorid) ; if monitorid found in global equake-tablist
+	(if (equal (car cur-tab) monitorid) ; if monitorid found in global equake-tablist
 					;	   (remove (car cur-tab) equake/tab-list) ; remove matching list with monitor as car
-	(setq equake/tab-list (remove cur-tab equake/tab-list)) ; remove screen from equake-tab-list before proceeding
+	    (setq equake/tab-list (remove cur-tab equake/tab-list)) ; remove screen from equake-tab-list before proceeding
 					; if monitorid not (yet) found in global equake-tablist
-	   (equake/remove-screen monitorid (cdr tablist)))
-    )))
-	 
+	  (equake/remove-screen monitorid (cdr tablist))))))
+
+(defun equake/get-monitor-property (prop attributes)
+  "Get a property of the current monitor/screen."
+  (let ((field (car attributes)))
+    (if field
+	(if (equal (format "%s" (car field)) prop)
+	    (cdr field)
+	  (equake/get-monitor-property prop (cdr attributes))))))
+
+(defun equake/get-monitor-name (attributes)
+  "Get the name or another constant designator of the current monitor/screen."
+  (let ((name (equake/get-monitor-property "name" (frame-monitor-attributes))))
+    (if name
+	name
+      (let ((name (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
+	(if name
+	    name
+	  (message "screen-id error!"))))))
+
+(defun equake/get-monitor-width (attributes)
+  "Get the width of the current monitor/screen."
+  (let ((width (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
+    (car (cdr (cdr width)))))
+
+(defun equake/get-monitor-height (attributes)
+  "Get the height of the current monitor/screen."
+  (let ((height (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
+    (car (cdr (cdr (cdr height))))))
+
+(defun equake/get-monitor-xpos (attributes)
+  "Get the x-position of the current monitor/screen."
+  (let ((xpos (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
+    (car xpos)))
+
+(defun equake/get-monitor-ypos (attributes)
+  "Get the y-position of the current monitor/screen."
+  (let ((ypos (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
+    (car (cdr ypos))))
+
 (defun equake/eshell-drop-down-terminal ()
   "Set up eshell as a drop-drop terminal. Run with \"emacsclient -c -e '(equake/eshell-drop-down-terminal)\"."
   (interactive)
-  (let ((monitorid (format "%s" (cdr (car (frame-monitor-attributes))))))
+  (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
     (if (equal (frame-parameter (selected-frame) 'name) "transientframe") ; for multi-monitor hack getting terminal on correct monitor (at least on KDE Plasma 5)
 					; launch with: emacsclient -n -c -F '((name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))' -e '(equake/eshell-drop-down-terminal)'
 	(progn 	       (setq inhibit-message t)
 		       (delete-frame))) ; get rid of transient frame as soon as possible
-    (let ((monwidth (car (cdr (cdr (cdr (car (cdr (frame-monitor-attributes)))))))) ; get monitor width
-	  (monheight (car (cdr (cdr (cdr (cdr (car (cdr (frame-monitor-attributes))))))))) ; get monitor height
-	  (mon-xpos (car (cdr (car (cdr (frame-monitor-attributes)))))) ; get monitor relative x-position
-	  (mon-ypos (car (cdr (cdr (car (cdr (frame-monitor-attributes)))))))) ; get monitor relative y-position
-    (if (equake/equake-frame-p monitorid (frame-list))       ; check if *EQUAKE* frame exists
-	(let ((frame-to-raise (equake/equake-frame-p monitorid (frame-list)))) ; if so, get frame id
-	  (if (frame-visible-p frame-to-raise) ; then, if equake frame is already raised, make it invisible
-	      (progn (set-frame-parameter frame-to-raise 'fullscreen 'nil) ; un-fullscreen, in case it is fullscreened, so fullscreen doesn't get 'stuck'
-		(make-frame-invisible frame-to-raise) (make-frame-invisible frame-to-raise)) ; double-tap: one more makes 100% sure
-	  (progn (raise-frame frame-to-raise) ; if equake frame is invisible, raise it
-		 (select-frame frame-to-raise))   ; and select raised-frame
-;		     (setq inhibit-message t))	    ; no messages in buffer - not working
-	  (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)) ; set size accordingly
-; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame
-; if no monitor-relative *EQUAKE* frame exists, make a new frame, rename it, call startup function
-      (progn (equake/orphan-tabs monitorid (buffer-list))  ; orphan any stray EQUAKE tabs/buffers before creating new frame
-	     (equake/remove-screen monitorid equake/tab-list)	; remove stray orphaned tab frames
+    (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
+	  (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
+	  (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
+	  (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
+      (if (equake/equake-frame-p monitorid (frame-list)) ; check if *EQUAKE* frame exists
+	  (let ((frame-to-raise (equake/equake-frame-p monitorid (frame-list)))) ; if so, get frame id
+	    (if (frame-visible-p frame-to-raise) ; then, if equake frame is already raised, make it invisible
+		(progn (set-frame-parameter frame-to-raise 'fullscreen 'nil) ; un-fullscreen, in case it is fullscreened, so fullscreen doesn't get 'stuck'
+		       (make-frame-invisible frame-to-raise) (make-frame-invisible frame-to-raise)) ; double-tap: one more makes 100% sure
+	      (progn (raise-frame frame-to-raise) ; if equake frame is invisible, raise it
+		     (select-frame frame-to-raise)) ; and select raised-frame
+					;		     (setq inhibit-message t))	    ; no messages in buffer - not working
+	      (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)) ; set size accordingly
+					; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame
+					; if no monitor-relative *EQUAKE* frame exists, make a new frame, rename it, call startup function
+	(progn (equake/orphan-tabs monitorid (buffer-list)) ; orphan any stray EQUAKE tabs/buffers before creating new frame
+	       (equake/remove-screen monitorid equake/tab-list) ; remove stray orphaned tab frames
 	       (select-frame (make-frame `((title . ,(concat "*EQUAKE*[" "]")))))
 	       (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]
-       	       (eshell 'N)                         ; create new eshell sessions
+       	       (eshell 'N)		; create new eshell sessions
 	       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
 	       (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
   	       (equake/set-up-eshell-drop-down-terminal)))))) ; execute start-up functions
@@ -203,7 +241,7 @@
 (defun equake/set-up-eshell-drop-down-terminal ()
   "Set-up new *EQUAKE* frame, including cosmetic changes."
   (interactive)
-  (let ((monitorid (format "%s" (cdr (car (frame-monitor-attributes))))))  ; get current screen name
+  (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))  ; get current screen name
 ; OLD tdrop method: ;    (call-process "tdrop" nil 0 nil "-m -y 15 -e '(equake/eshell-drop-down-terminal)'") ; invoke tdrop on emacsclient
 ;    (eshell 'N)                         ; create new eshell sessions
     (set-background-color "#000022")    ; set background colour
@@ -248,7 +286,7 @@
   (set-background-color "#000022")
   (set-foreground-color "#eeeeee")   ; set foreground colour
   (setq inhibit-message t)
-  (let ((monitor  (format "%s" (cdr (car (frame-monitor-attributes))))))
+  (let ((monitor  (equake/get-monitor-name (frame-monitor-attributes))))
   (let ((newhighest (+ 1 (equake/highest-etab monitor (buffer-list) 0))) ; figure out number to be set for the new tab for the current monitor
 	(cur-monitor-tab-list (equake/find-monitor-list monitor equake/tab-list))) ; find the tab-list associated with the current monitor
     (rename-buffer (concat "EQUAKE[" monitor "]" (number-to-string newhighest))) ; rename buffer with monitor id and new tab number
@@ -270,7 +308,7 @@
 
 (defun equake/eshell-after-buffer-change-hook ()
   "Things to do when in Equake when the buffer changes."
-  (let ((monitorid (format "%s" (cdr (car (frame-monitor-attributes))))))
+  (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
     (if (cl-search "EQUAKE[" (buffer-name (current-buffer)))
 	(progn ; get monitor-local list of buffers and send it to be processed for the mode-line
 	  (if equake/show-monitor-in-mode-line ; show monitorid or not
@@ -309,7 +347,7 @@
 (defun equake/eshell-next-tab ()
   "Switch to the next tab."
   (interactive)
-  (let ((monitorid (format "%s" (cdr (car (frame-monitor-attributes))))))
+  (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
   (if (< (equake/count-tabs monitorid (buffer-list) 0) 2)
       (print "No other tab to switch to.")
     (progn
@@ -322,7 +360,7 @@
 (defun equake/eshell-prev-tab ()
   "Switch to the previous tab."
   (interactive)
-  (let ((monitorid (format "%s" (cdr (car (frame-monitor-attributes))))))
+  (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
   (if (< (equake/count-tabs monitorid (buffer-list) 0) 2)
       (print "No other tab to switch to.")
     (progn ; re-use equake/find-next-tab function, first reversing the list
@@ -342,7 +380,7 @@
 
 (defun equake/extract-format-tab-name  (tab)
   "Extract equake tab name and format it for the modeline."
-  (let ((monitor (format "%s" (cdr (car (frame-monitor-attributes))))))
+  (let ((monitor (equake/get-monitor-name (frame-monitor-attributes))))
     (let ((current-etab  (string-to-number (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name (current-buffer))))))
       (if (equal tab current-etab)
 	  (concat "[*" (number-to-string tab) "*] ")  ; 'highlight' current tab

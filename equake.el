@@ -136,7 +136,8 @@
       ;; (save-buffers-kill-emacs)
       (message "Cancelling the closing of the equake console frame")))
 
-(defun check-if-in-equake-frame-before-closing ()
+(defun check-if-in-equake-frame-before-closing 
+()
   "Check if we're in an equake frame."
   (interactive)
   (if (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name))

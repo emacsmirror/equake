@@ -131,10 +131,19 @@
 (defun ask-before-closing-equake ()
   "Make sure user really wants to close equake, ask again."
   (interactive)
-  (if (y-or-n-p (format "Are you sure you want to close the equake console frame?"))
+  (if (y-or-n-p (format "Are you sure you want to close the equake console frame? [Advice: Cancel and use `C-x k` to close the buffer instead.]"))
       (save-buffers-kill-terminal)
       ;; (save-buffers-kill-emacs)
       (message "Cancelling the closing of the equake console frame")))
+
+(defun check-if-in-equake-frame-before-closing ()
+  "Check if we're in an equake frame."
+  (interactive)
+  (if (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name))
+      (ask-before-closing-equake)
+    (save-buffers-kill-terminal)))
+
+(global-set-key (kbd "C-x C-c") 'check-if-in-equake-frame-before-closing)
 
 (defun equake/key-bindings ()
   "Set tab movement bindings."
@@ -144,7 +153,8 @@
   (local-set-key (kbd "C-M-{") 'equake/move-tab-left)
   (local-set-key (kbd "C-M-}") 'equake/move-tab-right)
   (local-set-key (kbd "C-|") 'equake/rename-etab)
-  (local-set-key (kbd "C-x C-x") 'ask-before-closing-equake))
+  ;; (local-set-key (kbd "C-x C-c") 'ask-before-closing-equake)
+  )
 
 (add-hook 'eshell-mode-hook 'equake/key-bindings)
 
@@ -152,7 +162,7 @@
   "Test if *EQUAKE* is an existing frame."
   (let ((frame (car frames)))
     (if frame
-	(if (cl-search (frame-parameter frame 'name) (concat "*EQUAKE*[" monitor "]"))
+	(if (cl-search (concat "*EQUAKE*[" monitor "]") (frame-parameter frame 'name))
 	    frame
 	  (equake/equake-frame-p monitor (cdr frames))))))
 
@@ -167,14 +177,17 @@
     		  (equake/orphan-tabs monitor (cdr buffers)))
 	   (equake/orphan-tabs monitor (cdr buffers))))))
 
-(defun equake/hide-orphaned-tab-frames (frames)
+(defun equake/hide-orphaned-tab-frames (buffers)
   "Delete any stray frame associated with orphaned tabs."
+  ;; now it may work *too* well...more testing required
   (interactive)
-  (let ((frame (car frames)))
-    (if frame
-	(if (cl-search (frame-parameter frame 'name) "orphaned_etab==")
-	    (progn (delete-frame frame)) 
-	  (equake/hide-orphaned-tab-frames (cdr frames))))))
+  (let ((buf (car buffers)))
+    (if buf						    ; if buffer exists ...
+ 	(if (cl-search "orphaned_etab==" (buffer-name buf)) ; if it's named ...
+	    (progn (delete-frame (window-frame (get-buffer-window buf))) ; delete all frames associated with all windows displaying the buffer
+		   (equake/hide-orphaned-tab-frames (cdr buffers)))	 ; cycle on to next buffer in list
+	  (equake/hide-orphaned-tab-frames (cdr buffers))))))		 ; likewise if no hit
+
 
 (defun equake/remove-screen (monitorid tablist)
   "Remove stray screens from equake tab list."
@@ -269,9 +282,8 @@
     (setq equake/tab-list (append equake/tab-list (list (cons monitorid (list 0))))) ; set equake local tab-list to an initial singleton list
     (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)
     (setq inhibit-message t)			    ; no messages in buffer
-    (equake/hide-orphaned-tab-frames (frame-list))) ; hide any stray orphaned tab frames
+    (equake/hide-orphaned-tab-frames (buffer-list))) ; hide any stray orphaned tab frames
   )
-
 
 (defun equake/count-tabs (monitor buffers count)
   "Count current equake tabs on monitor."

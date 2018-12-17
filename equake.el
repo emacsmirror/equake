@@ -127,14 +127,17 @@
 (setq equake/height-percentage 0.4)
 (setq equake/tab-list 'nil)
 
+(setq equake/default-shell 'eshell)
+(setq equake/default-sh-command "/bin/bash")
+
 ;; prevent accidental closure? - set for equake only
 (defun ask-before-closing-equake ()
   "Make sure user really wants to close equake, ask again."
   (interactive)
   (if (y-or-n-p (format "Are you sure you want to close the equake console frame? [Advice: Cancel and use `C-x k` to close the buffer instead.]"))
       (save-buffers-kill-terminal)
-      ;; (save-buffers-kill-emacs)
-      (message "Cancelling the closing of the equake console frame")))
+    ;; (save-buffers-kill-emacs)
+    (message "Cancelling the closing of the equake console frame")))
 
 (defun check-if-in-equake-frame-before-closing 
 ()
@@ -148,9 +151,10 @@
 
 (defun equake/key-bindings ()
   "Set tab movement bindings."
-  (local-set-key (kbd "C-+") 'equake/eshell-new-tab)
-  (local-set-key (kbd "C-{") 'equake/eshell-prev-tab)
-  (local-set-key (kbd "C-}") 'equake/eshell-next-tab)
+  (local-set-key (kbd "C-+") 'equake/new-tab)
+  (local-set-key (kbd "C-M-+") 'equake/new-tab-different-shell)  
+  (local-set-key (kbd "C-{") 'equake/prev-tab)
+  (local-set-key (kbd "C-}") 'equake/next-tab)
   (local-set-key (kbd "C-M-{") 'equake/move-tab-left)
   (local-set-key (kbd "C-M-}") 'equake/move-tab-right)
   (local-set-key (kbd "C-|") 'equake/rename-etab)
@@ -158,8 +162,10 @@
   )
 
 (add-hook 'eshell-mode-hook 'equake/key-bindings)
+(add-hook 'term-mode-hook 'equake/key-bindings)
+(add-hook 'shell-mode-hook 'equake/key-bindings)
 
-(defun equake/equake-frame-p (monitor frames)  ;;; TEST
+(defun equake/equake-frame-p (monitor frames) ;;; TEST
   "Test if *EQUAKE* is an existing frame."
   (let ((frame (car frames)))
     (if frame
@@ -238,12 +244,12 @@
   (let ((ypos (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
     (car (cdr ypos))))
 
-(defun equake/eshell-drop-down-terminal ()
-  "Set up eshell as a drop-drop terminal. Run with \"emacsclient -c -e '(equake/eshell-drop-down-terminal)\"."
+(defun equake/emacs-dropdown-console ()
+  "Set up an emacs drop-drop console. Run with \"emacsclient -c -e '(equake/emacs-dropdown-console)\"."
   (interactive)
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
     (if (equal (frame-parameter (selected-frame) 'name) "transientframe") ; for multi-monitor hack getting terminal on correct monitor (at least on KDE Plasma 5)
-					; launch with: emacsclient -n -c -F '((name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))' -e '(equake/eshell-drop-down-terminal)'
+					; launch with: emacsclient -n -c -F '((name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))' -e '(equake/emacs-dropdown-console)'
 	(progn 	       (setq inhibit-message t)
 		       (delete-frame))) ; get rid of transient frame as soon as possible
     (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
@@ -265,24 +271,40 @@
 	       (equake/remove-screen monitorid equake/tab-list) ; remove stray orphaned tab frames
 	       (select-frame (make-frame `((title . ,(concat "*EQUAKE*[" "]")))))
 	       (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]
-       	       (eshell 'N)		; create new eshell sessions
+	       (equake/launch-shell)				   ; launch new shell
 	       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
 	       (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
-  	       (equake/set-up-eshell-drop-down-terminal)))))) ; execute start-up functions
+  	       (equake/set-up-equake-frame)))))) ; execute start-up functions
 
-(defun equake/set-up-eshell-drop-down-terminal ()
+(defun equake/launch-shell (&optional override)
+  "Launch a new shell session."
+  (interactive)
+  (let ((launchshell equake/default-shell))
+    (if override
+	(setq launchshell override))
+    (cond ((equal launchshell 'eshell)
+	   (eshell 'N))
+	  ((equal launchshell 'ansi-term)
+	   (ansi-term equake/default-sh-command))
+	  ((equal launchshell 'term)
+	   (term equake/default-sh-command))
+	  ((equal launchshell 'shell)
+	   (shell)
+	   (delete-other-windows)))))
+
+(defun equake/set-up-equake-frame ()
   "Set-up new *EQUAKE* frame, including cosmetic changes."
   (interactive)
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes)))) ; get current screen name
-					; OLD tdrop method: ;    (call-process "tdrop" nil 0 nil "-m -y 15 -e '(equake/eshell-drop-down-terminal)'") ; invoke tdrop on emacsclient
+					; OLD tdrop method: ;    (call-process "tdrop" nil 0 nil "-m -y 15 -e '(equake/emacs-dropdown-console)'") ; invoke tdrop on emacsclient
 					;    (eshell 'N)                         ; create new eshell sessions
     (set-background-color "#000022")    ; set background colour
     (set-foreground-color "#eeeeee")	; set foreground colour
-    (rename-buffer (concat "EQUAKE[" monitorid "]0%") )	; set buffer/tab-name
+    (rename-buffer (concat "EQUAKE[" monitorid "]0%") )	     ; set buffer/tab-name
     (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars      
     (setq equake/tab-list (append equake/tab-list (list (cons monitorid (list 0))))) ; set equake local tab-list to an initial singleton list
     (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)
-    (setq inhibit-message t)			    ; no messages in buffer
+    (setq inhibit-message t)			     ; no messages in buffer
     (equake/hide-orphaned-tab-frames (buffer-list))) ; hide any stray orphaned tab frames
   )
 
@@ -313,13 +335,22 @@
 		  (equake/highest-etab monitor buffend highest)))
 	  ((not (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg)))
 	   (equake/highest-etab monitor buffend highest)))))
-    
-(defun equake/eshell-new-tab ()
-  "Open a new eshell tab on monitor."
+
+(defun equake/new-tab-different-shell ()
+  "Open a new shell tab, but using a shell different from the default."
   (interactive)
-  (eshell 'N)				; create new eshell buffer
+  (let ((shells '("eshell" "ansi-term" "term" "shell")))
+    (equake/new-tab (intern (message "%s" (ido-completing-read "Choose shell:" shells )))))
+  )
+
+(defun equake/new-tab (&optional override)
+  "Open a new shell tab on monitor."
+  (interactive)
+  (if override
+      (equake/launch-shell override) 	; launch with specified shell if set
+    (equake/launch-shell)) 		; otherwise, launch shell normally
   (set-background-color "#000022")
-  (set-foreground-color "#eeeeee")	; set foreground colour
+  (set-foreground-color "#eeeeee")			   ; set foreground colour
   (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars  
   (setq inhibit-message t)
   (let ((monitor  (equake/get-monitor-name (frame-monitor-attributes))))
@@ -344,7 +375,7 @@
 
 (setq equake/show-monitor-in-mode-line t) ; whether or not to prepend monitor id to mode-line before tabs
 
-(defun equake/eshell-after-buffer-change-hook ()
+(defun equake/shell-after-buffer-change-hook ()
   "Things to do when in Equake when the buffer changes."
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
     (if (cl-search "EQUAKE[" (buffer-name (current-buffer)))
@@ -359,7 +390,7 @@
 	     ;; (set-frame-parameter (selected-frame) 'menu-bar-lines 1)
 	     (setq mode-line-format equake/restore-mode-line)))))  ; restore 'real' mode-line to non-EQUAKE frames
 
-(add-hook 'buffer-list-update-hook 'equake/eshell-after-buffer-change-hook)
+(add-hook 'buffer-list-update-hook 'equake/shell-after-buffer-change-hook)
 
 (defun equake/kill-etab-buffer-hook ()
   "Things to do when an Equake buffer is killed."  ; TODO: prevent last equake tab from being killed!
@@ -427,7 +458,7 @@
   (let ((current-etab (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitorid "]") (buffer-name (current-buffer))))))) ; get local tab number
     (equake/move-tab monitorid equake/tab-list current-etab -1)))) ; call general tab move function
 
-(defun equake/eshell-next-tab ()
+(defun equake/next-tab ()
   "Switch to the next tab."
   (interactive)
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
@@ -440,7 +471,7 @@
 		(switch-to-buffer (equake/find-buffer-by-monitor-and-tabnumber monitorid (car (cdr (equake/find-monitor-list monitorid equake/tab-list))) (buffer-list)))
 	      (switch-to-buffer (equake/find-buffer-by-monitor-and-tabnumber monitorid next-tab (buffer-list))))))))))
 
-(defun equake/eshell-prev-tab ()
+(defun equake/prev-tab ()
   "Switch to the previous tab."
   (interactive)
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
@@ -478,7 +509,7 @@
   "Content of mode-line for equake (show tabs)."
   (let ((curtab (car (cdr buffers))))
     (if (equal curtab 'nil)
-	modelinestring
+	(list modelinestring (concat "((" (format "%s" major-mode) ")) "))
       (progn (setq modelinestring (concat modelinestring (equake/extract-format-tab-name curtab))) ; get name/number for tab in mode-line format
 	     (equake/mode-line modelinestring (cdr buffers)))))) ; go on to next tab
 

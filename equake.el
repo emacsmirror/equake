@@ -313,7 +313,7 @@
 	  (car tabs)
 	(equake/find-monitor-list monitor (cdr tabs)))))
 
-(setq equake/show-monitor-in-mode-line 'nil) ; whether or not to prepend monitor id to mode-line before tabs
+(setq equake/show-monitor-in-mode-line t) ; whether or not to prepend monitor id to mode-line before tabs
 
 (defun equake/eshell-after-buffer-change-hook ()
   "Things to do when in Equake when the buffer changes."
@@ -321,7 +321,7 @@
     (if (cl-search "EQUAKE[" (buffer-name (current-buffer)))
 	(progn ; get monitor-local list of buffers and send it to be processed for the mode-line
 	  (if equake/show-monitor-in-mode-line ; show monitorid or not
-	      (setq mode-line-format (list (equake/mode-line monitorid (equake/find-monitor-list monitorid equake/tab-list))))
+	      (setq mode-line-format (list (equake/mode-line (concat monitorid ": ") (equake/find-monitor-list monitorid equake/tab-list))))
 	    	      (setq mode-line-format (list (equake/mode-line "" (equake/find-monitor-list monitorid equake/tab-list)))))
 	  (force-mode-line-update)
 	  (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars

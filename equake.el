@@ -244,6 +244,15 @@
   (let ((ypos (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
     (car (cdr ypos))))
 
+(defun equake/kill-stray-transient-frames (frames)
+  "Destroy any stray transient frames."
+  (interactive)
+  (let ((frame (car frames)))
+    (if frame
+	(if (cl-search "transientframe" (frame-parameter frame 'name))
+	    (delete-frame frame))
+      (equake/kill-stray-transient-frames (cdr frames)))))
+
 (defun equake/emacs-dropdown-console ()
   "Set up an emacs drop-drop console. Run with \"emacsclient -c -e '(equake/emacs-dropdown-console)\"."
   (interactive)
@@ -272,6 +281,7 @@
 	       (select-frame (make-frame `((title . ,(concat "*EQUAKE*[" "]")))))
 	       (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]
 	       (equake/launch-shell)				   ; launch new shell
+	       (equake/kill-stray-transient-frames (frame-list))   ; get rid of any lingering transient frames
 	       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
 	       (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
   	       (equake/set-up-equake-frame)))))) ; execute start-up functions

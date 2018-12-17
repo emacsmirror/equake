@@ -304,7 +304,9 @@
       (setq equake/tab-list (remove cur-monitor-tab-list equake/tab-list)) ; remove old monitor tab-list from global equake tab list
       (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (append (cdr cur-monitor-tab-list) (list newhighest)))) ; pull into car (=monitor name) and cdr (=tab list); append newhighest to tab list and then cons monitor name and tab list back together
       (setq equake/tab-list (append equake/tab-list (list cur-monitor-tab-list)))
-      (setq mode-line-format (list (equake/mode-line "" cur-monitor-tab-list))))))
+      (if equake/show-monitor-in-mode-line ; show monitorid or not
+	  (setq mode-line-format (list (equake/mode-line (concat monitor ": ") (equake/find-monitor-list monitor equake/tab-list))))
+	(setq mode-line-format (list (equake/mode-line "" (equake/find-monitor-list monitor equake/tab-list))))))))
 
 (defun equake/find-monitor-list (monitor tabs)
   "Return the relevant list member associated with monitor/screen."

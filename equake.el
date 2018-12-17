@@ -1,14 +1,25 @@
-;;; equake.el --- Quake-style drop-drop terminal using eshell.
+;;; equake.el --- Quake-style drop-drop console implemented in Emacs
+
+;; *EQUAKE* - emacs shell dropdown console
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                         _         ;;;
+;;   ___  __ _ _   _  __ _| | _____  ;;;
+;;  / _ \/ _` | | | |/ _` | |/ / _ \ ;;;
+;; |  __/ (_| | |_| | (_| |   <  __/ ;;;
+;;  \___|\__, |\__,_|\__,_|_|\_\___| ;;;
+;;          |_|                      ;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Copyright (C) 2018 Benjamin Slade
 
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
 ;; URL: TODO
-;; Package-Version: 0.1
-;; Version: 0.1
+;; Package-Version: 0.2
+;; Version: 0.2
 ;; Created: 2018-12-12
-;; Keywords: eshell, dropdown, terminal,
+;; Keywords: shell, eshell, term, dropdown, terminal, console
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -29,70 +40,41 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Commentary:
+;;; COMMENTARY
+;; This package is designed to recreate a drop-down console fully
+;; within Emacs, ideally using eshell. It has multi-tab functionality,
+;; and the tabs can be moved and renamed. Different shells can be
+;; opened and used in different tabs. It is designed to be sensitive
+;; to which screen/monitor it is opened on and to maintain separate
+;; tabs for separate screens (though this is still a bit beta-y).
 
-;;; TODO
+;; INSTALLATION
+;; Right now, clone the git repo somewhere and put it in your
+;; load-path, e.g., add something like this to your init.el:
+;; (add-to-list 'load-path
+;;             "~/.emacs.d/equake/")
+;;  (require 'equake)
 
-;; This library display remote user, remote host, python virtual
-;; environment info, git branch, git dirty info and git unpushed
-;; number for eshell prompt.
-
-;; If you want to display the python virtual environment info, you
-;; need to install `virtualenvwrapper' and `virtualenvwrapper.el'.
-;; pip install virtualenvwrapper
-;; M-x: package-install: virtualenvwrapper
-
-;; Installation
-;; TODO
-;; It is recommended installed by the ELPA package system.
-;; You could install it by M-x: with
-;; package-install: eshell-prompt-extras.
-
-;; Usage
-;; TODO
-;; before emacs24.4
-;; (eval-after-load 'esh-opt
-;;   (progn
-;;     (autoload 'epe-theme-lambda "eshell-prompt-extras")
-;;     (setq eshell-highlight-prompt nil
-;;           eshell-prompt-function 'epe-theme-lambda)))
+;; USAGE
+;; Run with "emacsclient -c -e '(equake/emacs-dropdown-console)",
+;; after launched an Emacs daemon of course.
+;; I recommend binding this command to a key like F12 in your DE/WM.
+;; Executing this command will create a new equake console
+;; on your screen the first time, and subsequently toggle
+;; the console (i.e. hide or show it).
 ;;
-;; If you want to display python virtual environment information:
-;; (eval-after-load 'esh-opt
-;;   (progn
-;;     (require 'virtualenvwrapper)
-;;     (venv-initialize-eshell)
-;;     (autoload 'epe-theme-lambda "eshell-prompt-extras")
-;;     (setq eshell-highlight-prompt nil
-;;           eshell-prompt-function 'epe-theme-lambda)))
-
-;; after emacs24.4
-;; (with-eval-after-load "esh-opt"
-;;   (autoload 'epe-theme-lambda "eshell-prompt-extras")
-;;   (setq eshell-highlight-prompt nil
-;;         eshell-prompt-function 'epe-theme-lambda))
+;; It works with eshell, ansi-term, term, shell. But it was
+;; really designed to work with eshell, which is the default.
+;; New console tabs can be specified to open with a shell
+;; other than the default shell.
 ;;
-;; If you want to display python virtual environment information:
-;; (with-eval-after-load "esh-opt"
-;;   (require 'virtualenvwrapper)
-;;   (venv-initialize-eshell)
-;;   (autoload 'epe-theme-lambda "eshell-prompt-extras")
-;;   (setq eshell-highlight-prompt nil
-;;         eshell-prompt-function 'epe-theme-lambda))
+;; Equake is designed to work with multi-screen setups.
+;; Although this is still a bit finicky. But you can try
+;; running it with:
+;; "emacsclient -n -c -F '((name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))' -e '(equake/emacs-dropdown-console)'"
+;; Although this may be a bit slower to hide/show the console.
 
-;;; Code:
-;; *EQUAKE* - eshell dropdown
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                         _         ;;;
-;;   ___  __ _ _   _  __ _| | _____  ;;;
-;;  / _ \/ _` | | | |/ _` | |/ / _ \ ;;;
-;; |  __/ (_| | |_| | (_| |   <  __/ ;;;
-;;  \___|\__, |\__,_|\__,_|_|\_\___| ;;;
-;;          |_|                      ;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; TODO:
+;; TODO
 ;; 1. pull out hard-coded values and create defcustom's for them:
 ;;   (a) width & height percentages
 ;;   (b) foreground and background colours
@@ -117,6 +99,9 @@
 ;;   New comments: Doesn't really work on stumpwm, it seems. Trouble also on awesomewm.
 ;;               also trouble if monitor-attributes doesn't include name [as on TP X200]
 ;;               now falls back to using geometry field as name in that case, hopefully unique
+;;
+;;; CODE
+;;
 
 (require 'cl-lib)
 (require 'subr-x)
@@ -134,16 +119,15 @@
 (defun ask-before-closing-equake ()
   "Make sure user really wants to close equake, ask again."
   (interactive)
-  (if (y-or-n-p (format "Are you sure you want to close the equake console frame? [Advice: Cancel and use `C-x k` to close the buffer instead.]"))
+  (if (y-or-n-p (format "Are you sure you want to close the equake console frame? [Advice: Cancel and use `C-x k` to close the buffer instead, returning to your shell session.]"))
       (save-buffers-kill-terminal)
     ;; (save-buffers-kill-emacs)
     (message "Cancelling the closing of the equake console frame")))
 
-(defun check-if-in-equake-frame-before-closing 
-()
+(defun check-if-in-equake-frame-before-closing ()
   "Check if we're in an equake frame."
-  (interactive)
-  (if (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name))
+    (interactive)
+    (if (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name))
       (ask-before-closing-equake)
     (save-buffers-kill-terminal)))
 

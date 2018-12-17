@@ -103,8 +103,10 @@
 ;;   (b) calls a transient frame on the relevant monitor, which launches equake;
 ;;       this has the draw back of being significantly slower, and sometimes
 ;;       brief artefacts can be seen (i.e. the transient frame).
+;;   And (b) doesn't seem to work very well/consistently.
 ;; 4. Maybe do something to (optionally) silence the minibuffer?
 ;;    (setq inhibit-message t) doesn't seem to help
+;;    But it's probably fine as is.
 ;; 5. Test on:
 ;;    (a) Wayland
 ;;    (b) MacOS
@@ -143,9 +145,6 @@
 	(if (cl-search (frame-parameter frame 'name) (concat "*EQUAKE*[" monitor "]"))
 	    frame
 	  (equake/equake-frame-p monitor (cdr frames))))))
-      
-	      ;; ((not (cl-search (frame-parameter frame 'name) (concat "*EQUAKE*[" monitor "]")))
-	      ;;  (equake/equake-frame-p monitor (cdr frames))))))
 
 (defun equake/orphan-tabs (monitor buffers)   ;;; TEST
   "Rename orphaned equake tabs."
@@ -426,17 +425,17 @@
 "Find the name of an equake buffer given a monitor/screen name and tab number."
  (let ((buffbeg (car buffers))
        (buffend (cdr buffers))
-       (name-skeleton (concat "EQUAKE\\[" monitor "\\]" (number-to-string tabnum) "%"))) 
-   (cond ((equal buffbeg 'nil)
-	  message "Error! No such screen-tag pair exists!")
-	 ((string-match-p name-skeleton (buffer-name buffbeg))
-	  buffbeg)
-	 (t (equake/find-buffer-by-monitor-and-tabnumber monitor tabnum buffend)))))
+       (name-skeleton (concat "EQUAKE\\[" monitor "\\]" (number-to-string tabnum) "%"))) ; buffer template matching everything before %+following characters
+   (cond ((equal buffbeg 'nil)				    ; if we're out of buffers
+	  message "Error! No such screen-tag pair exists!")    ; in case of trouble, please panic
+	 ((string-match-p name-skeleton (buffer-name buffbeg)) ; if buffer name matches matches skeleton, i.e. everything before %+following characters
+	  buffbeg)					       ; then return that buffer
+	 (t (equake/find-buffer-by-monitor-and-tabnumber monitor tabnum buffend))))) ; go on to next buffer
 
 (defun equake/rename-etab ()
 "Rename current equake tab."
 (interactive)
-(let ((buffer-prefix (replace-regexp-in-string "%[[:alnum:]]*" "" (buffer-name (current-buffer)))))
+(let ((buffer-prefix (replace-regexp-in-string "%\.*" "" (buffer-name (current-buffer))))) ; get everything before the '%' and any characters that follow it
   (let ((newname (read-string "Enter a new tab name: ")))
     ;; (message "New name is %s" newname)
     (rename-buffer (concat buffer-prefix "%" newname)))))
@@ -447,17 +446,17 @@
   (let ((curtab (car (cdr buffers))))
     (if (equal curtab 'nil)
 	modelinestring
-      (progn (setq modelinestring (concat modelinestring (equake/extract-format-tab-name curtab)))
-	     (equake/mode-line modelinestring (cdr buffers))))))
+      (progn (setq modelinestring (concat modelinestring (equake/extract-format-tab-name curtab))) ; get name/number for tab in mode-line format
+	     (equake/mode-line modelinestring (cdr buffers)))))) ; go on to next tab
 
 (defun equake/extract-format-tab-name  (tab)
   "Extract equake tab name and format it for the modeline."
   (let ((monitor (equake/get-monitor-name (frame-monitor-attributes))))
-    (let ((current-etab  (string-to-number (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name (current-buffer))))))
-      (let ((etab-name (string-remove-prefix (concat "EQUAKE[" monitor "]" (number-to-string tab) "%") (buffer-name (equake/find-buffer-by-monitor-and-tabnumber monitor tab (buffer-list))))))
-	(if (equal etab-name "")
-	    (setq etab-name (number-to-string tab)))
-	(if (equal tab current-etab)
+    (let ((current-etab  (string-to-number (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name (current-buffer)))))) ; get the tab number of the current buffer
+      (let ((etab-name (string-remove-prefix (concat "EQUAKE[" monitor "]" (number-to-string tab) "%") (buffer-name (equake/find-buffer-by-monitor-and-tabnumber monitor tab (buffer-list)))))) ; find the name of the tab
+	(if (equal etab-name "") 	; if the name is null string
+	    (setq etab-name (number-to-string tab))) ; set name to tab number
+	(if (equal tab current-etab)		     
 	    (concat "[*" etab-name "*] ") ; 'highlight' current tab
 	  (concat "[" etab-name "] "))))))
 

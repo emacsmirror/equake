@@ -56,7 +56,7 @@
 ;;  (require 'equake)
 
 ;; USAGE
-;; Run with "emacsclient -c -e '(equake/emacs-dropdown-console)",
+;; Run with "emacsclient -e '(equake/emacs-dropdown-console)'",
 ;; after launched an Emacs daemon of course.
 ;; I recommend binding this command to a key like F12 in your DE/WM.
 ;; Executing this command will create a new equake console
@@ -68,11 +68,8 @@
 ;; New console tabs can be specified to open with a shell
 ;; other than the default shell.
 ;;
-;; Equake is designed to work with multi-screen setups.
-;; Although this is still a bit finicky. But you can try
-;; running it with:
-;; "emacsclient -n -c -F '((name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))' -e '(equake/emacs-dropdown-console)'"
-;; Although this may be a bit slower to hide/show the console.
+;; Equake is designed to work with multi-screen setups,
+;; with a different set of tabs for each screen.
 ;;
 ;; You'll probably also want to configure your WM/DE to
 ;; ignore the window in the task manager etc. and
@@ -284,7 +281,7 @@
 	       (equake/kill-stray-transient-frames (cdr frames))))))
 
 (defun equake/emacs-dropdown-console ()
-  "Set up an emacs drop-drop console. Run with \"emacsclient -c -e '(equake/emacs-dropdown-console)\"."
+  "Set up an emacs drop-drop console. Run with \"emacsclient -e '(equake/emacs-dropdown-console)'\"."
   (interactive)
   (select-frame (make-frame `('(name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))))
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))

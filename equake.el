@@ -246,10 +246,12 @@
   (let ((name (equake/get-monitor-property "name" (frame-monitor-attributes))))
     (if name
 	name
-      (let ((name (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
-	(if name
-	    (format "%s" name)
-	  (message "screen-id error!"))))))
+      ;; (let ((name (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
+      ;; 	(if name
+      ;; 	    (format "%s" name)
+      (message "screen-id error! %s" name)))) ; seems to occur when mouse is on one desktop but focus is on the other
+;; )) 
+
 
 (defun equake/get-monitor-width (attributes)
   "Get the width of the current monitor/screen."
@@ -283,7 +285,10 @@
 (defun equake/emacs-dropdown-console ()
   "Set up an emacs drop-drop console. Run with \"emacsclient -e '(equake/emacs-dropdown-console)'\"."
   (interactive)
+  (let ((mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x- & y-positions
+	(mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes))))
   (select-frame (make-frame `('(name . "transientframe") (alpha . (100 . 100)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))))
+  (set-frame-position (selected-frame) mon-xpos mon-ypos)) ; set to upper left-hand corner of current(!) monitor
   (let ((tranframe (selected-frame))
 	(monitorid (equake/get-monitor-name (frame-monitor-attributes))))
     (set-frame-name "transientframe")
@@ -301,12 +306,15 @@
 			   (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
 			   (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
 			   (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
+		       ;; (set-frame-size (selected-frame) 1 1 t)
+		       (make-frame-invisible frame-to-raise) (make-frame-invisible frame-to-raise) ; double-tap: one more makes 100% sure
+		       (make-frame-visible frame-to-raise)
 		       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)))) ; set size accordingly
 					; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame
 					; if no monitor-relative *EQUAKE* frame exists, make a new frame, rename it, call startup function
-	(progn (equake/orphan-tabs monitorid (buffer-list)) 
-	       (setq equake/tab-list (remove (equake/find-monitor-list monitorid equake/tab-list) equake/tab-list))
-	      (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]	      	       
+	(progn (setq equake/tab-list (remove (equake/find-monitor-list monitorid equake/tab-list) equake/tab-list))
+	       (equake/orphan-tabs monitorid (buffer-list)) 
+	       (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]	      	       
 	       (let ((newequakeframe (selected-frame))) ; orphan any stray EQUAKE tabs/buffers before creating new frame
 		 (equake/remove-screen monitorid equake/tab-list)
 		 (equake/kill-stray-transient-frames (frame-list))

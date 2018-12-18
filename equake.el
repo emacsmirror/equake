@@ -19,7 +19,7 @@
 ;; Package-Version: 0.2
 ;; Version: 0.2
 ;; Created: 2018-12-12
-;; Keywords: shell, eshell, term, dropdown, terminal, console
+;; Keywords: shell, eshell, term, dropdown, terminal, console, quake
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -73,6 +73,36 @@
 ;; running it with:
 ;; "emacsclient -n -c -F '((name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))' -e '(equake/emacs-dropdown-console)'"
 ;; Although this may be a bit slower to hide/show the console.
+;;
+;; You'll probably also want to configure your WM/DE to
+;; ignore the window in the task manager etc. and
+;; have no titlebar or frame
+
+;; In KDE Plasma 5:
+;; systemsettings > Window Management > Window Rules:
+;; Button: New
+;; 
+;; In Window matching tab:
+;; Description: equake rules
+;; Window types: Normal Window
+;; Window title: Substring Match : *EQUAKE*
+;;
+;; In Arrangement & Access tab:
+;; Check: 'Keep above' - Force - Yes
+;; Check: 'Skip taskbar' - Force - Yes
+;; Check: 'Skip switcher' - Force - Yes
+;;
+;; In Appearance & Fixes tab:
+;; Check: 'No titlebar and frame' - Force - Yes
+;; 
+;; In awesomewm, probably adding to your 'Rules' something
+;; like this:
+;; 
+;; { rule = { instance = "*EQUAKE*", class = "Emacs" },      
+;;    properties = { titlebars_enabled = false } },
+;; 
+;; In stumpwm, I'm not sure: it doesn't seem to respect
+;; Emacs frame settings.
 
 ;; TODO
 ;; 1. pull out hard-coded values and create defcustom's for them:
@@ -93,7 +123,7 @@
 ;;    (a) Wayland
 ;;    (b) MacOS
 ;;    (c) Windows
-;;   Comments: In theory it should work on Mac & Windows, since frame.el.gz defines
+;;   Comments: In theory it should work on Mac & Windows, since frame.el defines
 ;;             frame-types 'ns (=Next Step) and 'w32 (=Windows). Maybe even on
 ;;             Wayland via Xwayland?
 ;;   New comments: Doesn't really work on stumpwm, it seems. Trouble also on awesomewm.
@@ -265,7 +295,7 @@
 	       (select-frame (make-frame `((title . ,(concat "*EQUAKE*[" "]")))))
 	       (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]
 	       (equake/launch-shell)				   ; launch new shell
-	       (equake/kill-stray-transient-frames (frame-list))   ; get rid of any lingering transient frames
+	       ;; (equake/kill-stray-transient-frames (frame-list))   ; get rid of any lingering transient frames  --- 'too' good right now
 	       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
 	       (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
   	       (equake/set-up-equake-frame)))))) ; execute start-up functions
@@ -503,7 +533,7 @@
   "Content of mode-line for equake (show tabs)."
   (let ((curtab (car (cdr buffers))))
     (if (equal curtab 'nil)
-	(list modelinestring (concat "((" (format "%s" major-mode) ")) "))
+	(list modelinestring (propertize (concat "((" (format "%s" major-mode) ")) ") 'font-lock-face '(:foreground "green" :background "gray20")))
       (progn (setq modelinestring (concat modelinestring (equake/extract-format-tab-name curtab))) ; get name/number for tab in mode-line format
 	     (equake/mode-line modelinestring (cdr buffers)))))) ; go on to next tab
 
@@ -515,8 +545,8 @@
 	(if (equal etab-name "") 	; if the name is null string
 	    (setq etab-name (number-to-string tab))) ; set name to tab number
 	(if (equal tab current-etab)		     
-	    (concat "[*" etab-name "*] ") ; 'highlight' current tab
-	  (concat "[" etab-name "] "))))))
+	    (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face '(:foreground "black" :background "lightblue")) " ") ; 'highlight' current tab
+	  (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face '(:foreground "lightblue" :background "black")) " "))))))
 
 (provide 'equake)
 

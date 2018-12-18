@@ -283,8 +283,9 @@
 (defun equake/emacs-dropdown-console ()
   "Set up an emacs drop-drop console. Run with \"emacsclient -e '(equake/emacs-dropdown-console)'\"."
   (interactive)
-  (select-frame (make-frame `('(name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))))
-  (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
+  (select-frame (make-frame `('(name . "transientframe") (alpha . (100 . 100)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))))
+  (let ((tranframe (selected-frame))
+	(monitorid (equake/get-monitor-name (frame-monitor-attributes))))
     (set-frame-name "transientframe")
     (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
       (if (equake/equake-frame-p monitorid (frame-list)) ; check if *EQUAKE* frame exists
@@ -302,21 +303,23 @@
 		       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)))) ; set size accordingly
 					; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame
 					; if no monitor-relative *EQUAKE* frame exists, make a new frame, rename it, call startup function
-	(progn (equake/orphan-tabs monitorid (buffer-list)) ; orphan any stray EQUAKE tabs/buffers before creating new frame
-	      (equake/remove-screen monitorid equake/tab-list) ; remove stray orphaned tab frames
-	       (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]
-	       (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
-		     (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
-		     (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
-		     (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
-		 (equake/launch-shell)	; launch new shell
-		 (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))      		 
-		 (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
-		 (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
-  		 (equake/set-up-equake-frame)
+	(progn (setq equake/tab-list (remove (equake/find-monitor-list monitorid equake/tab-list) equake/tab-list))
+	       (let ((newequakeframe (selected-frame))) ; orphan any stray EQUAKE tabs/buffers before creating new frame
+		 (equake/orphan-tabs monitorid (buffer-list)) 
+		 (equake/remove-screen monitorid equake/tab-list)
+		 (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]
 		 (equake/kill-stray-transient-frames (frame-list))
-		 ))))))	; execute start-up functions
-
+		 (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
+		       (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
+		       (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
+		       (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
+		   (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))      		 
+		   (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
+		   (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
+		   (equake/launch-shell) ; launch new shell
+  		   (equake/set-up-equake-frame)
+		   (equake/kill-stray-transient-frames (frame-list))
+		   )))))))	; execute start-up functions
 
 
 (defun equake/launch-shell (&optional override)
@@ -341,16 +344,21 @@
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes)))) ; get current screen name
 					; OLD tdrop method: ;    (call-process "tdrop" nil 0 nil "-m -y 15 -e '(equake/emacs-dropdown-console)'") ; invoke tdrop on emacsclient
 					;    (eshell 'N)                         ; create new eshell sessions
-    (set-background-color "#000022")    ; set background colour
-    (set-foreground-color "#eeeeee")	; set foreground colour
-    (rename-buffer (concat "EQUAKE[" monitorid "]0%") )	     ; set buffer/tab-name
-    (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
-    (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))      
-    (setq equake/tab-list (append equake/tab-list (list (cons monitorid (list 0))))) ; set equake local tab-list to an initial singleton list
-    (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)
-    (setq inhibit-message t)			     ; no messages in buffer
-    ;; (equake/hide-orphaned-tab-frames (buffer-list))) ; hide any stray orphaned tab frames
-  ))
+    (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
+	  (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
+	  (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
+	  (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position)
+      (set-background-color "#000022")			  ; set background colour
+      (set-foreground-color "#eeeeee")			  ; set foreground colour
+      (rename-buffer (concat "EQUAKE[" monitorid "]0%") ) ; set buffer/tab-name
+      (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
+      (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))      
+      (setq equake/tab-list (append equake/tab-list (list (cons monitorid (list 0))))) ; set equake local tab-list to an initial singleton list
+      (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
+      (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
+      (setq inhibit-message t)		; no messages in buffer
+      ;; (equake/hide-orphaned-tab-frames (buffer-list))) ; hide any stray orphaned tab frames
+      )))
 
 (defun equake/count-tabs (monitor buffers count)
   "Count current equake tabs on monitor."
@@ -536,7 +544,7 @@
        (buffend (cdr buffers))
        (name-skeleton (concat "EQUAKE\\[" monitor "\\]" (number-to-string tabnum) "%"))) ; buffer template matching everything before %+following characters
    (cond ((equal buffbeg 'nil)				    ; if we're out of buffers
-	  message "Error! No such screen-tag pair exists!")    ; in case of trouble, please panic
+	  (message "Error! No such screen-tag pair exists!"))    ; in case of trouble, please panic
 	 ((string-match-p name-skeleton (buffer-name buffbeg)) ; if buffer name matches matches skeleton, i.e. everything before %+following characters
 	  buffbeg)					       ; then return that buffer
 	 (t (equake/find-buffer-by-monitor-and-tabnumber monitor tabnum buffend))))) ; go on to next buffer

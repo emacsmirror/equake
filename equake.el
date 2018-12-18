@@ -15,7 +15,7 @@
 
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
-;; URL: TODO
+;; URL: https://gitlab.com/emacsomancer/equake
 ;; Package-Version: 0.2
 ;; Version: 0.2
 ;; Created: 2018-12-12
@@ -113,22 +113,33 @@
 ;; 3. possibly improve invocation: currently two choices:
 ;;   (a) needs to have an emacsclient open already on the monitor in order to work
 ;;   (b) calls a transient frame on the relevant monitor, which launches equake;
-;;       this has the draw back of being significantly slower, and sometimes
+;;       this has the drawback of being significantly slower, and sometimes
 ;;       brief artefacts can be seen (i.e. the transient frame).
 ;;   And (b) doesn't seem to work very well/consistently.
 ;; 4. Maybe do something to (optionally) silence the minibuffer?
 ;;    (setq inhibit-message t) doesn't seem to help
 ;;    But it's probably fine as is.
-;; 5. Test on:
-;;    (a) Wayland
-;;    (b) MacOS
-;;    (c) Windows
+;; 5. Saving layouts/tabs? 
+;; 6. Test on:
+;;    (a) Wayland -- seems to work ok on Gnome Shell Wayland
+;;    (b) MacOS -- ??
+;;    (c) Windows -- ??
 ;;   Comments: In theory it should work on Mac & Windows, since frame.el defines
 ;;             frame-types 'ns (=Next Step) and 'w32 (=Windows). Maybe even on
-;;             Wayland via Xwayland?
-;;   New comments: Doesn't really work on stumpwm, it seems. Trouble also on awesomewm.
-;;               also trouble if monitor-attributes doesn't include name [as on TP X200]
-;;               now falls back to using geometry field as name in that case, hopefully unique
+;;             Wayland via Xwayland? Yep, seems to work fine via Xwayland
+;;   New comments: Doesn't really work on stumpwm, it seems. Trouble also on awesomewm:
+;;                   awesomewm erros:
+;; [   340.103667 ] error    3 BadWindow    request    2 minor    0 serial  20360: "BadWindow (invalid Window parameter)"
+;; [   340.103720 ] error    3 BadWindow    request    2 minor    0 serial  20360: "BadWindow (invalid Window parameter)"
+;; [   340.103741 ] error    3 BadWindow    request  129 minor    6 serial  20360: "BadWindow (invalid Window parameter)"
+;; [   340.119921 ] error    3 BadWindow    request    2 minor    0 serial  20365: "BadWindow (invalid Window parameter)"
+;; [   340.119961 ] error    3 BadWindow    request    2 minor    0 serial  20365: "BadWindow (invalid Window parameter)"
+;; [   340.119986 ] error    3 BadWindow    request  129 minor    6 serial  20365: "BadWindow (invalid Window parameter)"
+;; [   340.202927 ] error  152 XCB_DAMAGE_BAD_DAMAGE request  143 minor    2 serial  20375: "152"
+;; [   340.236201 ] error  152 XCB_DAMAGE_BAD_DAMAGE request  143 minor    2 serial  20407: "152"
+;; 
+;;   Other issues:  also trouble if monitor-attributes doesn't include name [as on TP X200]
+;;        hanged code so it now falls back to using geometry field as name in that case, hopefully unique
 ;;
 ;;; CODE
 ;;
@@ -142,6 +153,9 @@
 (setq equake/height-percentage 0.4)
 (setq equake/tab-list 'nil)
 
+(setq active-opacity 75)
+(setq inactive-opacity 60)
+
 (setq equake/default-shell 'eshell)
 (setq equake/default-sh-command "/bin/bash")
 
@@ -152,7 +166,7 @@
   (if (y-or-n-p (format "Are you sure you want to close the equake console frame? [Advice: Cancel and use `C-x k` to close the buffer instead, returning to your shell session.]"))
       (save-buffers-kill-terminal)
     ;; (save-buffers-kill-emacs)
-    (message "Cancelling the closing of the equake console frame")))
+    (message "Wisely cancelling the closing of the equake console frame...")))
 
 (defun check-if-in-equake-frame-before-closing ()
   "Check if we're in an equake frame."
@@ -175,6 +189,8 @@
   ;; (local-set-key (kbd "C-x C-c") 'ask-before-closing-equake)
   )
 
+;; TODO:
+;; probably should make equake its own minor mode and tie the bindings to that
 (add-hook 'eshell-mode-hook 'equake/key-bindings)
 (add-hook 'term-mode-hook 'equake/key-bindings)
 (add-hook 'shell-mode-hook 'equake/key-bindings)
@@ -263,42 +279,48 @@
   (interactive)
   (let ((frame (car frames)))
     (if frame
-	(if (cl-search "transientframe" (frame-parameter frame 'name))
-	    (delete-frame frame))
-      (equake/kill-stray-transient-frames (cdr frames)))))
+	(progn (if (cl-search "transientframe" (frame-parameter frame 'name))
+		   (delete-frame frame))
+	       (equake/kill-stray-transient-frames (cdr frames))))))
 
 (defun equake/emacs-dropdown-console ()
   "Set up an emacs drop-drop console. Run with \"emacsclient -c -e '(equake/emacs-dropdown-console)\"."
   (interactive)
+  (select-frame (make-frame `('(name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))))
   (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
-    (if (equal (frame-parameter (selected-frame) 'name) "transientframe") ; for multi-monitor hack getting terminal on correct monitor (at least on KDE Plasma 5)
-					; launch with: emacsclient -n -c -F '((name . "transientframe") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))' -e '(equake/emacs-dropdown-console)'
-	(progn 	       (setq inhibit-message t)
-		       (delete-frame))) ; get rid of transient frame as soon as possible
-    (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
-	  (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
-	  (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
-	  (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
+    (set-frame-name "transientframe")
+    (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
       (if (equake/equake-frame-p monitorid (frame-list)) ; check if *EQUAKE* frame exists
 	  (let ((frame-to-raise (equake/equake-frame-p monitorid (frame-list)))) ; if so, get frame id
+	    (equake/kill-stray-transient-frames (frame-list))
 	    (if (frame-visible-p frame-to-raise) ; then, if equake frame is already raised, make it invisible
 		(progn (set-frame-parameter frame-to-raise 'fullscreen 'nil) ; un-fullscreen, in case it is fullscreened, so fullscreen doesn't get 'stuck'
 		       (make-frame-invisible frame-to-raise) (make-frame-invisible frame-to-raise)) ; double-tap: one more makes 100% sure
 	      (progn (raise-frame frame-to-raise) ; if equake frame is invisible, raise it
-		     (select-frame frame-to-raise)) ; and select raised-frame
-					;		     (setq inhibit-message t))	    ; no messages in buffer - not working
-	      (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)) ; set size accordingly
+		     (select-frame frame-to-raise) ; and select raised-frame
+		     (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
+			   (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
+			   (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
+			   (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
+		       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)))) ; set size accordingly
 					; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame
 					; if no monitor-relative *EQUAKE* frame exists, make a new frame, rename it, call startup function
 	(progn (equake/orphan-tabs monitorid (buffer-list)) ; orphan any stray EQUAKE tabs/buffers before creating new frame
-	       (equake/remove-screen monitorid equake/tab-list) ; remove stray orphaned tab frames
-	       (select-frame (make-frame `((title . ,(concat "*EQUAKE*[" "]")))))
+	      (equake/remove-screen monitorid equake/tab-list) ; remove stray orphaned tab frames
 	       (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]
-	       (equake/launch-shell)				   ; launch new shell
-	       ;; (equake/kill-stray-transient-frames (frame-list))   ; get rid of any lingering transient frames  --- 'too' good right now
-	       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
-	       (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
-  	       (equake/set-up-equake-frame)))))) ; execute start-up functions
+	       (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
+		     (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
+		     (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
+		     (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
+		 (equake/launch-shell)	; launch new shell
+		 (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))      		 
+		 (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
+		 (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
+  		 (equake/set-up-equake-frame)
+		 (equake/kill-stray-transient-frames (frame-list))
+		 ))))))	; execute start-up functions
+
+
 
 (defun equake/launch-shell (&optional override)
   "Launch a new shell session."
@@ -325,12 +347,13 @@
     (set-background-color "#000022")    ; set background colour
     (set-foreground-color "#eeeeee")	; set foreground colour
     (rename-buffer (concat "EQUAKE[" monitorid "]0%") )	     ; set buffer/tab-name
-    (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars      
+    (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
+    (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))      
     (setq equake/tab-list (append equake/tab-list (list (cons monitorid (list 0))))) ; set equake local tab-list to an initial singleton list
     (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)
     (setq inhibit-message t)			     ; no messages in buffer
-    (equake/hide-orphaned-tab-frames (buffer-list))) ; hide any stray orphaned tab frames
-  )
+    ;; (equake/hide-orphaned-tab-frames (buffer-list))) ; hide any stray orphaned tab frames
+  ))
 
 (defun equake/count-tabs (monitor buffers count)
   "Count current equake tabs on monitor."
@@ -374,8 +397,9 @@
       (equake/launch-shell override) 	; launch with specified shell if set
     (equake/launch-shell)) 		; otherwise, launch shell normally
   (set-background-color "#000022")
-  (set-foreground-color "#eeeeee")			   ; set foreground colour
-  (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars  
+  (set-foreground-color "#eeeeee")	; set foreground colour
+  ;; (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))  
+  ;; (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars  
   (setq inhibit-message t)
   (let ((monitor  (equake/get-monitor-name (frame-monitor-attributes))))
     (let ((newhighest (+ 1 (equake/highest-etab monitor (buffer-list) 0))) ; figure out number to be set for the new tab for the current monitor
@@ -533,16 +557,24 @@
   "Content of mode-line for equake (show tabs)."
   (let ((curtab (car (cdr buffers))))
     (if (equal curtab 'nil)
-	(list modelinestring (propertize (concat "((" (format "%s" major-mode) ")) ") 'font-lock-face '(:foreground "green" :background "gray20")))
+	(list modelinestring (equake/shell-type-styling major-mode))
       (progn (setq modelinestring (concat modelinestring (equake/extract-format-tab-name curtab))) ; get name/number for tab in mode-line format
 	     (equake/mode-line modelinestring (cdr buffers)))))) ; go on to next tab
+
+(defun equake/shell-type-styling (mode)
+  "Style the shell-type indicator." (cond ((equal (format "%s" mode) "eshell-mode")
+	 (propertize " ((eshell)) " 'font-lock-face '(:foreground "spring green" :background "midnight blue")))
+	((equal (format "%s" mode) "term-mode")
+	 (propertize " ((term)) " 'font-lock-face '(:foreground "gold" :background "midnight blue")))
+	((equal (format "%s" mode) "shell-mode")
+	 (propertize " ((shell)) " 'font-lock-face '(:foreground "magenta" :background "midnight blue")))))
 
 (defun equake/extract-format-tab-name  (tab)
   "Extract equake tab name and format it for the modeline."
   (let ((monitor (equake/get-monitor-name (frame-monitor-attributes))))
     (let ((current-etab  (string-to-number (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name (current-buffer)))))) ; get the tab number of the current buffer
       (let ((etab-name (string-remove-prefix (concat "EQUAKE[" monitor "]" (number-to-string tab) "%") (buffer-name (equake/find-buffer-by-monitor-and-tabnumber monitor tab (buffer-list)))))) ; find the name of the tab
-	(if (equal etab-name "") 	; if the name is null string
+	(if (equal etab-name "")		     ; if the name is null string
 	    (setq etab-name (number-to-string tab))) ; set name to tab number
 	(if (equal tab current-etab)		     
 	    (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face '(:foreground "black" :background "lightblue")) " ") ; 'highlight' current tab

@@ -196,7 +196,7 @@
   "Test if *EQUAKE* is an existing frame."
   (let ((frame (car frames)))
     (if frame
-	(if (cl-search (concat "*EQUAKE*[" monitor "]") (frame-parameter frame 'name))
+	(if (equal (concat "*EQUAKE*[" monitor "]") (frame-parameter frame 'name))
 	    frame
 	  (equake/equake-frame-p monitor (cdr frames))))))
 
@@ -290,6 +290,7 @@
     (let ((monitorid (equake/get-monitor-name (frame-monitor-attributes))))
       (if (equake/equake-frame-p monitorid (frame-list)) ; check if *EQUAKE* frame exists
 	  (let ((frame-to-raise (equake/equake-frame-p monitorid (frame-list)))) ; if so, get frame id
+	    (delete-frame tranframe) 
 	    (equake/kill-stray-transient-frames (frame-list))
 	    (if (frame-visible-p frame-to-raise) ; then, if equake frame is already raised, make it invisible
 		(progn (set-frame-parameter frame-to-raise 'fullscreen 'nil) ; un-fullscreen, in case it is fullscreened, so fullscreen doesn't get 'stuck'
@@ -303,11 +304,11 @@
 		       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)))) ; set size accordingly
 					; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame
 					; if no monitor-relative *EQUAKE* frame exists, make a new frame, rename it, call startup function
-	(progn (setq equake/tab-list (remove (equake/find-monitor-list monitorid equake/tab-list) equake/tab-list))
+	(progn (equake/orphan-tabs monitorid (buffer-list)) 
+	       (setq equake/tab-list (remove (equake/find-monitor-list monitorid equake/tab-list) equake/tab-list))
+	      (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]	      	       
 	       (let ((newequakeframe (selected-frame))) ; orphan any stray EQUAKE tabs/buffers before creating new frame
-		 (equake/orphan-tabs monitorid (buffer-list)) 
 		 (equake/remove-screen monitorid equake/tab-list)
-		 (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]
 		 (equake/kill-stray-transient-frames (frame-list))
 		 (let ((monwidth (equake/get-monitor-width (frame-monitor-attributes))) ; get monitor width
 		       (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
@@ -337,6 +338,7 @@
 	  ((equal launchshell 'shell)
 	   (shell)
 	   (delete-other-windows)))))
+
 
 (defun equake/set-up-equake-frame ()
   "Set-up new *EQUAKE* frame, including cosmetic changes."
@@ -544,7 +546,7 @@
        (buffend (cdr buffers))
        (name-skeleton (concat "EQUAKE\\[" monitor "\\]" (number-to-string tabnum) "%"))) ; buffer template matching everything before %+following characters
    (cond ((equal buffbeg 'nil)				    ; if we're out of buffers
-	  (message "Error! No such screen-tag pair exists!"))    ; in case of trouble, please panic
+	  (message "Error! No such screen-tag pair exists! %s %s" monitor tabnum ))    ; in case of trouble, please panic
 	 ((string-match-p name-skeleton (buffer-name buffbeg)) ; if buffer name matches matches skeleton, i.e. everything before %+following characters
 	  buffbeg)					       ; then return that buffer
 	 (t (equake/find-buffer-by-monitor-and-tabnumber monitor tabnum buffend))))) ; go on to next buffer

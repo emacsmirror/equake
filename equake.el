@@ -307,8 +307,8 @@
 			   (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
 			   (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
 		       ;; (set-frame-size (selected-frame) 1 1 t)
-		       (make-frame-invisible frame-to-raise) (make-frame-invisible frame-to-raise) ; double-tap: one more makes 100% sure
 		       (make-frame-visible frame-to-raise)
+		       (set-frame-size (selected-frame) 1 1 t)		       
 		       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)))) ; set size accordingly
 					; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame
 					; if no monitor-relative *EQUAKE* frame exists, make a new frame, rename it, call startup function

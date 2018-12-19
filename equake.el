@@ -138,8 +138,10 @@
 ;;   Other issues:  also trouble if monitor-attributes doesn't include name [as on TP X200]
 ;;        hanged code so it now falls back to using geometry field as name in that case, hopefully unique
 ;;
-;;; CODE
+;;   NOTE: It's probably better to migrate to a single etab list, monitor/screen-agnostic
+;;         Though screens will still need probing to set size properly.
 ;;
+
 
 (require 'cl-lib)
 (require 'subr-x)
@@ -241,15 +243,19 @@
 	    (cdr field)
 	  (equake/get-monitor-property prop (cdr attributes))))))
 
+(setq equake/unnamed-monitor 'nil) 		; set this to t if your monitor/screen doesn't provide a name attribute (may cause issues otherwise)
+
 (defun equake/get-monitor-name (attributes)
   "Get the name or another constant designator of the current monitor/screen."
   (let ((name (equake/get-monitor-property "name" (frame-monitor-attributes))))
     (if name
 	name
-      ;; (let ((name (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
-      ;; 	(if name
-      ;; 	    (format "%s" name)
-      (message "screen-id error! %s" name)))) ; seems to occur when mouse is on one desktop but focus is on the other
+      (if equake/unnamed-monitor
+	  (let ((name (equake/get-monitor-property "geometry" (frame-monitor-attributes))))
+      	    (if name
+      		(format "%s" name))))
+	      ;; (message "screen-id error! %s" name)    ; seems to occur when mouse is on one desktop but focus is on the other
+	      )))
 ;; )) 
 
 
@@ -307,7 +313,7 @@
 			   (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
 			   (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
 		       ;; (set-frame-size (selected-frame) 1 1 t)
-		       (make-frame-visible frame-to-raise)
+		       ;; (make-frame-visible frame-to-raise)
 		       (set-frame-size (selected-frame) 1 1 t)		       
 		       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t)	)))) ; set size accordingly
 					; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame

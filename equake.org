@@ -1,0 +1,123 @@
+#+TITLE: Equake: An Emacs drop-down console
+#+AUTHOR: Benjamin Slade
+
+=equake= is a drop-down console in the style of the old (?)  drop-down 'cheat'
+consoles in games like Quake, similar to Guake or Yakuake, but written fully in
+Elisp.
+
+The motivation for its creation was to easily swap =eshell= into a workflow
+habituated to drop-down terminal emulators, but it can be used also with =shell=,
+=ansi-term=, or =term=. And different tabs can be opened using different shells
+(i.e. you could have one tab running =eshell=, one running =ansi-term=, and so on
+and so forth).
+
+I wanted to have a Lisp shell and a Lisp console interface to that shell. Of course,
+=eshell= is already 99% of this, but having a tabbed drop-down console feels useful
+to me, though it may just be what I'm used to.
+
+At this point, =equake= is 'beta' quality: it's unlikely to wipe your home directory,
+terrorise your pets, or eat your relatives, but it may not always behave exactly as
+desired. My intention was for it to be robust, so it attempts to recover if it's
+forcibly closed (by 'orphaning' any opened tabs, but not deleting them, in case
+processes are still running etc).
+
+It also uses built-in Emacs functionality to probe for screen sizes via the
+=frame.el= library, which potential means it should work cross-platform, as
+=frame.el= defines frame-types ='ns= (=Next Step, i.e. Mac) and ='w32= (=Windows). I
+haven't tested this though, and given the apparent difficulties with certain window
+managers, I wouldn't be surprised if it only works on Linux/Unix running X11 
+(or in Wayland via Xwayland, as it seems to work in Gnome Shell Wayland).
+
+* Installation
+Clone the git repo somewhere and get it into your Emacs' load-path, e.g., add
+something like this to your =init.el= (assuming you put it into =~/.emacs.d/equake=):
+#+BEGIN_SRC elisp
+(add-to-list 'load-path                                   
+            "~/.emacs.d/equake/")                         
+ (require 'equake)                                        
+#+END_SRC
+This package is not yet available via Melpa.
+
+* Usage
+Run with =emacsclient -e '(equake/emacs-dropdown-console)'=, after launching an Emacs
+daemon of course.  I recommend binding this command to a key like F12 in your DE/WM.
+Executing this command will create a new equake console on your screen the first
+time, and subsequently toggle the console (i.e. hide or show it).
+
+It works with =eshell=, =ansi-term=, =term=, =shell=. But it was really designed to
+work with eshell, which is the default (although this is configurable).  New console
+tabs can be specified to open with a shell other than the default shell.
+
+Equake is designed to work with multi-screen setups, with a different set of tabs for
+each screen.
+
+You'll probably also want to configure your WM/DE to ignore the window in the task
+manager etc. and have no titlebar or frame. Below are some limited notes on how to do
+this in various environments [needs expanding].
+
+** In KDE Plasma 5
+ =systemsettings > Window Management > Window Rules=:
+ Click button =New=
+ 
+ In =Window matching tab=:
+
+ =Description=: equake rules
+
+ =Window types=: Normal Window
+
+ =Window title=: Substring Match : *EQUAKE*
+
+ In =Arrangement & Access= tab:
+
+ Check: 'Keep above' - Force - Yes
+
+ Check: 'Skip taskbar' - Force - Yes
+
+ Check: 'Skip switcher' - Force - Yes
+
+ In =Appearance & Fixes= tab:
+
+ Check: 'No titlebar and frame' - Force - Yes
+
+** StumpWM
+I'm not sure: it doesn't seem to respect Emacs frame settings. [Remains to be tested
+further.]
+ 
+** AwesomeWM
+Probably adding to your 'Rules' something like this:
+ 
+#+BEGIN_SRC lua
+ { rule = { instance = "*EQUAKE*", class = "Emacs" },      
+    properties = { titlebars_enabled = false } },
+#+END_SRC
+
+But in limited testing, I had trouble with AwesomeWM.  [Remains to be tested further.]
+
+** Gnome Shell
+Appears to work in both X11 and Wayland (via Xwayland).  I'm not sure what the
+correlate of window rules is in Gnome Shell [remains to be documented].
+
+* Keybindings
+| C-{     | Switch to tab on left            |
+| C-}     | Switch to tab on right           |
+| C-M-{   | Move tab one position left       |
+| C-M-}   | Move tab one position right      |
+| C-+     | Add new tab using default shell  |
+| C-M-+   | Add new tab with arbitrary shell |
+| C-\vert | Rename tab                       |
+
+* Screencapture
+[[./image/equake01.gif]]
+
+* Additional notes
+Lots of things seem to work well, but multi-monitor can still be a bit 
+fussy: equake doesn't always want to open on the 'active' monitor, and
+it seems to want an emacsclient frame to already be open somewhere on 
+the screen. Each screen/monitor gets its own list of tabs. Whether this
+is desired behaviour or not is perhaps questionable: but I got used to
+the way that AwesomeWM functioned, where monitor behaved independently
+with its own set of virtual desktops &c., and the current equake design
+preserves a small measure of this behaviour.
+
+=customize= should reveal a number of customisable features, including
+default shell (=eshell=, =shell=, =ansi-term=, =term=), and colours.

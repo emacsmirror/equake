@@ -146,17 +146,103 @@
 (require 'cl-lib)
 (require 'subr-x)
 
-(setq equake/restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
+(defvar equake/restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
 
-(setq equake/width-percentage 1.0)
-(setq equake/height-percentage 0.4)
-(setq equake/tab-list 'nil)
+(defvar equake/tab-list 'nil) 		; empty list of equake tabs to start
 
-(setq active-opacity 75)
-(setq inactive-opacity 60)
+(defcustom equake/width-percentage 1.0
+  "Percentage (.01-1.0) for width of equake console."
+  :type 'float
+  :group 'equake)
 
-(setq equake/default-shell 'eshell)
-(setq equake/default-sh-command "/bin/bash")
+(defcustom equake/height-percentage 0.4
+  "Percentage (.01-1.0) for height of equake console."
+  :type 'float
+  :group 'equake)
+
+(defcustom equake/active-opacity 75
+  "Amount of opacity of equake console when active."
+  :type 'integer
+  :group 'equake)
+
+(defcustom equake/inactive-opacity 60
+  "Amount of opacity of equake console when inactive."
+  :type 'integer
+  :group 'equake)
+
+(defcustom equake/default-shell 'eshell
+  "Default shell used by equake."
+  :type '(choice
+	  'eshell
+	  'ansi-term
+	  'term
+	  'shell)
+  :group 'equake)
+
+(defcustom equake/default-sh-command "/bin/bash"
+  "Default shell command used by (ansi-)term."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/unnamed-monitor 'nil
+  "Set this to t if your monitor/screen lacks a 'name' property."
+  :type 'boolean
+  :group 'equake) 		; set this to t if your monitor/screen doesn't provide a name attribute (may cause issues otherwise)
+
+(defcustom equake/show-monitor-in-mode-line 'nil
+  "Toggle to show monitor id string as part of equake mode-line."
+  :type 'boolean
+  :group 'equake) ; whether or not to prepend monitor id to mode-line before tabs
+
+(defcustom equake/inactive-tab-foreground-colour "black"
+  "Colour of foreground text of inactive equake tabs."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/inactive-tab-background-colour "lightblue"
+  "Background colour of inactive equake tabs."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/active-tab-foreground-colour "lightblue"
+  "Colour of foreground text of active equake tabs."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/active-tab-background-colour "black"
+  "Background colour of active equake tabs."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/shell-type-eshell-background "midnight blue"
+  "Background colour of shell-type indicator in mode-line when eshell is the underlying shell."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/shell-type-term-background "midnight blue"
+  "Background colour of shell-type indicator in mode-line when (ansi-)term is the underlying shell."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/shell-type-shell-background "midnight blue"
+  "Background colour of shell-type indicator in mode-line when shell) is the underlying shell."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/shell-type-eshell-foreground "spring green"
+  "Background colour of shell-type indicator in mode-line when eshell is the underlying shell."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/shell-type-term-foreground "gold"
+  "Background colour of shell-type indicator in mode-line when (ansi-)term is the underlying shell."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/shell-type-shell-foreground "magenta"
+  "Background colour of shell-type indicator in mode-line when shell) is the underlying shell."
+  :type 'string
+  :group 'equake)
 
 ;; prevent accidental closure? - set for equake only
 (defun ask-before-closing-equake ()
@@ -243,7 +329,6 @@
 	    (cdr field)
 	  (equake/get-monitor-property prop (cdr attributes))))))
 
-(setq equake/unnamed-monitor 'nil) 		; set this to t if your monitor/screen doesn't provide a name attribute (may cause issues otherwise)
 
 (defun equake/get-monitor-name (attributes)
   "Get the name or another constant designator of the current monitor/screen."
@@ -328,7 +413,7 @@
 		       (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
 		       (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
 		       (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
-		   (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))      		 
+		   (set-frame-parameter (selected-frame) 'alpha `(,equake/active-opacity ,equake/inactive-opacity))      		 
 		   (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
 		   (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
 		   (equake/launch-shell) ; launch new shell
@@ -368,7 +453,7 @@
       (set-foreground-color "#eeeeee")			  ; set foreground colour
       (rename-buffer (concat "EQUAKE[" monitorid "]0%") ) ; set buffer/tab-name
       (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
-      (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))      
+      (set-frame-parameter (selected-frame) 'alpha `(,equake/active-opacity ,equake/inactive-opacity))      
       (setq equake/tab-list (append equake/tab-list (list (cons monitorid (list 0))))) ; set equake local tab-list to an initial singleton list
       (set-frame-size (selected-frame) (truncate (* monwidth equake/width-percentage)) (truncate (* monheight equake/height-percentage)) t) ; size again
       (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
@@ -419,7 +504,7 @@
     (equake/launch-shell)) 		; otherwise, launch shell normally
   (set-background-color "#000022")
   (set-foreground-color "#eeeeee")	; set foreground colour
-  ;; (set-frame-parameter (selected-frame) 'alpha `(,active-opacity ,inactive-opacity))  
+  ;; (set-frame-parameter (selected-frame) 'alpha `(,equake/active-opacity ,equake/inactive-opacity))  
   ;; (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars  
   (setq inhibit-message t)
   (let ((monitor  (equake/get-monitor-name (frame-monitor-attributes))))
@@ -442,7 +527,6 @@
 	  (car tabs)
 	(equake/find-monitor-list monitor (cdr tabs)))))
 
-(setq equake/show-monitor-in-mode-line t) ; whether or not to prepend monitor id to mode-line before tabs
 
 (defun equake/shell-after-buffer-change-hook ()
   "Things to do when in Equake when the buffer changes."
@@ -572,7 +656,6 @@
   (let ((newname (read-string "Enter a new tab name: ")))
     ;; (message "New name is %s" newname)
     (rename-buffer (concat buffer-prefix "%" newname)))))
-    
 
 (defun equake/mode-line (modelinestring buffers)
   "Content of mode-line for equake (show tabs)."
@@ -584,11 +667,11 @@
 
 (defun equake/shell-type-styling (mode)
   "Style the shell-type indicator." (cond ((equal (format "%s" mode) "eshell-mode")
-	 (propertize " ((eshell)) " 'font-lock-face '(:foreground "spring green" :background "midnight blue")))
+	 (propertize " ((eshell)) " 'font-lock-face `(:foreground ,equake/shell-type-eshell-foreground  :background ,equake/shell-type-eshell-background)))
 	((equal (format "%s" mode) "term-mode")
-	 (propertize " ((term)) " 'font-lock-face '(:foreground "gold" :background "midnight blue")))
+	 (propertize " ((term)) " 'font-lock-face '(:foreground ,equake/shell-type-term-foreground :background ,equake/shell-type-term-background)))
 	((equal (format "%s" mode) "shell-mode")
-	 (propertize " ((shell)) " 'font-lock-face '(:foreground "magenta" :background "midnight blue")))))
+	 (propertize " ((shell)) " 'font-lock-face '(:foreground ,equake/shell-type-shell-foreground :background ,equake/shell-type-shell-background)))))
 
 (defun equake/extract-format-tab-name  (tab)
   "Extract equake tab name and format it for the modeline."
@@ -598,8 +681,8 @@
 	(if (equal etab-name "")		     ; if the name is null string
 	    (setq etab-name (number-to-string tab))) ; set name to tab number
 	(if (equal tab current-etab)		     
-	    (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face '(:foreground "black" :background "lightblue")) " ") ; 'highlight' current tab
-	  (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face '(:foreground "lightblue" :background "black")) " "))))))
+	    (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake/inactive-tab-foreground-colour :background ,equake/inactive-tab-background-colour)) " ") ; 'highlight' current tab
+	  (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake/active-tab-foreground-colour :background ,equake/active-tab-background-colour)) " "))))))
 
 (provide 'equake)
 

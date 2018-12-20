@@ -23,7 +23,7 @@ processes are still running etc).
 
 It also uses built-in Emacs functionality to probe for screen sizes via the
 =frame.el= library, which potential means it should work cross-platform, as
-=frame.el= defines frame-types ='ns= (=Next Step, i.e. Mac) and ='w32= (=Windows). I
+=frame.el= defines frame-types ='ns= (Next Step, i.e. Mac) and ='w32= (Windows). I
 haven't tested this though, and given the apparent difficulties with certain window
 managers, I wouldn't be surprised if it only works on Linux/Unix running X11 
 (or in Wayland via Xwayland, as it seems to work in Gnome Shell Wayland).

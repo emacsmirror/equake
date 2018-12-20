@@ -16,8 +16,8 @@
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
 ;; URL: https://gitlab.com/emacsomancer/equake
-;; Package-Version: 0.2
-;; Version: 0.2
+;; Package-Version: 0.3
+;; Version: 0.3
 ;; Created: 2018-12-12
 ;; Keywords: shell, eshell, term, dropdown, terminal, console, quake
 
@@ -102,17 +102,11 @@
 ;; Emacs frame settings.
 
 ;; TODO
-;; 1. pull out hard-coded values and create defcustom's for them:
-;;   (a) width & height percentages
-;;   (b) foreground and background colours
-;;   (c) shortcut keys
+;; 1. defcustoms:
+;;   (a) for keybindings
+;;   (b) make shell choice into actual list
 ;; 2. Prevent last tab from being closed, or at least prompt.
-;; 3. possibly improve invocation: currently two choices:
-;;   (a) needs to have an emacsclient open already on the monitor in order to work
-;;   (b) calls a transient frame on the relevant monitor, which launches equake;
-;;       this has the drawback of being significantly slower, and sometimes
-;;       brief artefacts can be seen (i.e. the transient frame).
-;;   And (b) doesn't seem to work very well/consistently.
+;; 3. possibly improve invocation: a bit slow, and still inconsistent on multi-monitor
 ;; 4. Maybe do something to (optionally) silence the minibuffer?
 ;;    (setq inhibit-message t) doesn't seem to help
 ;;    But it's probably fine as is.
@@ -138,10 +132,6 @@
 ;;   Other issues:  also trouble if monitor-attributes doesn't include name [as on TP X200]
 ;;        hanged code so it now falls back to using geometry field as name in that case, hopefully unique
 ;;
-;;   NOTE: It's probably better to migrate to a single etab list, monitor/screen-agnostic
-;;         Though screens will still need probing to set size properly.
-;;
-
 
 (require 'cl-lib)
 (require 'subr-x)
@@ -176,7 +166,8 @@
 
 (defcustom equake/default-shell 'eshell
   "Default shell used by equake: choice are 'eshell, 'ansi-term, 'term, 'shell."
-  :type 'const
+  :type  'const
+  :set 'equake/shell-choice
   ;; :type  '(choice (const :tag "eshell" 'eshell)
   ;;                 (const :tag "ansi-term" 'ansi-term)
   ;;                 (const :tag "term" 'term)

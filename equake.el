@@ -167,11 +167,6 @@
 (defcustom equake/default-shell 'eshell
   "Default shell used by equake: choice are 'eshell, 'ansi-term, 'term, 'shell."
   :type  'const
-  :set 'equake/shell-choice
-  ;; :type  '(choice (const :tag "eshell" 'eshell)
-  ;;                 (const :tag "ansi-term" 'ansi-term)
-  ;;                 (const :tag "term" 'term)
-  ;; 		  (const :tag "shell" 'shell))
   :group 'equake)
 
 (defcustom equake/default-sh-command "/bin/bash"

@@ -79,6 +79,12 @@ this in various environments [needs expanding].
 
  Check: 'No titlebar and frame' - Force - Yes
 
+ Check: Focus stealing prevention - Force - None
+
+ Check: Focus protection - Force - Normal
+
+ Check: Accept focus - Force - Yes
+
 ** StumpWM
 I'm not sure: it doesn't seem to respect Emacs frame settings. [Remains to be tested
 further.]

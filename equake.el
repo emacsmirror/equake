@@ -150,6 +150,10 @@
 
 (defvar equake/tab-list 'nil) 		; empty list of equake tabs to start
 
+(defgroup equake ()
+  "Equake - Emacs drop-down console."
+  :group 'shell)
+
 (defcustom equake/width-percentage 1.0
   "Percentage (.01-1.0) for width of equake console."
   :type 'float
@@ -171,12 +175,12 @@
   :group 'equake)
 
 (defcustom equake/default-shell 'eshell
-  "Default shell used by equake."
-  :type '(choice
-	  'eshell
-	  'ansi-term
-	  'term
-	  'shell)
+  "Default shell used by equake: choice are 'eshell, 'ansi-term, 'term, 'shell."
+  :type 'const
+  ;; :type  '(choice (const :tag "eshell" 'eshell)
+  ;;                 (const :tag "ansi-term" 'ansi-term)
+  ;;                 (const :tag "term" 'term)
+  ;; 		  (const :tag "shell" 'shell))
   :group 'equake)
 
 (defcustom equake/default-sh-command "/bin/bash"
@@ -193,6 +197,16 @@
   "Toggle to show monitor id string as part of equake mode-line."
   :type 'boolean
   :group 'equake) ; whether or not to prepend monitor id to mode-line before tabs
+
+(defcustom equake/console-foreground-colour "#eeeeee"
+  "Background colour of equake console."
+  :type 'string
+  :group 'equake)
+
+(defcustom equake/console-background-colour "#000022"
+  "Background colour of equake console."
+  :type 'string
+  :group 'equake)
 
 (defcustom equake/inactive-tab-foreground-colour "black"
   "Colour of foreground text of inactive equake tabs."
@@ -378,7 +392,7 @@
   (interactive)
   (let ((mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x- & y-positions
 	(mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes))))
-  (select-frame (make-frame `('(name . "transientframe") (alpha . (100 . 100)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))))
+  (select-frame (make-frame `('(name . "transientframe") (alpha . (01 . 01)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))))
   (set-frame-position (selected-frame) mon-xpos mon-ypos)) ; set to upper left-hand corner of current(!) monitor
   (let ((tranframe (selected-frame))
 	(monitorid (equake/get-monitor-name (frame-monitor-attributes))))
@@ -449,8 +463,8 @@
 	  (monheight (equake/get-monitor-height (frame-monitor-attributes))) ; get monitor height
 	  (mon-xpos (equake/get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
 	  (mon-ypos (equake/get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position)
-      (set-background-color "#000022")			  ; set background colour
-      (set-foreground-color "#eeeeee")			  ; set foreground colour
+      (set-background-color equake/console-background-colour)			  ; set background colour
+      (set-foreground-color equake/console-foreground-colour)			  ; set foreground colour
       (rename-buffer (concat "EQUAKE[" monitorid "]0%") ) ; set buffer/tab-name
       (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
       (set-frame-parameter (selected-frame) 'alpha `(,equake/active-opacity ,equake/inactive-opacity))      
@@ -502,8 +516,8 @@
   (if override
       (equake/launch-shell override) 	; launch with specified shell if set
     (equake/launch-shell)) 		; otherwise, launch shell normally
-  (set-background-color "#000022")
-  (set-foreground-color "#eeeeee")	; set foreground colour
+  (set-background-color equake/console-background-colour)			  ; set background colour
+  (set-foreground-color equake/console-foreground-colour)			  ; set foreground colour
   ;; (set-frame-parameter (selected-frame) 'alpha `(,equake/active-opacity ,equake/inactive-opacity))  
   ;; (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars  
   (setq inhibit-message t)
@@ -667,11 +681,11 @@
 
 (defun equake/shell-type-styling (mode)
   "Style the shell-type indicator." (cond ((equal (format "%s" mode) "eshell-mode")
-	 (propertize " ((eshell)) " 'font-lock-face `(:foreground ,equake/shell-type-eshell-foreground  :background ,equake/shell-type-eshell-background)))
+	 (propertize " ((eshell)) " 'font-lock-face `(:foreground ,equake/shell-type-eshell-foreground :background ,equake/shell-type-eshell-background)))
 	((equal (format "%s" mode) "term-mode")
-	 (propertize " ((term)) " 'font-lock-face '(:foreground ,equake/shell-type-term-foreground :background ,equake/shell-type-term-background)))
+	 (propertize " ((term)) " 'font-lock-face `(:foreground ,equake/shell-type-term-foreground :background ,equake/shell-type-term-background)))
 	((equal (format "%s" mode) "shell-mode")
-	 (propertize " ((shell)) " 'font-lock-face '(:foreground ,equake/shell-type-shell-foreground :background ,equake/shell-type-shell-background)))))
+	 (propertize " ((shell)) " 'font-lock-face `(:foreground ,equake/shell-type-shell-foreground :background ,equake/shell-type-shell-background)))))
 
 (defun equake/extract-format-tab-name  (tab)
   "Extract equake tab name and format it for the modeline."

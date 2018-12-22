@@ -296,12 +296,12 @@
   "Rename orphaned equake tabs."
   (let ((buff (car buffers)))
     (if buff
-          (when (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buff))   ; find and rename all stray EQUAKE tabs/buffers
-            ((switch-to-buffer buff)
-             (rename-buffer (concat "orphaned_etab==" (string-remove-prefix "EQUAKE" (buffer-name buff))) t)
-             (emacs-lock-mode -1) ; unlock buffer / allow kill
-             (equake-orphan-tabs monitor (cdr buffers)))
-            (equake-orphan-tabs monitor (cdr buffers))))))
+          (if (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buff))   ; find and rename all stray EQUAKE tabs/buffers
+           (progn (switch-to-buffer buff)
+                  (rename-buffer (concat "orphaned_etab==" (string-remove-prefix "EQUAKE" (buffer-name buff))) t)
+                   (emacs-lock-mode -1) ; unlock buffer / allow kill
+                  (equake-orphan-tabs monitor (cdr buffers)))
+           (equake-orphan-tabs monitor (cdr buffers))))))
 
 (defun equake-hide-orphaned-tab-frames (buffers)
   "Delete any stray frame associated with orphaned tabs."
@@ -309,9 +309,9 @@
   (interactive)
   (let ((buf (car buffers)))
     (if buf                                                 ; if buffer exists ...
-        (when (cl-search "orphaned_etab==" (buffer-name buf)) ; if it's named ...
-          ((delete-frame (window-frame (get-buffer-window buf))) ; delete all frames associated with all windows displaying the buffer
-           (equake-hide-orphaned-tab-frames (cdr buffers)))      ; cycle on to next buffer in list
+        (if (cl-search "orphaned_etab==" (buffer-name buf)) ; if it's named ...
+            (progn (delete-frame (window-frame (get-buffer-window buf))) ; delete all frames associated with all windows displaying the buffer
+                   (equake-hide-orphaned-tab-frames (cdr buffers)))      ; cycle on to next buffer in list
           (equake-hide-orphaned-tab-frames (cdr buffers))))))            ; likewise if no hit
 
 
@@ -370,10 +370,10 @@
   "Destroy any stray transient frames."
   (interactive)
   (let ((frame (car frames)))
-    (when frame
-      ((if (cl-search "transientframe" (frame-parameter frame 'name))
-           (delete-frame frame))
-       (equake-kill-stray-transient-frames (cdr frames))))))
+    (if frame
+        (progn (if (cl-search "transientframe" (frame-parameter frame 'name))
+                   (delete-frame frame))
+               (equake-kill-stray-transient-frames (cdr frames))))))
 
 (defun equake-emacs-dropdown-console ()
   "Set up an emacs drop-drop console. Run with \"emacsclient -e '(equake-emacs-dropdown-console)'\"."
@@ -386,41 +386,42 @@
         (monitorid (equake-get-monitor-name (frame-monitor-attributes))))
     (set-frame-name "transientframe")
     (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
-      (when (equake-equake-frame-p monitorid (frame-list)) ; check if *EQUAKE* frame exists
+      (if (equake-equake-frame-p monitorid (frame-list)) ; check if *EQUAKE* frame exists
           (let ((frame-to-raise (equake-equake-frame-p monitorid (frame-list)))) ; if so, get frame id
             (delete-frame tranframe) 
             (equake-kill-stray-transient-frames (frame-list))
-            (when (frame-visible-p frame-to-raise) ; then, if equake frame is already raised, make it invisible
-              ((set-frame-parameter frame-to-raise 'fullscreen 'nil) ; un-fullscreen, in case it is fullscreened, so fullscreen doesn't get 'stuck'
-               (make-frame-invisible frame-to-raise) (make-frame-invisible frame-to-raise)) ; double-tap: one more makes 100% sure
-              ((raise-frame frame-to-raise) ; if equake frame is invisible, raise it
-               (select-frame frame-to-raise) ; and select raised-frame
-               (let ((monwidth (equake-get-monitor-width (frame-monitor-attributes))) ; get monitor width
-                     (monheight (equake-get-monitor-height (frame-monitor-attributes))) ; get monitor height
-                     (mon-xpos (equake-get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
-                     (mon-ypos (equake-get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
-                 ;; (set-frame-size (selected-frame) 1 1 t)
-                 ;; (make-frame-visible frame-to-raise)
-                 (set-frame-size (selected-frame) 1 1 t)                 
-                 (set-frame-size (selected-frame) (truncate (* monwidth equake-width-percentage)) (truncate (* monheight equake-height-percentage)) t)    )))) ; set size accordingly
+            (if (frame-visible-p frame-to-raise) ; then, if equake frame is already raised, make it invisible
+                (progn (set-frame-parameter frame-to-raise 'fullscreen 'nil) ; un-fullscreen, in case it is fullscreened, so fullscreen doesn't get 'stuck'
+                       (make-frame-invisible frame-to-raise) (make-frame-invisible frame-to-raise)) ; double-tap: one more makes 100% sure
+              (progn (raise-frame frame-to-raise) ; if equake frame is invisible, raise it
+                     (select-frame frame-to-raise) ; and select raised-frame
+                     (let ((monwidth (equake-get-monitor-width (frame-monitor-attributes))) ; get monitor width
+                           (monheight (equake-get-monitor-height (frame-monitor-attributes))) ; get monitor height
+                           (mon-xpos (equake-get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
+                           (mon-ypos (equake-get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
+                       ;; (set-frame-size (selected-frame) 1 1 t)
+                       ;; (make-frame-visible frame-to-raise)
+                       (set-frame-size (selected-frame) 1 1 t)                 
+                       (set-frame-size (selected-frame) (truncate (* monwidth equake-width-percentage)) (truncate (* monheight equake-height-percentage)) t)    )))) ; set size accordingly
                                         ; OLD tdrop method: ;      (call-process "tdrop" nil 0 nil "current") ; if so, raise *EQUAKE* frame
                                         ; if no monitor-relative *EQUAKE* frame exists, make a new frame, rename it, call startup function
-          ((setq equake-tab-list (remove (equake-find-monitor-list monitorid equake-tab-list) equake-tab-list))
-           (equake-orphan-tabs monitorid (buffer-list)) 
-           (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]                 
-           (let ((newequakeframe (selected-frame))) ; orphan any stray EQUAKE tabs/buffers before creating new frame
-             (equake-remove-screen monitorid equake-tab-list)
-             (equake-kill-stray-transient-frames (frame-list))
-             (let ((monwidth (equake-get-monitor-width (frame-monitor-attributes))) ; get monitor width
-                   (monheight (equake-get-monitor-height (frame-monitor-attributes))) ; get monitor height
-                   (mon-xpos (equake-get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
-                   (mon-ypos (equake-get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
-               (set-frame-parameter (selected-frame) 'alpha `(,equake-active-opacity ,equake-inactive-opacity))                      
-               (set-frame-size (selected-frame) (truncate (* monwidth equake-width-percentage)) (truncate (* monheight equake-height-percentage)) t) ; size again
-               (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
-               (equake-launch-shell) ; launch new shell
-               (equake-set-up-equake-frame)
-               (equake-kill-stray-transient-frames (frame-list)))))))))      ; execute start-up functions
+        (progn (setq equake-tab-list (remove (equake-find-monitor-list monitorid equake-tab-list) equake-tab-list))
+               (equake-orphan-tabs monitorid (buffer-list)) 
+               (set-frame-name (concat "*EQUAKE*[" monitorid "]")) ; set frame-name to *EQUAKE* + [monitor id]                 
+               (let ((newequakeframe (selected-frame))) ; orphan any stray EQUAKE tabs/buffers before creating new frame
+                 (equake-remove-screen monitorid equake-tab-list)
+                 (equake-kill-stray-transient-frames (frame-list))
+                 (let ((monwidth (equake-get-monitor-width (frame-monitor-attributes))) ; get monitor width
+                       (monheight (equake-get-monitor-height (frame-monitor-attributes))) ; get monitor height
+                       (mon-xpos (equake-get-monitor-xpos (frame-monitor-attributes))) ; get monitor relative x-position
+                       (mon-ypos (equake-get-monitor-ypos (frame-monitor-attributes)))) ; get monitor relative y-position
+                   (set-frame-parameter (selected-frame) 'alpha `(,equake-active-opacity ,equake-inactive-opacity))                      
+                   (set-frame-size (selected-frame) (truncate (* monwidth equake-width-percentage)) (truncate (* monheight equake-height-percentage)) t) ; size again
+                   (set-frame-position (selected-frame) mon-xpos mon-ypos) ; set position to top
+                   (equake-launch-shell) ; launch new shell
+                   (equake-set-up-equake-frame)
+                   (equake-kill-stray-transient-frames (frame-list))
+                   )))))))      ; execute start-up functions
 
 
 (defun equake-launch-shell (&optional override)
@@ -531,14 +532,15 @@
 (defun equake-shell-after-buffer-change-hook ()
   "Things to do when in Equake when the buffer changes."
   (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
-    (when (cl-search "EQUAKE[" (buffer-name (current-buffer))) ; get monitor-local list of buffers and send it to be processed for the mode-line
-        ((if equake-show-monitor-in-mode-line ; show monitorid or not
-             (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
-           (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
+    (if (cl-search "EQUAKE[" (buffer-name (current-buffer)))
+        (progn ; get monitor-local list of buffers and send it to be processed for the mode-line
+          (if equake-show-monitor-in-mode-line ; show monitorid or not
+              (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
+                      (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
           (force-mode-line-update)
       ;;  (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil)))) ; no scrollbars
-      ((setq inhibit-message 'nil)
+      (progn (setq inhibit-message 'nil)
              ;; (set-frame-parameter (selected-frame) 'menu-bar-lines 1)
              (setq mode-line-format equake-restore-mode-line)))))  ; restore 'real' mode-line to non-EQUAKE frames
 
@@ -571,28 +573,28 @@
   (let ((examined-tab (car tablist)))   ; get entire local monitor tab-list
     (let ((monitor-tab-list (cdr examined-tab))) ; just the local monitor list of tabs
       (if tablist
-          (when (equal (car examined-tab) monitor) ; if the monitor label matches
-            ((when (< (length monitor-tab-list) 2) ; if only one tab, stop with message to user
-               (message "Only one tab")
-               ((let ((orig-pos (cl-position moving-tab monitor-tab-list))) ; find the original position of tab we're moving
-                  (let ((target-pos (+ orig-pos direction)) ; find the target position of the moving tab
-                        (reconstructed-local-tab 'nil)) ; initialise local variable 
-                    (cond ((< target-pos 0) ; if trying to move tab beyond left edge
-                           (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab 
-                                  (setq monitor-tab-list (append monitor-tab-list (list moving-tab))))) ; add tab to right edge
-                          ((> target-pos (- (length monitor-tab-list) 1))
-                           (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
-                                  (setq monitor-tab-list (append (list moving-tab) monitor-tab-list)))) ; add tab to left edge
-                          (t (progn (let ((target-temp-id (nth target-pos monitor-tab-list))) ; store the original content of target position
-                                      (setf (nth target-pos monitor-tab-list) moving-tab (nth orig-pos monitor-tab-list) target-temp-id ))))) ; modify the list positions accordingly)))
-                    (setq reconstructed-local-tab (list (cons monitor monitor-tab-list))) ; cons monitor name with modified tab-list
-                    (setq equake-tab-list (remove examined-tab equake-tab-list)) ; remove the entire local monitor tab-list from global etab-list
-                    (setq equake-tab-list (append equake-tab-list reconstructed-local-tab)) ; append the named, modified monitor tab list to the global equake tab list
-                    (if equake-show-monitor-in-mode-line ; show monitorid or not
-                        (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
-                      (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
+          (if (equal (car examined-tab) monitor) ; if the monitor label matches
+              (progn (if (< (length monitor-tab-list) 2) ; if only one tab, stop with message to user
+                         (message "Only one tab")
+                       (progn (let ((orig-pos (cl-position moving-tab monitor-tab-list))) ; find the original position of tab we're moving
+                                (let ((target-pos (+ orig-pos direction)) ; find the target position of the moving tab
+                                      (reconstructed-local-tab 'nil)) ; initialise local variable 
+                                  (cond ((< target-pos 0) ; if trying to move tab beyond left edge
+                                         (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab 
+                                                (setq monitor-tab-list (append monitor-tab-list (list moving-tab))))) ; add tab to right edge
+                                        ((> target-pos (- (length monitor-tab-list) 1))
+                                         (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
+                                                (setq monitor-tab-list (append (list moving-tab) monitor-tab-list)))) ; add tab to left edge
+                                        (t (progn (let ((target-temp-id (nth target-pos monitor-tab-list))) ; store the original content of target position
+                                                    (setf (nth target-pos monitor-tab-list) moving-tab (nth orig-pos monitor-tab-list) target-temp-id ))))) ; modify the list positions accordingly)))
+                                  (setq reconstructed-local-tab (list (cons monitor monitor-tab-list))) ; cons monitor name with modified tab-list
+                                  (setq equake-tab-list (remove examined-tab equake-tab-list)) ; remove the entire local monitor tab-list from global etab-list
+                                  (setq equake-tab-list (append equake-tab-list reconstructed-local-tab)) ; append the named, modified monitor tab list to the global equake tab list
+                                  (if equake-show-monitor-in-mode-line ; show monitorid or not
+                                      (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
+                                    (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
         ;                         (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitor equake-tab-list)))) ; update mode-line
-                    (force-mode-line-update)))))) ; force refresh mode-line
+                                  (force-mode-line-update)))))) ; force refresh mode-line
             (equake-move-tab monitor (cdr tablist) moving-tab direction)) ; check next monitor-local tab-list
         (message (concat "error: no relevant monitor " monitor " in ")))))) ; error if for some reason no such-name monitor
 
@@ -616,11 +618,12 @@
   (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
     (if (< (equake-count-tabs monitorid (buffer-list) 0) 2)
         (print "No other tab to switch to.")
-      ((let  ((current-tab (string-to-number (substring (buffer-name) (+ 1 (search "]" (buffer-name))) (+ 1 (search "%" (buffer-name)))))))
-         (let ((next-tab (equake-find-next-etab (cdr (equake-find-monitor-list monitorid equake-tab-list)) current-tab)))
-           (if (equal next-tab 'nil)    ; switch to first tab if at end of list
-               (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (car (cdr (equake-find-monitor-list monitorid equake-tab-list))) (buffer-list)))
-             (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid next-tab (buffer-list))))))))))
+      (progn
+        (let  ((current-tab (string-to-number (substring (buffer-name) (+ 1 (search "]" (buffer-name))) (+ 1 (search "%" (buffer-name)))))))
+          (let ((next-tab (equake-find-next-etab (cdr (equake-find-monitor-list monitorid equake-tab-list)) current-tab)))
+            (if (equal next-tab 'nil)   ; switch to first tab if at end of list
+                (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (car (cdr (equake-find-monitor-list monitorid equake-tab-list))) (buffer-list)))
+              (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid next-tab (buffer-list))))))))))
 
 (defun equake-prev-tab ()
   "Switch to the previous tab."
@@ -628,7 +631,7 @@
   (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
     (if (< (equake-count-tabs monitorid (buffer-list) 0) 2)
         (print "No other tab to switch to.")
-      (         ; re-use equake-find-next-tab function, first reversing the list
+      (progn         ; re-use equake-find-next-tab function, first reversing the list
         (let ((current-tab (string-to-number (substring (buffer-name) (+ 1 (search "]" (buffer-name))) (+ 1 (search "%" (buffer-name)))))))
           (let ((prev-tab (equake-find-next-etab (reverse (cdr (equake-find-monitor-list monitorid equake-tab-list))) current-tab)))
             (if (equal prev-tab 'nil)   ; switch to last tab if at beginning of list
@@ -660,7 +663,7 @@
   (let ((curtab (car (cdr buffers))))
     (if (equal curtab 'nil)
         (list modelinestring (equake-shell-type-styling major-mode))
-      ((setq modelinestring (concat modelinestring (equake-extract-format-tab-name curtab))) ; get name/number for tab in mode-line format
+      (progn (setq modelinestring (concat modelinestring (equake-extract-format-tab-name curtab))) ; get name/number for tab in mode-line format
              (equake-mode-line modelinestring (cdr buffers)))))) ; go on to next tab
 
 (defun equake-shell-type-styling (mode)

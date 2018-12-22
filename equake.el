@@ -58,7 +58,7 @@
 ;;  (require 'equake)
 
 ;; Usage
-;; Run with "emacsclient -e '(equake/emacs-dropdown-console)'",
+;; Run with "emacsclient -e '(equake-emacs-dropdown-console)'",
 ;; after launched an Emacs daemon of course.
 ;; I recommend binding this command to a key like F12 in your DE/WM.
 ;; Executing this command will create a new equake console

@@ -1,6 +1,8 @@
 #+TITLE: Equake: An Emacs drop-down console
 #+AUTHOR: Benjamin Slade
 
+[[./image/equake.png]]
+
 =equake= is a drop-down console in the style of the old (?)  drop-down 'cheat'
 consoles in games like Quake, similar to Guake or Yakuake, but written fully in
 Elisp.

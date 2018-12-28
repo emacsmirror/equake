@@ -631,10 +631,12 @@ external function call to 'equake-invoke'.")
                                         ;    (set-frame-parameter (selected-frame) 'menu-bar-lines 0)  ; cosmetic changes
                                         ;    (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil)))
       (if (equal equake-tab-list 'nil)  
-           (setq equake-tab-list (list (cons monitorid (list 0))))
-          (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list from global equake tab list
-        (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (append (cdr cur-monitor-tab-list) (list newhighest)))) ; pull into car (=monitor name) and cdr (=tab list); append newhighest to tab list and then cons monitor name and tab list back together
-        (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list))))
+          (setq equake-tab-list (list (cons monitorid (list newhighest))))
+        (if (equal cur-monitor-tab-list 'nil)
+            (setq equake-tab-list  (append equake-tab-list (list (cons monitorid (list newhighest)))))
+            (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list from global equake tab list
+          (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (append (cdr cur-monitor-tab-list) (list newhighest)))) ; pull into car (=monitor name) and cdr (=tab list); append newhighest to tab list and then cons monitor name and tab list back together
+          (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list)))))
       (equake-set-current-etab)
       (if equake-show-monitor-in-mode-line ; show monitorid or not
           (setq mode-line-format (list (equake-mode-line (concat monitor ": ") (equake-find-monitor-list monitor equake-tab-list))))

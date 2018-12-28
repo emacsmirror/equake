@@ -54,12 +54,12 @@ something like this to your =init.el= (assuming you put it into =~/.emacs.d/equa
 
 
 * Usage
-Run with =emacsclient -n -e '(equake-invoke)'=, after launching an Emacs
+Run with ~emacsclient -n -e '(equake-invoke)'~, after launching an Emacs
 daemon of course.  I recommend binding this command to a key like F12 in your DE/WM.
 Executing this command will create a new equake console on your screen the first
 time, and subsequently toggle the console (i.e. hide or show it).
 
-[Running with  =emacsclient -e '(equake/emacs-dropdown-console)'= has been deprecated.]
+[Running with  ~emacsclient -e '(equake/emacs-dropdown-console)'~ has been deprecated.]
 
 It works with =eshell=, =ansi-term=, =term=, =shell=. But it was really designed to
 work with eshell, which is the default (although this is configurable).  New console

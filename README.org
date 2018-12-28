@@ -158,6 +158,7 @@ possibly raise non-active frames on the same screen (similar to how
 * Credits
 - I have tried to adapt some ideas from alphapapa's [[https://github.com/alphapapa/yequake][yequake]] package.
 - This was developed in part as an emacs-internal solution to what noctuid's [[https://github.com/noctuid/tdrop][tdrop]] application does in terms of raising/hiding frames.
+- Tabs inspired by terminal emulators like Yakuake.
 
 * Licence
 GPLv3+

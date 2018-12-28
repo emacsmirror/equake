@@ -30,7 +30,20 @@ haven't tested this though, and given the apparent difficulties with certain win
 managers, I wouldn't be surprised if it only works on Linux/Unix running X11 
 (or in Wayland via Xwayland, as it seems to work in Gnome Shell Wayland).
 
+* Screenshots
+[[./image/equake01.gif]]
+
 * Installation
+** Melpa
+This package is not yet available via Melpa. 
+** Quelpa
+[[https://framagit.org/steckerhalter/quelpa-use-package][quelpa-use-package]] should allow for easier installation:
+
+#+BEGIN_SRC elisp
+  (use-package equake
+    :quelpa (equake :fetcher gitlab :repo "emacsomancer/equake"))
+#+END_SRC
+** Manual
 Clone the git repo somewhere and get it into your Emacs' load-path, e.g., add
 something like this to your =init.el= (assuming you put it into =~/.emacs.d/equake=):
 #+BEGIN_SRC elisp
@@ -38,7 +51,7 @@ something like this to your =init.el= (assuming you put it into =~/.emacs.d/equa
             "~/.emacs.d/equake/")                         
  (require 'equake)                                        
 #+END_SRC
-This package is not yet available via Melpa.
+
 
 * Usage
 Run with =emacsclient -e '(equake/emacs-dropdown-console)'=, after launching an Emacs
@@ -114,10 +127,8 @@ correlate of window rules is in Gnome Shell [remains to be documented].
 | C-M-+   | Add new tab with arbitrary shell |
 | C-\vert | Rename tab                       |
 
-* Screencapture
-[[./image/equake01.gif]]
-
-* Additional notes
+* Additional notes / proto-changelog
+** 0.3
 Lots of things seem to work well, but multi-monitor can still be a bit 
 fussy: equake doesn't always want to open on the 'active' monitor, and
 it seems to want an emacsclient frame to already be open somewhere on 
@@ -129,3 +140,24 @@ preserves a small measure of this behaviour.
 
 =customize= should reveal a number of customisable features, including
 default shell (=eshell=, =shell=, =ansi-term=, =term=), and colours.
+
+** 0.4
+I have made a number of improvements since the last major push to Gitlab. 
+Speed is much improved, and equake now tries to restore tabs rather than
+orphan them when the equake frame is forcibly closed. 
+
+I'm not entirely sure how to improve multi-monitor behaviour, though I
+do have a couple of ideas. One is to try (again) to have equake launch
+with a 'probe' emacsclient to make sure we're on the right screen. The 
+other (non-exclusive) thing I plan to try is to query emacs focus and
+possibly raise non-active frames on the same screen (similar to how
+[[https://github.com/alphapapa/yequake][yequake]] does). Other suggestions welcome.
+
+* Credits
+- I have tried to adapt some ideas from alphapapa's [[https://github.com/alphapapa/yequake][yequake]] package.
+- This was developed in part as an emacs-internal solution to what
+noctuid's [[https://github.com/noctuid/tdrop][tdrop]] application does in terms of raising/hiding frames.
+
+* Licence
+GPLv3+
+

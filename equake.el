@@ -16,8 +16,8 @@
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
 ;; URL: https://gitlab.com/emacsomancer/equake
-;; Package-Version: 0.3
-;; Version: 0.3
+;; Package-Version: 0.4
+;; Version: 0.4
 ;; Package-Requires: ((emacs "24.4"))
 ;; Created: 2018-12-12
 ;; Keywords: frames, terminals, tools

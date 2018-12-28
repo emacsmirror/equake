@@ -679,7 +679,7 @@ external function call to 'equake-invoke'.")
         (let ((monlist (equake-find-monitor-list monitorid equake-current-tabs)))
           (setq equake-current-tabs (remove monlist equake-current-tabs)) ; remove old monitor tab-list member from current tabs
           (if equake-current-tabs
-              (setq equake-current-tabs (list equake-current-tabs (cons monitorid current-tab)))
+              (setq equake-current-tabs (append equake-current-tabs (list (cons monitorid current-tab))))
             (setq equake-current-tabs (list (cons monitorid current-tab)))))
       (setq equake-current-tabs (list (cons monitorid current-tab))))))
 

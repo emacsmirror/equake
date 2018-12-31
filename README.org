@@ -41,7 +41,8 @@ This package is not yet available via Melpa.
 
 #+BEGIN_SRC elisp
   (use-package equake
-    :quelpa (equake :fetcher gitlab :repo "emacsomancer/equake"))
+    :quelpa (equake :fetcher gitlab :repo "emacsomancer/equake")
+    :ensure t)
 #+END_SRC
 ** Manual
 Clone the git repo somewhere and get it into your Emacs' load-path, e.g., add
@@ -63,15 +64,27 @@ daemon of course.  I recommend binding this command to a key like F12 in your DE
 Executing this command will create a new equake console on your screen the first
 time, and subsequently toggle the console (i.e. hide or show it).
 
-[Running with 
+For multi-monitor set-ups, an 'emacs probe' may be required in order to make sure
+we're opening equake on the right monitor. Thus for multi-screen set-ups, you can 
+make your equake toggle command instead:
+
+#+BEGIN_SRC shell
+emacsclient -n -c -e '(equake-invoke)' -F '((title . "*transient*") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)) (left . 0) (top . 0))'
+#+END_SRC 
+
+This will be slightly slower than the first equake toggle command mentioned, so don't 
+use it unless necessary.
+
+[Nb: running with 
 #+BEGIN_SRC shell
 emacsclient -e '(equake/emacs-dropdown-console)' 
 #+END_SRC      
 has been deprecated.]
 
 It works with =eshell=, =ansi-term=, =term=, =shell=. But it was really designed to
-work with eshell, which is the default (although this is configurable).  New console
-tabs can be specified to open with a shell other than the default shell.
+work with eshell, which is the default (although this is configurable), because of
+the [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][incredible]] [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell][brilliance]] of eshell.  New console tabs can be specified to open with
+a shell other than the default shell.
 
 Equake is designed to work with multi-screen setups, with a different set of tabs for
 each screen.
@@ -162,6 +175,11 @@ with a 'probe' emacsclient to make sure we're on the right screen. The
 other (non-exclusive) thing I plan to try is to query emacs focus and
 possibly raise non-active frames on the same screen (similar to how
 [[https://github.com/alphapapa/yequake][yequake]] does). Other suggestions welcome.
+** v0.45
+There is now a better (though not perfect) solution for multi-monitor set-ups,
+described above. It uses an 'emacs probe' to determine which monitor the focus
+is on. It's a bit slower than the 'default' method, so I'm still looking for
+better solutions.
 
 * Credits
 - I have tried to adapt some ideas from alphapapa's [[https://github.com/alphapapa/yequake][yequake]] package.

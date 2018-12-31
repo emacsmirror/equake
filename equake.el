@@ -58,9 +58,13 @@
 ;;  (require 'equake)
 
 ;; Usage
-;; Run with "emacsclient -n -e '(equake-invoke)'",
-;; after launched an Emacs daemon of course.
-;; I recommend binding this command to a key like F12 in your DE/WM.
+;; Run with:
+;; emacsclient -n -e '(equake-invoke)' ,
+;; after launching an Emacs daemon of course.
+;; Alternatively, on multi-monitor setup, launch:
+;; emacsclient -n -c -e '(equake-invoke)' -F '((title . "*transient*") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)) (left . 0) (top . 0))'
+;; 
+;; I recommend binding the relevant command to a key like F12 in your DE/WM.
 ;; Executing this command will create a new equake console
 ;; on your screen the first time, and subsequently toggle
 ;; the console (i.e. hide or show it).
@@ -93,6 +97,9 @@
 ;;
 ;; In Appearance & Fixes tab:
 ;; Check: 'No titlebar and frame' - Force - Yes
+;; Check: Focus stealing prevention - Force - None
+;; Check: Focus protection - Force - Normal
+;; Check: Accept focus - Force - Yes
 ;; 
 ;; In awesomewm, probably adding to your 'Rules' something
 ;; like this:
@@ -139,6 +146,7 @@
 
 (require 'cl-lib)
 (require 'subr-x)
+(require 'dash)                         ; for -let*
 
 (defvar equake-restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
 
@@ -386,7 +394,7 @@
   (interactive)
   (let ((frame (car frames)))
     (if frame
-        (progn (if (cl-search "transientframe" (frame-parameter frame 'name))
+        (progn (if (cl-search "*transient*" (frame-parameter frame 'title))
                    (delete-frame frame))
                (equake-kill-stray-transient-frames (cdr frames))))))
 
@@ -402,9 +410,10 @@ external function call to 'equake-invoke'.")
   (interactive)
   (-let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
           (equake-current-frame (equake-equake-frame-p monitorid (frame-list))))
+    (equake-kill-stray-transient-frames (frame-list))
     (if (equal (cdr (car equake-tab-list)) 'nil) ; check if empty equake frame exists
         (if equake-current-frame
-          (delete-frame equake-current-frame))) ; if so, destroy it.
+            (delete-frame equake-current-frame))) ; if so, destroy it.
     (if equake-current-frame
         ;; if frame exists, delete it, after storing window history.
         (if (frame-visible-p equake-current-frame)
@@ -535,9 +544,10 @@ external function call to 'equake-invoke'.")
 (defun equake-set-up-equake-frame ()
   "Set-up new *EQUAKE* frame, including cosmetic changes."
   (interactive)
-  (set-background-color equake-console-background-colour) ; set background colour
-  (set-foreground-color equake-console-foreground-colour) ; set foreground colo
+  (set-background-color equake-console-background-colour)  ; set background colour
+  (set-foreground-color equake-console-foreground-colour)  ; set foreground colo
   (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
+  (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bars
   (set-frame-parameter (selected-frame) 'alpha `(,equake-active-opacity ,equake-inactive-opacity)) 
   (setq inhibit-message t)              ; no messages in buffer
   ;; (equake-hide-orphaned-tab-frames (buffer-list))) ; hide any stray orphaned tab frames
@@ -557,6 +567,7 @@ external function call to 'equake-invoke'.")
       (set-foreground-color equake-console-foreground-colour) ; set foreground colour
       (rename-buffer (concat "EQUAKE[" monitorid "]0%") )     ; set buffer/tab-name
       (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
+      (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bars      
       (set-frame-parameter (selected-frame) 'alpha `(,equake-active-opacity ,equake-inactive-opacity))      
       (setq equake-tab-list (append equake-tab-list (list (cons monitorid (list 0))))) ; set equake local tab-list to an initial singleton list
       (set-frame-size (selected-frame) (truncate (* monwidth equake-width-percentage)) (truncate (* monheight equake-height-percentage)) t) ; size again

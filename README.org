@@ -141,7 +141,7 @@ Appears to work in both X11 and Wayland (via Xwayland).  I'm not sure what the
 correlate of window rules is in Gnome Shell [remains to be documented].
 
 ** Outside of Linux/BSD (i.e. non-X11/Wayland)
-`frame.el` defines methods for interacting with ~w32~ (Windows) and ~ns~ (NextStep/Mac),
+The ~frame.el~ library defines methods for interacting with ~w32~ (Windows) and ~ns~ (NextStep/Mac),
 so in theory these should also work with ~equake~. This has not been tested though.
 
 * Keybindings

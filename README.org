@@ -52,7 +52,6 @@ something like this to your =init.el= (assuming you put it into =~/.emacs.d/equa
             "~/.emacs.d/equake/")                         
  (require 'equake)                                        
 #+END_SRC
-This package is not yet available via Melpa.
 
 * Usage
 Run with 

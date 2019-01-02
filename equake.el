@@ -154,7 +154,8 @@
 
 (defvar equake-current-tabs 'nil)       ; empty list of current monitor tabs
 
-(defvar equake-non-etab-sticky-bit 'nil) ;defaults to 'nil
+;; (defvar equake-non-etab-sticky-bit 'nil)
+                                        ;defaults to 'nil
 
 (defvar equake-window-history 'nil)     ; empty list of screen frame window history
 
@@ -226,6 +227,41 @@
   "Colour of foreground text of active equake tabs."
   :type 'string
   :group 'equake)
+
+;; ;; mode-line theming IN PROGRESS
+;; (set-face-foreground 'mode-line "pale turquoise")
+;; (set-face-background 'mode-line "RoyalBlue4")
+;; (set-face-foreground 'mode-line-inactive "dark gray")
+;; (set-face-background 'mode-line-inactive "black")
+
+;; (set-face-background 'mode-line equake-mode-line-active-background-colour)
+;; (set-face-foreground 'mode-line equake-mode-line-active-foreground-colour)
+;; (set-face-background 'mode-line-inactive equake-mode-line-inactive-background-colour)
+;; (set-face-foreground 'mode-line-inactive equake-mode-line-inactive-foreground-colour)
+
+;; (setq equake-mode-line-active-background-colour ":inherit (mode-line (:background))")
+
+;; (defcustom equake-mode-line-active-background-colour ":inherit mode-line :background"
+;;   "Background colour of shell-type indicator in mode-line when shell) is the underlying shell."
+;;   :type 'string
+;;   :group 'equake)
+
+;; (defcustom equake-mode-line-active-foreground-colour ":inherit mode-line"
+;;   "Background colour of shell-type indicator in mode-line when shell) is the underlying shell."
+;;   :type 'string
+;;   :group 'equake)
+
+;; (defcustom equake-mode-line-inactive-background-colour ":inherit mode-line-inactive"
+;;   "Background colour of shell-type indicator in mode-line when shell) is the underlying shell."
+;;   :type 'string
+;;   :group 'equake)
+
+;; (defcustom equake-mode-line-inactive-foreground-colour ":inherit mode-line-inactive"
+;;   "Background colour of shell-type indicator in mode-line when shell) is the underlying shell."
+;;   :type 'string
+;;   :group 'equake)
+
+;; ;; END MODE-LINE THEMING
 
 (defcustom equake-active-tab-background-colour "black"
   "Background colour of active equake tabs."
@@ -420,9 +456,11 @@ external function call to 'equake-invoke'.")
         (if (frame-visible-p equake-current-frame)
             (progn (equake-store-window-history) ; store window history.
                    (set-frame-parameter equake-current-frame 'fullscreen 'nil) ; make sure to unfullscreen.
-                   ;; make-frame-invisible double-tap: one more makes 100% sure:
+                   ;; Emacs Frame Visibility Rule #2: Double-Tap - "one more makes 100% sure":
                    (make-frame-invisible equake-current-frame)(make-frame-invisible equake-current-frame))
-          (raise-frame equake-current-frame))
+          (if (cl-search monitorid (frame-parameter equake-current-frame 'name))
+              ;; SOMETHING HERE TO MAKE SURE WE'RE RAISING THE RIGHT ONE
+              (raise-frame equake-current-frame)))
           ;; else, make it.
           (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" (equake-get-monitor-name (frame-monitor-attributes)) "]"))
                                                (cons 'alpha `(,equake-active-opacity ,equake-inactive-opacity))
@@ -433,7 +471,6 @@ external function call to 'equake-invoke'.")
                   (old-window-history (cdr (equake-find-monitor-list monitorid equake-window-history))))
             (set-window-prev-buffers 'nil old-window-history) ; restore old window buffer history
             (select-frame new-frame)
-            ;; (set-window-prev-buffers 'nil old-window-history) ; restore old window buffer history
             (let ((highest-montab (equake-highest-etab monitorid (buffer-list) -1)))
               (if (< highest-montab 0)
                   (equake-new-tab)      ; launch new shell
@@ -491,13 +528,14 @@ external function call to 'equake-invoke'.")
 (defun equake-set-up-equake-frame ()
   "Set-up new *EQUAKE* frame, including cosmetic changes."
   (interactive)
-  (set-background-color equake-console-background-colour)  ; set background colour
-  (set-foreground-color equake-console-foreground-colour)  ; set foreground colo
-  (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
-  (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bars
+  (set-background-color equake-console-background-colour) ; set background colour
+  (set-foreground-color equake-console-foreground-colour) ; set foreground colour
+  ;; (when (equal menu-bar-mode t) 
+  ;;   (set-frame-parameter (selected-frame) 'menu-bar-lines 0)) ; no menu-bars
+  ;; (when (equal tool-bar-mode t)
+  ;;   (set-frame-parameter (selected-frame) 'tool-bar-lines 0)) ; no tool-bars
   (set-frame-parameter (selected-frame) 'alpha `(,equake-active-opacity ,equake-inactive-opacity)) 
   (setq inhibit-message t)              ; no messages in buffer
-  ;; (equake-hide-orphaned-tab-frames (buffer-list))) ; hide any stray orphaned tab frames
   )
 
 (defun equake-count-tabs (monitor buffers count)
@@ -511,9 +549,6 @@ external function call to 'equake-invoke'.")
                   (equake-count-tabs monitor buffend count)))
           ((not (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg)))
            (equake-count-tabs monitor buffend count)))))
-
-;; MAKE OWN FUNCTION?
-;; (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg))))
 
 (defun equake-highest-etab (monitor buffers highest)
   "Get highest etab number on monitor."
@@ -601,7 +636,7 @@ external function call to 'equake-invoke'.")
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil)))) ; no scrollbars
       (setq inhibit-message 'nil)
              ;; (set-frame-parameter (selected-frame) 'menu-bar-lines 1)
-      (setq mode-line-format equake-restore-mode-line)
+      ;; (setq mode-line-format equake-restore-mode-line)
              ;; (if (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name))
              ;;     (equake-fallback-to-existing-tab monitorid (buffer-list)))
       )))  ; restore 'real' mode-line to non-EQUAKE frames
@@ -767,6 +802,11 @@ external function call to 'equake-invoke'.")
         (if (equal tab current-etab)                 
             (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-inactive-tab-foreground-colour :background ,equake-inactive-tab-background-colour)) " ") ; 'highlight' current tab
           (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-active-tab-foreground-colour :background ,equake-active-tab-background-colour)) " "))))))
+
+(defun equake-launch-frame-if-none-exists ()
+  "Launch a frame if no frames exist."
+  (when (equal (frame-list) 'nil)
+    (shell-command "emacsclient -n -c")))
 
 (provide 'equake)
 

@@ -304,7 +304,7 @@
 (defun equake-ask-before-closing-equake ()
   "Make sure user really wants to close equake, ask again."
   (interactive)
-  (if (y-or-n-p (format "Are you sure you want to close the equake console frame? [Advice: Cancel and use `C-x k` to close the buffer instead, returning to your shell session.]"))
+  (if (y-or-n-p (format "Are you sure you want to close the equake console frame? \n[Advice: Cancel and use `C-x k` to close the buffer instead, returning to your shell session.]"))
       (save-buffers-kill-terminal)
     ;; (save-buffers-kill-emacs)
     (message "Wisely cancelling the closing of the equake console frame...")))

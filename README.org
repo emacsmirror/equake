@@ -153,7 +153,7 @@ so in theory these should also work with ~equake~. This has not been tested thou
 | C-M-+   | Add new tab with arbitrary shell |
 | C-\vert | Rename tab                       |
 
-* Additional notes / proto-changelog
+* Changelog for beta versions
 ** v0.3
 Lots of things seem to work well, but multi-monitor can still be a bit 
 fussy: equake doesn't always want to open on the 'active' monitor, and
@@ -183,6 +183,37 @@ There is now a better (though not perfect) solution for multi-monitor set-ups,
 described above. It uses an 'emacs probe' to determine which monitor the focus
 is on. It's a bit slower than the 'default' method, so I'm still looking for
 better solutions.
+** v0.49
+General *overall* speed improvements. The multi-monitor workaround via
+#+begin_src emacs-lisp
+emacsclient -n -c -e '(equake-invoke)' -F '((title . "*transient*") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)) (left . 0) (top . 0))'
+#+end_src
+is now nearly as fast as running with the simpler
+#+begin_src emacs-lisp
+emacsclient -n -e '(equake-invoke)'
+#+end_src
+is. The latter is now *slightly* slower due to migration away from use of
+~make-frame-(in)visible~, and adoption of general use of ~delete-frame~ when toggling
+an equake frame off. Unfortunately, ~make-frame-invisible~ seems very buggy. Applying
+~make-frame-invisible~ to a frame once appears to render it invisible, but Emacs
+still considers it to be visible, which means that ~frame-visible-p~ will still
+report the frame as being visible and functions like ~make-frame-visible~ and
+~raise-frame~ will have no effect upon the frame in question.  Only a second
+application of ~make-frame-invisible~ will register the frame as reportably invisible
+to Emacs. This is easily enough worked-around simply by a 'double tap' of
+~make-frame-invisible~. Unfortunately, there appear to be numerous other problems
+with Emacs visibility system. For instance, frames that are less than 100% width end
+up re-appearing in a position other than their original position, and frames
+sometimes spontaneously resize when re-appearing. Worse yet, applying
+~set-frame-position~ on such malpositioned frames results in significant lag.
+
+So adopting ~destroy-frame~ as a general solution ended up being the best
+solution. This requires being able to remember the last used buffer and also the
+window-buffer-history, but I had implemented these features independently in case of
+accidental frame destruction.
+
+This also means that I think I have fixed the remaining bugs in the implementation of
+the restoration of the last-used buffer and the frame window's buffer-history. 
 
 * Credits
 - I have tried to adapt some ideas from alphapapa's [[https://github.com/alphapapa/yequake][yequake]] package.

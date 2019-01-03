@@ -446,37 +446,106 @@ external function call to 'equake-invoke'.")
   (interactive)
   (-let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
           (equake-current-frame (equake-equake-frame-p monitorid (frame-list)))
-          ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor (alist-get 'workarea (frame-monitor-attributes)))))
+          ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor (alist-get 'workarea (frame-monitor-attributes))))
+          (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))))
+    ;; (unless (equal equake-width-percentage 1.0)
+    ;;   (setq mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))
+    (equake-kill-stray-transient-frames (frame-list))
+    (if equake-current-frame       ;; if frame exists, destroy it.
+        (progn (equake-store-window-history) ; store window history.
+               (delete-frame equake-current-frame)) ; destroy frame.
+      ;; else, make it.
+      (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" monitorid "]"))
+                                           (cons 'alpha `(,equake-active-opacity ,equake-inactive-opacity))
+                                           (cons 'left mod-mon-xpos)
+                                           (cons 'top mon-ypos)
+                                           (cons 'width (cons 'text-pixels (truncate (* monwidth equake-width-percentage))))
+                                           (cons 'height (cons 'text-pixels (truncate (* monheight equake-height-percentage)))))))
+              (old-window-history (cdr (equake-find-monitor-list monitorid equake-window-history))))
+        (set-window-prev-buffers 'nil old-window-history) ; restore old window buffer history
+        (select-frame new-frame)
+        (let ((highest-montab (equake-highest-etab monitorid (buffer-list) -1)))
+          (if (< highest-montab 0)
+              (equake-new-tab) ; launch new shell
+            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (cdr (equake-find-monitor-list monitorid equake-current-tabs)) (buffer-list))))
+          (set-window-prev-buffers 'nil (cdr (window-prev-buffers))) ; pop off the initial buffer
+          (equake-set-up-equake-frame)
+          ;; (if (not (equal mod-mon-xpos mon-xpos))
+          ;;     (progn
+          ;;       (set-frame-parameter equake-current-frame 'top 0)
+          ;;       (set-frame-parameter equake-current-frame 'left mod-mon-xpos)))
+          ;; (if mod-mon-xpos
+          ;;     (progn (set-frame-parameter equake-current-frame 'top mon-ypos)
+          ;;            (set-frame-parameter equake-current-frame 'left mod-mon-xpos))
+          ;;   (set-frame-parameter equake-current-frame 'top mon-ypos)
+          ;;   (set-frame-parameter equake-current-frame 'left mon-xpos))
+          )))))
+
+
+(defun equake-invoke-old ()
+  "Set up an emacs drop-drop console. Run with \"emacsclient -n -e '(equake-invoke)'\"."
+  (interactive)
+  (-let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
+          (equake-current-frame (equake-equake-frame-p monitorid (frame-list)))
+          ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor (alist-get 'workarea (frame-monitor-attributes))))
+          (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))))
+    ;; (unless (equal equake-width-percentage 1.0)
+    ;;   (setq mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))
     (equake-kill-stray-transient-frames (frame-list))
     (when (equal (cdr (car equake-tab-list)) 'nil) ; check if empty equake frame exists
-        (when equake-current-frame
-            (delete-frame equake-current-frame))) ; if so, destroy it.
+      (when equake-current-frame
+        (delete-frame equake-current-frame))) ; if so, destroy it.
     (if equake-current-frame
         ;; if frame exists, hide it.
         (if (frame-visible-p equake-current-frame)
             (progn (equake-store-window-history) ; store window history.
-                   (set-frame-parameter equake-current-frame 'fullscreen 'nil) ; make sure to unfullscreen.
-                   ;; Emacs Frame Visibility Rule #2: Double-Tap - "one more makes 100% sure":
-                   (make-frame-invisible equake-current-frame)(make-frame-invisible equake-current-frame))
+                   ;; (set-frame-parameter equake-current-frame 'fullscreen 'nil) ; make sure to unfullscreen.
+                   ;; ;; Emacs Frame Visibility Rule #2: Double-Tap - "one more makes 100% sure":
+                   ;; (make-frame-invisible equake-current-frame)
+                   (make-frame-invisible equake-current-frame))
           (if (cl-search monitorid (frame-parameter equake-current-frame 'name))
               ;; SOMETHING HERE TO MAKE SURE WE'RE RAISING THE RIGHT ONE
-              (raise-frame equake-current-frame)))
-          ;; else, make it.
-          (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" (equake-get-monitor-name (frame-monitor-attributes)) "]"))
-                                               (cons 'alpha `(,equake-active-opacity ,equake-inactive-opacity))
-                                               (cons 'left mon-xpos)
-                                               (cons 'top mon-ypos)
-                                               (cons 'width (cons 'text-pixels (truncate (* monwidth equake-width-percentage))))
-                                               (cons 'height (cons 'text-pixels (truncate (* monheight equake-height-percentage)))))))
-                  (old-window-history (cdr (equake-find-monitor-list monitorid equake-window-history))))
-            (set-window-prev-buffers 'nil old-window-history) ; restore old window buffer history
-            (select-frame new-frame)
-            (let ((highest-montab (equake-highest-etab monitorid (buffer-list) -1)))
-              (if (< highest-montab 0)
-                  (equake-new-tab)      ; launch new shell
-                (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (cdr (equake-find-monitor-list monitorid equake-current-tabs)) (buffer-list))))
-              (set-window-prev-buffers 'nil (cdr (window-prev-buffers))) ; pop off the initial buffer
-              (equake-set-up-equake-frame))))))
+              (progn (raise-frame equake-current-frame)
+                     (set-frame-parameter equake-current-frame 'fullscreen 'nil)
+                     (if (not (equal mod-mon-xpos mon-xpos))
+                         (progn (set-frame-parameter equake-current-frame 'top 0)
+                                (set-frame-parameter equake-current-frame 'left mod-mon-xpos)))
+                     ;; (if mod-mon-xpos
+                     ;;     (progn (set-frame-parameter equake-current-frame 'top 0)
+                     ;;            (set-frame-parameter equake-current-frame 'left mod-mon-xpos))
+                     ;;   (set-frame-parameter equake-current-frame 'top 0)
+                     ;;   (set-frame-parameter equake-current-frame 'left mon-xpos))
+                     ;; (set-frame-parameter (selected-frame) top 0)
+                     ;; (if (equal equake-width-percentage 1.0)
+                     ;;     (set-frame-position equake-current-frame mon-xpos mon-ypos)
+                     ;;   (set-frame-position equake-current-frame (/ (- monwidth (* monwidth equake-width-percentage)) 2) mon-ypos))
+                     )))
+      ;; else, make it.
+      (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" monitorid "]"))
+                                           (cons 'alpha `(,equake-active-opacity ,equake-inactive-opacity))
+                                           (cons 'left mon-xpos)
+                                           (cons 'top mon-ypos)
+                                           (cons 'width (cons 'text-pixels (truncate (* monwidth equake-width-percentage))))
+                                           (cons 'height (cons 'text-pixels (truncate (* monheight equake-height-percentage)))))))
+              (old-window-history (cdr (equake-find-monitor-list monitorid equake-window-history))))
+        (set-window-prev-buffers 'nil old-window-history) ; restore old window buffer history
+        (select-frame new-frame)
+        (let ((highest-montab (equake-highest-etab monitorid (buffer-list) -1)))
+          (if (< highest-montab 0)
+              (equake-new-tab) ; launch new shell
+            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (cdr (equake-find-monitor-list monitorid equake-current-tabs)) (buffer-list))))
+          (set-window-prev-buffers 'nil (cdr (window-prev-buffers))) ; pop off the initial buffer
+          (equake-set-up-equake-frame)
+          (if (not (equal mod-mon-xpos mon-xpos))
+              (progn
+                (set-frame-parameter equake-current-frame 'top 0)
+                (set-frame-parameter equake-current-frame 'left mod-mon-xpos)))
+          ;; (if mod-mon-xpos
+          ;;     (progn (set-frame-parameter equake-current-frame 'top mon-ypos)
+          ;;            (set-frame-parameter equake-current-frame 'left mod-mon-xpos))
+          ;;   (set-frame-parameter equake-current-frame 'top mon-ypos)
+          ;;   (set-frame-parameter equake-current-frame 'left mon-xpos))
+          )))))
 
 (defun equake-find-history-list (monitor tabs)
   "Return the relevant window history associated with monitor/screen."

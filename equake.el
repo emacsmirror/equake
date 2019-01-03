@@ -152,6 +152,8 @@
 
 (defvar equake-tab-list 'nil)           ; empty list of equake tabs to start
 
+(defvar equake-last-buffer-list 'nil)           ; empty list of equake last buffers to start
+
 (defvar equake-current-tabs 'nil)       ; empty list of current monitor tabs
 
 ;; (defvar equake-non-etab-sticky-bit 'nil)
@@ -452,7 +454,11 @@ external function call to 'equake-invoke'.")
     ;;   (setq mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))
     (equake-kill-stray-transient-frames (frame-list))
     (if equake-current-frame       ;; if frame exists, destroy it.
-        (progn (equake-store-window-history) ; store window history.
+        (progn  (select-frame equake-current-frame)
+               (when (equal (buffer-name (current-buffer)) " *server*")
+                 (switch-to-buffer (other-buffer (current-buffer) 1)))
+               (equake-set-last-buffer)
+               (equake-store-window-history)        ; store window history.
                (delete-frame equake-current-frame)) ; destroy frame.
       ;; else, make it.
       (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" monitorid "]"))
@@ -467,7 +473,7 @@ external function call to 'equake-invoke'.")
         (let ((highest-montab (equake-highest-etab monitorid (buffer-list) -1)))
           (if (< highest-montab 0)
               (equake-new-tab) ; launch new shell
-            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (cdr (equake-find-monitor-list monitorid equake-current-tabs)) (buffer-list))))
+            (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))))
           (set-window-prev-buffers 'nil (cdr (window-prev-buffers))) ; pop off the initial buffer
           (equake-set-up-equake-frame)
           ;; (if (not (equal mod-mon-xpos mon-xpos))
@@ -480,7 +486,6 @@ external function call to 'equake-invoke'.")
           ;;   (set-frame-parameter equake-current-frame 'top mon-ypos)
           ;;   (set-frame-parameter equake-current-frame 'left mon-xpos))
           )))))
-
 
 (defun equake-invoke-old ()
   "Set up an emacs drop-drop console. Run with \"emacsclient -n -e '(equake-invoke)'\"."
@@ -724,6 +729,18 @@ external function call to 'equake-invoke'.")
               (setq equake-current-tabs (append equake-current-tabs (list (cons monitorid current-tab))))
             (setq equake-current-tabs (list (cons monitorid current-tab)))))
       (setq equake-current-tabs (list (cons monitorid current-tab))))))
+
+(defun equake-set-last-buffer ()
+  "Set current tab."
+  (let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))         
+         (cur-monitor-last-buffer (equake-find-monitor-list monitorid equake-last-buffer-list)))
+    (if equake-last-buffer-list
+        (if cur-monitor-last-buffer
+            (progn (setq equake-last-buffer-list (remove cur-monitor-last-buffer equake-last-buffer-list)) ; remove old monitor tab-list member from current tabs
+                   (setq equake-last-buffer-list (append equake-last-buffer-list (list (cons monitorid (current-buffer))))))
+          (setq equake-last-buffer-list (list (cons monitorid (current-buffer))))))
+    (setq equake-last-buffer-list (list (cons monitorid (current-buffer))))))
+
 
 (add-hook 'buffer-list-update-hook 'equake-shell-after-buffer-change-hook)
 

@@ -700,7 +700,7 @@ external function call to 'equake-invoke'.")
               (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
             (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
           (force-mode-line-update)
-          (equake-set-current-etab)
+          ;; (equake-set-current-etab)
           ;;  (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil)))) ; no scrollbars
       (setq inhibit-message 'nil)

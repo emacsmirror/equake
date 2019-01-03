@@ -569,8 +569,10 @@ external function call to 'equake-invoke'.")
     (if (equal equake-window-history 'nil)
         (setq equake-window-history (list (cons monitorid (window-prev-buffers))))
       (let ((current-local-history (equake-find-history-list monitorid equake-window-history)))
-        (setq equake-window-history (remove current-local-history equake-window-history))
-        (setq equake-window-history (list (append equake-window-history (cons monitorid (window-prev-buffers)))))))))
+        (if current-local-history
+            (progn (setq equake-window-history (remove current-local-history equake-window-history))
+                   (setq equake-window-history (append equake-window-history (list (cons monitorid (window-prev-buffers))))))
+          (setq equake-window-history (append equake-window-history (list (cons monitorid (window-prev-buffers))))))))))
 
 
 (defun equake-launch-shell (&optional override)

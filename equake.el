@@ -453,7 +453,6 @@ external function call to 'equake-invoke'.")
     (equake-kill-stray-transient-frames (frame-list))
     (if equake-current-frame       ;; if frame exists, destroy it.
         (progn (equake-store-window-history) ; store window history.
-               (equake-set-current-etab)     ; set current tab
                (delete-frame equake-current-frame)) ; destroy frame.
       ;; else, make it.
       (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" monitorid "]"))

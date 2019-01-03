@@ -501,7 +501,7 @@ external function call to 'equake-invoke'.")
             (progn (equake-store-window-history) ; store window history.
                    ;; (set-frame-parameter equake-current-frame 'fullscreen 'nil) ; make sure to unfullscreen.
                    ;; ;; Emacs Frame Visibility Rule #2: Double-Tap - "one more makes 100% sure":
-                  (make-frame-invisible equake-current-frame)
+                   ;; (make-frame-invisible equake-current-frame)
                    (make-frame-invisible equake-current-frame))
           (if (cl-search monitorid (frame-parameter equake-current-frame 'name))
               ;; SOMETHING HERE TO MAKE SURE WE'RE RAISING THE RIGHT ONE
@@ -700,7 +700,7 @@ external function call to 'equake-invoke'.")
               (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
             (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
           (force-mode-line-update)
-          ;; (equake-set-current-etab)
+          (equake-set-current-etab)
           ;;  (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bars
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil)))) ; no scrollbars
       (setq inhibit-message 'nil)
@@ -756,7 +756,7 @@ external function call to 'equake-invoke'.")
   "Move the current tab one position to the right (direction=1) or left (direction=-1) in the list."
   (let ((examined-tab (car tablist)))   ; get entire local monitor tab-list
     (let ((monitor-tab-list (cdr examined-tab))) ; just the local monitor list of tabs
-      (when tablist
+      (if tablist
           (if (equal (car examined-tab) monitor) ; if the monitor label matches
               (if (< (length monitor-tab-list) 2) ; if only one tab, stop with message to user
                   (message "Only one tab")
@@ -779,8 +779,8 @@ external function call to 'equake-invoke'.")
                       (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
                                         ;                         (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitor equake-tab-list)))) ; update mode-line
                     (force-mode-line-update)))) ; force refresh mode-line
-            (equake-move-tab monitor (cdr tablist) moving-tab direction) ; check next monitor-local tab-list
-            (message (concat "error: no relevant monitor " monitor " in "))))))) ; error if for some reason no such-name monitor
+            (equake-move-tab monitor (cdr tablist) moving-tab direction)) ; check next monitor-local tab-list
+            (message (concat "error: no relevant monitor " monitor " in ")))))) ; error if for some reason no such-name monitor
 
 (defun equake-move-tab-right ()
   "Move current tab one position to the right."

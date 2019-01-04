@@ -30,6 +30,8 @@ haven't tested this though, and given the apparent difficulties with certain win
 managers, I wouldn't be surprised if it only works on Linux/Unix running X11 
 (or in Wayland via Xwayland, as it seems to work in Gnome Shell Wayland).
 
+See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the Babbage Files blog post]].
+
 * Screenshots
 [[./image/equake01.gif]]
 

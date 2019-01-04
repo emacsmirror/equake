@@ -223,7 +223,7 @@ need to track down transitory mirroring of separate =equake= frames on multi-mon
 * Credits
 - I have tried to adapt some ideas from alphapapa's [[https://github.com/alphapapa/yequake][yequake]] package.
 - This was developed in part as an emacs-internal solution to what noctuid's [[https://github.com/noctuid/tdrop][tdrop]] application does in terms of raising/hiding frames.
-- Tabs inspired by terminal emulators like Yakuake.
+- Tabs inspired by terminal emulators like [[https://en.wikipedia.org/wiki/Yakuake][Yakuake]].
 
 * Licence
 GPLv3+

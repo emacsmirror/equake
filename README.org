@@ -214,7 +214,10 @@ accidental frame destruction.
 
 This also means that I think I have fixed the remaining bugs in the implementation of
 the restoration of the last-used buffer and the frame window's buffer-history. 
-
+** v0.50
+Cleaned up code a bit more, removing unneeded functions. Orphaning tab functions remain, but 
+are not currently used. These could be useful if repurposed to "clearing out" tabs. Still
+need to track down transitory mirroring of separate =equake= frames on multi-monitor.
 * Credits
 - I have tried to adapt some ideas from alphapapa's [[https://github.com/alphapapa/yequake][yequake]] package.
 - This was developed in part as an emacs-internal solution to what noctuid's [[https://github.com/noctuid/tdrop][tdrop]] application does in terms of raising/hiding frames.

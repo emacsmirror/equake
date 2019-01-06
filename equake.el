@@ -382,8 +382,6 @@ external function call to 'equake-invoke'.")
           (equake-current-frame (equake-equake-frame-p monitorid (frame-list)))
           ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor (alist-get 'workarea (frame-monitor-attributes))))
           (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))))
-    ;; (unless (equal equake-width-percentage 1.0)
-    ;;   (setq mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))
     (equake-kill-stray-transient-frames (frame-list))
     (if equake-current-frame       ;; if frame exists, destroy it.
         (progn  (select-frame equake-current-frame)
@@ -562,8 +560,8 @@ external function call to 'equake-invoke'.")
         (if cur-monitor-last-buffer
             (progn (setq equake-last-buffer-list (remove cur-monitor-last-buffer equake-last-buffer-list)) ; remove old monitor tab-list member from current tabs
                    (setq equake-last-buffer-list (append equake-last-buffer-list (list (cons monitorid (current-buffer))))))
-          (setq equake-last-buffer-list (list (cons monitorid (current-buffer))))))
-    (setq equake-last-buffer-list (list (cons monitorid (current-buffer))))))
+          (setq equake-last-buffer-list (append equake-last-buffer-list (list (cons monitorid (current-buffer))))))
+    (setq equake-last-buffer-list (list (cons monitorid (current-buffer)))))))
 
 (add-hook 'buffer-list-update-hook 'equake-shell-after-buffer-change-hook)
 

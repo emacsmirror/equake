@@ -466,7 +466,7 @@ external function call to 'equake-invoke'.")
     (cond ((equal buffbeg 'nil)
            count)
           ((string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg))
-           (progn (setq count (+ 1 count))
+           (progn (setq count (1+ count))
                   (equake-count-tabs monitor buffend count)))
           ((not (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg)))
            (equake-count-tabs monitor buffend count)))))
@@ -513,7 +513,7 @@ external function call to 'equake-invoke'.")
   (set-foreground-color equake-console-foreground-colour) ; set foreground colour
   (setq inhibit-message t)
   (let* ((monitor (equake-get-monitor-name (frame-monitor-attributes)))
-         (newhighest (+ 1 (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
+         (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
          (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))) ; find the tab-list associated with the current monitor
     (rename-buffer (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%")) ; rename buffer with monitor id and new tab number
                                         ;    (set-frame-parameter (selected-frame) 'menu-bar-lines 0)  ; cosmetic changes
@@ -568,8 +568,8 @@ external function call to 'equake-invoke'.")
 (defun equake-kill-etab-buffer-hook ()
   "Things to do when an Equake buffer is killed." ; TODO: prevent last equake tab from being killed!
   (when (string-match-p "EQUAKE\\[" (buffer-name))
-      (let* ((monitor (substring (buffer-name) (+ 1 (search "[" (buffer-name))) (search "]" (buffer-name))))
-            (killed-tab (string-to-number (substring (buffer-name) (+ 1 (search "]" (buffer-name))) (length (buffer-name)))))
+      (let* ((monitor (substring (buffer-name) (1+ (search "[" (buffer-name))) (search "]" (buffer-name))))
+            (killed-tab (string-to-number (substring (buffer-name) (1+ (search "]" (buffer-name))) (length (buffer-name)))))
             (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list)))
         (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list member from global tab list
         (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (remove killed-tab (cdr cur-monitor-tab-list)))) ; edit current monitor tab list to remove tab
@@ -601,7 +601,7 @@ external function call to 'equake-invoke'.")
                 (cond ((< target-pos 0) ; if trying to move tab beyond left edge
                        (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab 
                               (setq monitor-tab-list (append monitor-tab-list (list moving-tab))))) ; add tab to right edge
-                      ((> target-pos (- (length monitor-tab-list) 1))
+                      ((> target-pos (1- (length monitor-tab-list)))
                        (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
                               (setq monitor-tab-list (append (list moving-tab) monitor-tab-list)))) ; add tab to left edge
                       (t (progn (let ((target-temp-id (nth target-pos monitor-tab-list))) ; store the original content of target position
@@ -636,7 +636,7 @@ external function call to 'equake-invoke'.")
   (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
     (if (< (equake-count-tabs monitorid (buffer-list) 0) 2)
         (print "No other tab to switch to.")
-        (let* ((current-tab (string-to-number (substring (buffer-name) (+ 1 (search "]" (buffer-name))) (+ 1 (search "%" (buffer-name))))))
+        (let* ((current-tab (string-to-number (substring (buffer-name) (1+ (search "]" (buffer-name))) (1+ (search "%" (buffer-name))))))
                (next-tab (equake-find-next-etab (cdr (equake-find-monitor-list monitorid equake-tab-list)) current-tab)))
           (if (equal next-tab 'nil)   ; switch to first tab if at end of list
               (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (car (cdr (equake-find-monitor-list monitorid equake-tab-list))) (buffer-list)))
@@ -649,7 +649,7 @@ external function call to 'equake-invoke'.")
     (if (< (equake-count-tabs monitorid (buffer-list) 0) 2)
         (print "No other tab to switch to.")
                                         ; re-use equake-find-next-tab function, first reversing the list
-        (let* ((current-tab (string-to-number (substring (buffer-name) (+ 1 (search "]" (buffer-name))) (+ 1 (search "%" (buffer-name))))))
+        (let* ((current-tab (string-to-number (substring (buffer-name) (1+ (search "]" (buffer-name))) (1+ (search "%" (buffer-name))))))
                (prev-tab (equake-find-next-etab (reverse (cdr (equake-find-monitor-list monitorid equake-tab-list))) current-tab)))
           (if (equal prev-tab 'nil)   ; switch to last tab if at beginning of list
               (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (car  (reverse (cdr (equake-find-monitor-list monitorid equake-tab-list)))) (buffer-list)))

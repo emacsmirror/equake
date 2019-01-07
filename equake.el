@@ -511,9 +511,9 @@ external function call to 'equake-invoke'.")
          (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))) ; find the tab-list associated with the current monitor
     (rename-buffer (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%")) ; rename buffer with monitor id and new tab number
       (if (equal equake-tab-list 'nil)  
-          (setq equake-tab-list (list (cons monitorid (list newhighest))))
+          (setq equake-tab-list (list (cons monitor (list newhighest))))
         (if (equal cur-monitor-tab-list 'nil)
-            (setq equake-tab-list  (append equake-tab-list (list (cons monitorid (list newhighest)))))
+            (setq equake-tab-list  (append equake-tab-list (list (cons monitor (list newhighest)))))
           (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list from global equake tab list
            ;; pull into car (=monitor name) and cdr (=tab list); append newhighest to tab list and then cons monitor name and tab list back together          
           (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (append (cdr cur-monitor-tab-list) (list newhighest)))) 

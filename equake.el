@@ -603,8 +603,8 @@ external function call to 'equake-invoke'.")
                 (setq equake-tab-list (remove examined-tab equake-tab-list)) ; remove the entire local monitor tab-list from global etab-list
                 (setq equake-tab-list (append equake-tab-list reconstructed-local-tab)) ; append the named, modified monitor tab list to the global equake tab list
                 (if equake-show-monitor-in-mode-line ; show monitorid or not
-                    (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
-                  (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
+                    (setq mode-line-format (list (equake-mode-line (concat monitor ": ") (equake-find-monitor-list monitorid equake-tab-list))))
+                  (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitor equake-tab-list)))))
                 (force-mode-line-update))) ; force refresh mode-line
           (equake-move-tab monitor (cdr tablist) moving-tab direction)) ; check next monitor-local tab-list
     (message (concat "error: no relevant monitor " monitor " in "))))) ; error if for some reason no such-name monitor

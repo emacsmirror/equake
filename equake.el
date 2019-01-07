@@ -597,7 +597,7 @@ external function call to 'equake-invoke'.")
                 (message "Only one tab")
               (let* ((orig-pos (cl-position moving-tab monitor-tab-list)) ; find the original position of tab we're moving
                      (target-pos (+ orig-pos direction)) ; find the target position of the moving tab
-                     (reconstructed-local-tab 'nil)) ; initialise local variable 
+                     (reconstructed-local-tab 'nil))     ; initialise local variable 
                 (cond ((< target-pos 0) ; if trying to move tab beyond left edge
                        (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab 
                               (setq monitor-tab-list (append monitor-tab-list (list moving-tab))))) ; add tab to right edge
@@ -612,8 +612,8 @@ external function call to 'equake-invoke'.")
                 (if equake-show-monitor-in-mode-line ; show monitorid or not
                     (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
                   (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
-                (force-mode-line-update)))) ; force refresh mode-line
-      (equake-move-tab monitor (cdr tablist) moving-tab direction) ; check next monitor-local tab-list
+                (force-mode-line-update))) ; force refresh mode-line
+          (equake-move-tab monitor (cdr tablist) moving-tab direction)) ; check next monitor-local tab-list
     (message (concat "error: no relevant monitor " monitor " in "))))) ; error if for some reason no such-name monitor
 
 (defun equake-move-tab-right ()

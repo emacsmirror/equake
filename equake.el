@@ -533,7 +533,7 @@ external function call to 'equake-invoke'.")
 (defun equake-shell-after-buffer-change-hook ()
   "Things to do when in Equake when the buffer changes."
   (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
-    (if (cl-search "EQUAKE[" (buffer-name (current-buffer)))
+    (if (cl-search (concat "EQUAKE[" monitorid) (buffer-name (current-buffer)))
         (progn
           ;; get monitor-local list of buffers and send it to be processed for the mode-line
           (if equake-show-monitor-in-mode-line ; show monitorid or not
@@ -603,7 +603,7 @@ external function call to 'equake-invoke'.")
                 (setq equake-tab-list (remove examined-tab equake-tab-list)) ; remove the entire local monitor tab-list from global etab-list
                 (setq equake-tab-list (append equake-tab-list reconstructed-local-tab)) ; append the named, modified monitor tab list to the global equake tab list
                 (if equake-show-monitor-in-mode-line ; show monitorid or not
-                    (setq mode-line-format (list (equake-mode-line (concat monitor ": ") (equake-find-monitor-list monitorid equake-tab-list))))
+                    (setq mode-line-format (list (equake-mode-line (concat monitor ": ") (equake-find-monitor-list monitor equake-tab-list))))
                   (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitor equake-tab-list)))))
                 (force-mode-line-update))) ; force refresh mode-line
           (equake-move-tab monitor (cdr tablist) moving-tab direction)) ; check next monitor-local tab-list

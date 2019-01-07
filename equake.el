@@ -1,4 +1,4 @@
-;;; equake.el --- Quake-style drop-drop console
+;;; equake.el --- Quake-style drop-drop console -*- lexical-binding: t; -*-
 
 ;; *EQUAKE* - emacs shell dropdown console
 

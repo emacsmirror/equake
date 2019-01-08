@@ -392,9 +392,7 @@ external function call to 'equake-invoke'.")
               (equake-new-tab)          ; launch new shell
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))))
           (equake-set-up-equake-frame))
-        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))
-        (when (equal (window-prev-buffers) nil)
-          (goto-char (point-max)))))))
+        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))))))
 
 (defun equake-filter-history (winhist filtwinhist)
   "Get to relevant window history (WINHIST)."

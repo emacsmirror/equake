@@ -147,11 +147,13 @@
 (require 'subr-x)
 (require 'dash)                         ; for -let*
 
-(defvar equake-restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
+;; (defvar equake-restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
 
-(defvar equake-tab-list 'nil)           ; empty list of equake tabs to start
+(defvar equake-tab-list 'nil)           ; initialise empty list of equake tabs 
 
-(defvar equake-last-buffer-list 'nil)           ; empty list of equake last buffers to start
+(defvar equake-last-buffer-list 'nil)           ; initialise empty list of equake last buffers 
+
+(defvar equake-last-etab-list 'nil)           ; initialise empty list of equake last buffers 
 
 ;; (defvar equake-window-history 'nil)     ; empty list of screen frame window history
 
@@ -391,11 +393,13 @@ external function call to 'equake-invoke'.")
                                            (cons 'width (cons 'text-pixels (truncate (* monwidth equake-width-percentage))))
                                            (cons 'height (cons 'text-pixels (truncate (* monheight equake-height-percentage))))))))
         (select-frame new-frame)
+        (set-window-prev-buffers nil (cdr (equake-find-monitor-list monitorid equake-last-etab-list)))
         (let ((highest-montab (equake-highest-etab monitorid (buffer-list) -1)))
           (if (< highest-montab 0)
-              (equake-new-tab) ; launch new shell
+              (equake-new-tab)          ; launch new shell
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))))
-          (equake-set-up-equake-frame))))))
+          (equake-set-up-equake-frame))
+        (set-window-prev-buffers nil (cdr (window-prev-buffers)))))))
 
 (defun equake-launch-shell (&optional override)
   "Launch a new shell session."
@@ -511,8 +515,11 @@ external function call to 'equake-invoke'.")
           (force-mode-line-update)
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil))) ; no scroll-bars
           (setq menu-bar-lines 0)       ; no menu-bar
-          (setq tool-bar-lines 0))      ; no tool-bar
+          (setq tool-bar-lines 0)       ; no tool-bar
+          (equake-set-last-etab))     
       (setq inhibit-message 'nil))))
+
+(add-hook 'buffer-list-update-hook 'equake-shell-after-buffer-change-hook)
 
 (defun equake-set-last-buffer ()
   "Set current tab."
@@ -523,9 +530,17 @@ external function call to 'equake-invoke'.")
             (progn (setq equake-last-buffer-list (remove cur-monitor-last-buffer equake-last-buffer-list)) ; remove old monitor tab-list member from current tabs
                    (setq equake-last-buffer-list (append equake-last-buffer-list (list (cons monitorid (current-buffer))))))
           (setq equake-last-buffer-list (append equake-last-buffer-list (list (cons monitorid (current-buffer))))))
-    (setq equake-last-buffer-list (list (cons monitorid (current-buffer)))))))
+      (setq equake-last-buffer-list (list (cons monitorid (current-buffer)))))))
 
-(add-hook 'buffer-list-update-hook 'equake-shell-after-buffer-change-hook)
+(defun equake-set-last-etab ()
+  (let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
+         (cur-monitor-last-etab (equake-find-monitor-list monitorid equake-last-etab-list)))
+    (if equake-last-etab-list
+        (if cur-monitor-last-etab
+            (progn (setq equake-last-etab-list (remove cur-monitor-last-etab equake-last-etab-list)) ; remove old monitor tab-list member from current tabs
+                   (setq equake-last-etab-list (append equake-last-etab-list (list (cons monitorid (window-prev-buffers))))))
+          (setq equake-last-etab-list (append equake-last-etab-list (list (cons monitorid (window-prev-buffers))))))
+      (setq equake-last-etab-list (list (cons monitorid (window-prev-buffers)))))))
 
 (defun equake-kill-etab-buffer-hook ()
   "Things to do when an Equake buffer is killed." ; TODO: prevent last equake tab from being killed!
@@ -540,8 +555,9 @@ external function call to 'equake-invoke'.")
       (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list member from global tab list
       (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (remove killed-tab (cdr cur-monitor-tab-list)))) ; edit current monitor tab list to remove tab
       (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list))) ; add edited current monitor tab list back to global tab list
-      (setq mode-line-format (list (equake-mode-line "" cur-monitor-tab-list)))
-      (force-mode-line-update))))
+      (if (cl-search (concat "EQUAKE[" monitor) (buffer-name (current-buffer)))
+          (setq mode-line-format (list (equake-mode-line "" cur-monitor-tab-list)))
+        (force-mode-line-update)))))
 
 (add-hook 'kill-buffer-hook 'equake-kill-etab-buffer-hook)
 

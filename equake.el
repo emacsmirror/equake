@@ -371,7 +371,7 @@ external function call to 'equake-invoke'.")
           ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor (alist-get 'workarea (frame-monitor-attributes))))
           (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))))
     (equake-kill-stray-transient-frames (frame-list))
-    (if equake-current-frame       ; if frame exists, destroy it.
+    (if equake-current-frame            ; if frame exists, destroy it.
         (progn  (select-frame equake-current-frame)
                 (when (equal (buffer-name (current-buffer)) " *server*")
                   (switch-to-buffer (other-buffer (current-buffer) 1)))
@@ -392,9 +392,7 @@ external function call to 'equake-invoke'.")
               (equake-new-tab)          ; launch new shell
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))))
           (equake-set-up-equake-frame))
-        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))
-        (when (string-match-p "EQUAKE\\[" (buffer-name (current-buffer)))
-          (eshell-next-prompt))))))
+        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))))))
 
 (defun equake-filter-history (winhist filtwinhist)
   "Get to relevant window history (WINHIST)."
@@ -574,6 +572,8 @@ external function call to 'equake-invoke'.")
       (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list))) ; add edited current monitor tab list back to global tab list
       (if (cl-search (concat "EQUAKE[" monitor) (buffer-name (current-buffer)))
           (setq mode-line-format (list (equake-mode-line "" cur-monitor-tab-list)))
+        (if (< (length (window-prev-buffers))) ;; hack to prevent switching to non-equake frame when re-creating frame after closing out of a non-equake frame
+            (goto-char (point-max)))
         (force-mode-line-update)))))
 
 (add-hook 'kill-buffer-hook 'equake-kill-etab-buffer-hook)

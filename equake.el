@@ -346,7 +346,7 @@
           (equake-get-monitor-property prop (cdr attributes))))))
 
 (defun equake-get-monitor-name ()
-  "Get the name or another constant designator of the current monitor/screen."
+  "Get the name or another constant designator of the current monitor/screen ATTRIBUTES."
   (let ((name (equake-get-monitor-property "name" (frame-monitor-attributes))))
     (if name
         name
@@ -375,7 +375,7 @@ external function call to 'equake-invoke'.")
 (defun equake-invoke ()
   "Set up an Emacs drop-drop console.  Run with \"emacsclient -n -e '(equake-invoke)'\"."
   (interactive)
-  (-let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
+  (-let* ((monitorid (equake-get-monitor-name))
           (equake-current-frame (equake-equake-frame-p monitorid (frame-list)))
           ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor (alist-get 'workarea (frame-monitor-attributes))))
           (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))))
@@ -479,7 +479,7 @@ external function call to 'equake-invoke'.")
   (set-background-color equake-console-background-colour) ; set background colour
   (set-foreground-color equake-console-foreground-colour) ; set foreground colour
   (setq inhibit-message t)
-  (let* ((monitor (equake-get-monitor-name (frame-monitor-attributes)))
+  (let* ((monitor (equake-get-monitor-name))
          (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
          (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))) ; find the tab-list associated with the current monitor
     (rename-buffer (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%")) ; rename buffer with monitor id and new tab number
@@ -505,7 +505,7 @@ external function call to 'equake-invoke'.")
 
 (defun equake-shell-after-buffer-change-hook ()
   "Things to do when in Equake when the current buffer is changed."
-  (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
+  (let ((monitorid (equake-get-monitor-name)))
     (if (cl-search (concat "EQUAKE[" monitorid) (buffer-name (current-buffer)))
         (progn
           ;; get monitor-local list of buffers and send it to be processed for the mode-line
@@ -523,7 +523,7 @@ external function call to 'equake-invoke'.")
 
 (defun equake-set-last-buffer ()
   "Set current tab."
-  (let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
+  (let* ((monitorid (equake-get-monitor-name))
          (cur-monitor-last-buffer (equake-find-monitor-list monitorid equake-last-buffer-list)))
     (if equake-last-buffer-list
         (if cur-monitor-last-buffer
@@ -534,7 +534,7 @@ external function call to 'equake-invoke'.")
 
 (defun equake-set-last-etab ()
   "Remember the buffer history for window."
-  (let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
+  (let* ((monitorid (equake-get-monitor-name))
          (cur-monitor-last-etab (equake-find-monitor-list monitorid equake-last-etab-list)))
     (if equake-last-etab-list
         (if cur-monitor-last-etab
@@ -603,21 +603,21 @@ external function call to 'equake-invoke'.")
 (defun equake-move-tab-right ()
   "Move current tab one position to the right."
   (interactive)
-  (let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
+  (let* ((monitorid (equake-get-monitor-name))
          (current-etab (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitorid "]") (buffer-name (current-buffer)))))))
     (equake-move-tab monitorid equake-tab-list current-etab 1))) ; call general tab move function
 
 (defun equake-move-tab-left ()
   "Move current tab one position to the left."
   (interactive)
-  (let* ((monitorid (equake-get-monitor-name (frame-monitor-attributes)))
+  (let* ((monitorid (equake-get-monitor-name))
          (current-etab (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitorid "]") (buffer-name (current-buffer)))))))
     (equake-move-tab monitorid equake-tab-list current-etab -1))) ; call general tab move function
 
 (defun equake-next-tab ()
   "Switch to the next tab."
   (interactive)
-  (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
+  (let ((monitorid (equake-get-monitor-name)))
     (if (< (equake-count-tabs monitorid (buffer-list) 0) 2)
         (print "No other tab to switch to.")
         (let* ((current-tab (string-to-number (substring (buffer-name) (1+ (search "]" (buffer-name))) (1+ (search "%" (buffer-name))))))
@@ -629,7 +629,7 @@ external function call to 'equake-invoke'.")
 (defun equake-prev-tab ()
   "Switch to the previous tab."
   (interactive)
-  (let ((monitorid (equake-get-monitor-name (frame-monitor-attributes))))
+  (let ((monitorid (equake-get-monitor-name)))
     (if (< (equake-count-tabs monitorid (buffer-list) 0) 2)
         (print "No other tab to switch to.")
         ;; re-use equake-find-next-tab function, first reversing the list
@@ -677,7 +677,7 @@ external function call to 'equake-invoke'.")
 
 (defun equake-extract-format-tab-name  (tab)
   "Extract equake TAB name and format it for the modeline."
-  (let* ((monitor (equake-get-monitor-name (frame-monitor-attributes)))
+  (let* ((monitor (equake-get-monitor-name))
          (current-etab  (string-to-number (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name (current-buffer)))))
          (etab-name (string-remove-prefix (concat "EQUAKE[" monitor "]" (number-to-string tab) "%") (buffer-name (equake-find-buffer-by-monitor-and-tabnumber monitor tab (buffer-list)))))) ; find the name of the tab
         (when (equal etab-name "")                     ; if the name is null string

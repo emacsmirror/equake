@@ -392,7 +392,9 @@ external function call to 'equake-invoke'.")
               (equake-new-tab)          ; launch new shell
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))))
           (equake-set-up-equake-frame))
-        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))))))
+        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))
+        (when (equal (window-prev-buffers) nil)
+          (goto-char (point-max)))))))
 
 (defun equake-filter-history (winhist filtwinhist)
   "Get to relevant window history (WINHIST)."
@@ -530,8 +532,7 @@ external function call to 'equake-invoke'.")
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil))) ; no scroll-bars
           ;; (setq menu-bar-lines 0)       ; no menu-bar
           ;; (setq tool-bar-lines 0)       ; no tool-bar
-          (equake-set-last-etab)
-          )
+          (equake-set-last-etab))
       (setq inhibit-message 'nil))))
 
 (add-hook 'buffer-list-update-hook 'equake-shell-after-buffer-change-hook)
@@ -570,11 +571,9 @@ external function call to 'equake-invoke'.")
       (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list member from global tab list
       (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (remove killed-tab (cdr cur-monitor-tab-list)))) ; edit current monitor tab list to remove tab
       (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list))) ; add edited current monitor tab list back to global tab list
-      (if (cl-search (concat "EQUAKE[" monitor) (buffer-name (current-buffer)))
-          (setq mode-line-format (list (equake-mode-line "" cur-monitor-tab-list)))
-        (if (< (length (window-prev-buffers))) ;; hack to prevent switching to non-equake frame when re-creating frame after closing out of a non-equake frame
-            (goto-char (point-max)))
-        (force-mode-line-update)))))
+      (when (cl-search (concat "EQUAKE[" monitor) (buffer-name (current-buffer)))
+          (progn (setq mode-line-format (list (equake-mode-line "" cur-monitor-tab-list)))
+                 (force-mode-line-update))))))
 
 (add-hook 'kill-buffer-hook 'equake-kill-etab-buffer-hook)
 

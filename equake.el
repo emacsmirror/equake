@@ -310,15 +310,6 @@
                   (equake-orphan-tabs monitor (cdr buffers)))
            (equake-orphan-tabs monitor (cdr buffers))))))
 
-(defun equake-fallback-to-existing-tab (monitor buffers)
-  "Fall back to existing etab present in BUFFERS on MONITOR if possible."
-  (let ((buff (car buffers)))
-    (if buff
-        (if (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buff))
-            (switch-to-buffer buff)
-          (equake-fallback-to-existing-tab monitor (cdr buffers)))
-      (message "No equake tabs left on this screen!"))))
-
 (defun equake-hide-orphaned-tab-frames (buffers) ; associated with equake-orphan-tabs
   "Delete any stray frame associated with orphaned tabs in BUFFERS."
   (interactive)
@@ -385,6 +376,7 @@ external function call to 'equake-invoke'.")
                 (when (equal (buffer-name (current-buffer)) " *server*")
                   (switch-to-buffer (other-buffer (current-buffer) 1)))
                 (equake-set-last-buffer)
+                (equake-set-last-etab)
                 (delete-frame equake-current-frame)) ; destroy frame.
       ;; else, make it.
       (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" monitorid "]"))
@@ -400,17 +392,28 @@ external function call to 'equake-invoke'.")
               (equake-new-tab)          ; launch new shell
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))))
           (equake-set-up-equake-frame))
-        (set-window-prev-buffers nil (equake-get-to-relevant-history (window-prev-buffers) (window-prev-buffers)))
-        ;; (set-window-prev-buffers nil (cdr (window-prev-buffers)))
-        ))))
+        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))))))
 
-(defun equake-get-to-relevant-history (winhist originalwinhist)
+(defun equake-filter-history (winhist filtwinhist)
   "Get to relevant window history (WINHIST)."
-    (if winhist
-        (if (string-match-p "EQUAKE\\[" (buffer-name (car (car winhist))))
-            winhist
-          (equake-get-to-relevant-history (cdr winhist) originalwinhist))
-      originalwinhist))
+  (if winhist
+      (progn (if (listp (car winhist))
+                 (unless (string-match-p "EQUAKE\\[" (buffer-name (car (car winhist))))
+                   (setq filtwinhist (remove (car winhist) filtwinhist)))
+               (if (bufferp (car winhist))
+                   (unless (string-match-p "EQUAKE\\[" (buffer-name (car winhist)))
+                     (setq filtwinhist (remove (car winhist) filtwinhist)))
+                 (setq filtwinhist (remove (car winhist) filtwinhist))))
+        (equake-filter-history (cdr winhist) filtwinhist))
+    filtwinhist))
+
+;; (defun equake-get-to-relevant-history (winhist originalwinhist)
+;;   "Get to relevant window history (WINHIST)."
+;;   (if winhist
+;;       (if (string-match-p "EQUAKE\\[" (buffer-name (car (car winhist))))
+;;           winhist
+;;         (equake-get-to-relevant-history (cdr winhist) originalwinhist))
+;;     originalwinhist))
 
 (defun equake-launch-shell (&optional override)
   "Launch a new shell session, OVERRIDE will set non-default shell."
@@ -549,10 +552,9 @@ external function call to 'equake-invoke'.")
   (let* ((monitorid (equake-get-monitor-name))
          (cur-monitor-last-etab (equake-find-monitor-list monitorid equake-last-etab-list)))
     (if equake-last-etab-list
-        (if cur-monitor-last-etab
-            (progn (setq equake-last-etab-list (remove cur-monitor-last-etab equake-last-etab-list)) ; remove old monitor tab-list member from current tabs
-                   (setq equake-last-etab-list (append equake-last-etab-list (list (cons monitorid (window-prev-buffers))))))
-          (setq equake-last-etab-list (append equake-last-etab-list (list (cons monitorid (window-prev-buffers))))))
+        (progn (when cur-monitor-last-etab
+                 (setq equake-last-etab-list (remove cur-monitor-last-etab equake-last-etab-list))) ; remove old monitor tab-list member from current tabs
+               (setq equake-last-etab-list (append equake-last-etab-list (list (cons monitorid (window-prev-buffers))))))
       (setq equake-last-etab-list (list (cons monitorid (window-prev-buffers)))))))
 
 (defun equake-kill-etab-buffer-hook ()

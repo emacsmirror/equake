@@ -11,7 +11,7 @@
 ;;          |_|                      ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Copyright (C) 2018 Benjamin Slade
+;; Copyright (C) 2018-2019 Benjamin Slade
 
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
@@ -20,7 +20,7 @@
 ;; Version: 0.50
 ;; Package-Requires: ((emacs "25"))
 ;; Created: 2018-12-12
-;; Keywords: frames, terminals, tools
+;; Keywords: convenience, frames, terminals, tools, window-system
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -46,7 +46,7 @@
 ;; This package is designed to recreate a Quake-style drop-down console fully
 ;; within Emacs, compatible with 'eshell, 'term, 'ansi-term, and 'shell modes.
 ;; It has multi-tab functionality, and the tabs can be moved and renamed
-;; (different shells can be opened and used in different tabs). It is intended
+;; (different shells can be opened and used in different tabs).  It is intended
 ;; to be bound to shortcut key like F12 to toggle it off-and-on.
 
 ;; Installation
@@ -364,7 +364,8 @@ external function call to 'equake-invoke'.")
   (equake-invoke))
 
 (defun equake-invoke ()
-  "Set up an Emacs drop-drop console.  Run with \"emacsclient -n -e '(equake-invoke)'\".
+  "Toggle Equake frames.
+Run with \"emacsclient -n -e '(equake-invoke)'\".
 On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -F '((title . \"*transient*\") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))'\"."
   (interactive)
   (-let* ((monitorid (equake-get-monitor-name))

@@ -339,7 +339,7 @@
         name
       (when equake-unnamed-monitor
         (let ((name (equake-get-monitor-property "geometry" (frame-monitor-attributes))))
-          (if name
+          (when name
               (format "%s" name)))))))
 
 (defun-tco equake-kill-stray-transient-frames (frames)
@@ -375,7 +375,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
                   (switch-to-buffer (other-buffer (current-buffer) 1)))
                 (equake-set-last-buffer)
                 (equake-set-winhistory)
-                (if (string-match-p "EQUAKE\\[" (buffer-name (current-buffer)))
+                (when (string-match-p "EQUAKE\\[" (buffer-name (current-buffer)))
                     (equake-set-last-etab))
                 (delete-frame equake-current-frame)) ; destroy frame.
       ;; else, make it.
@@ -568,7 +568,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (let* ((monitor (substring (buffer-name) (1+ (cl-search "[" (buffer-name))) (cl-search "]" (buffer-name))))
            (killed-tab (string-to-number (substring (buffer-name) (1+ (cl-search "]" (buffer-name))) (length (buffer-name)))))
            (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list)))
-      (if (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
+      (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
           (if (equake-find-next-etab (cdr (equake-find-monitor-list monitor equake-tab-list)) killed-tab) ; switch to the next etab, if if exists
               (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (equake-find-next-etab (cdr (equake-find-monitor-list monitor equake-tab-list)) killed-tab) (buffer-list)))
             (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (car (cdr (equake-find-monitor-list monitor equake-tab-list))) (buffer-list))))) ;otherwise switch to last

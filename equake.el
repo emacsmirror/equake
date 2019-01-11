@@ -43,12 +43,11 @@
 
 ;;; Commentary:
 
-;; This package is designed to recreate a drop-down console fully
-;; within Emacs, ideally using eshell.  It has multi-tab functionality,
-;; and the tabs can be moved and renamed.  Different shells can be
-;; opened and used in different tabs.  It is designed to be sensitive
-;; to which screen/monitor it is opened on and to maintain separate
-;; tabs for separate screens (though this is still a bit beta-y).
+;; This package is designed to recreate a Quake-style drop-down console fully
+;; within Emacs, compatible with 'eshell, 'term, 'ansi-term, and 'shell modes.
+;; It has multi-tab functionality, and the tabs can be moved and renamed
+;; (different shells can be opened and used in different tabs). It is intended
+;; to be bound to shortcut key like F12 to toggle it off-and-on.
 
 ;; Installation
 ;; Right now, clone the git repo somewhere and put it in your
@@ -115,11 +114,10 @@
 ;;   (a) for keybindings
 ;;   (b) make shell choice into actual list
 ;; 2. Prevent last tab from being closed, or at least prompt.
-;; 3. possibly improve invocation: a bit slow, and still inconsistent on multi-monitor
-;; 4. Maybe do something to (optionally) silence the minibuffer?
+;; 3. Maybe do something to (optionally) silence the minibuffer?
 ;;    (setq inhibit-message t) doesn't seem to help
 ;;    But it's probably fine as is.
-;; 5. Test on:
+;; 4. Test on:
 ;;    (a) Wayland -- seems to work ok on Gnome Shell Wayland
 ;;    (b) MacOS -- ??
 ;;    (c) Windows -- ??
@@ -534,8 +532,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
             (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
           (force-mode-line-update)
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil))) ; no scroll-bars
-          ;; (setq menu-bar-lines 0)       ; no menu-bar
-          ;; (setq tool-bar-lines 0)       ; no tool-bar
+          (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
+            (set-frame-parameter (selected-frame) 'menu-bar-lines 0)  ; no menu-bar
+            (set-frame-parameter (selected-frame) 'tool-bar-lines 0)) ; no tool-bar
           (equake-set-last-etab)
           (equake-set-winhistory))
       (setq inhibit-message 'nil))))
@@ -575,7 +574,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
       (setq equake-win-history (list (cons monitorid (window-prev-buffers)))))))
 
 (defun equake-kill-etab-buffer-hook ()
-  "Things to do when an Equake buffer is killed." ; TODO: prevent last equake tab from being killed!
+  "Things to do when an Equake buffer is killed." ; TODO: prevent last equake tab from being killed
   (when (string-match-p "EQUAKE\\[" (buffer-name))
     (let* ((monitor (substring (buffer-name) (1+ (cl-search "[" (buffer-name))) (cl-search "]" (buffer-name))))
            (killed-tab (string-to-number (substring (buffer-name) (1+ (cl-search "]" (buffer-name))) (length (buffer-name)))))
@@ -695,9 +694,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   "Content of MODELINESTRING for equake (show tabs), showing BUFFERS."
   (let ((curtab (car (cdr buffers))))
     (if (equal curtab 'nil)
-        (list modelinestring (equake-shell-type-styling major-mode))
+        (list modelinestring (equake-shell-type-styling major-mode))                        ; when tabs exhausted, return modelinestring
       (setq modelinestring (concat modelinestring (equake-extract-format-tab-name curtab))) ; get name/number for tab in mode-line format
-      (equake-mode-line modelinestring (cdr buffers))))) ; go on to next tab
+      (equake-mode-line modelinestring (cdr buffers)))))                                    ; go on to next tab
 
 (defun equake-shell-type-styling (mode)
   "Style the shell-type indicator as per MODE."
@@ -714,7 +713,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
          (current-etab  (string-to-number (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name (current-buffer)))))
          (etab-name (string-remove-prefix (concat "EQUAKE[" monitor "]" (number-to-string tab) "%") (buffer-name (equake-find-buffer-by-monitor-and-tabnumber monitor tab (buffer-list)))))) ; find the name of the tab
         (when (equal etab-name "")                     ; if the name is null string
-            (setq etab-name (number-to-string tab))) ; set name to tab number
+            (setq etab-name (number-to-string tab)))   ; set name to tab number
         (if (equal tab current-etab)
             (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-inactive-tab-foreground-colour :background ,equake-inactive-tab-background-colour)) " ") ; 'highlight' current tab
           (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-active-tab-foreground-colour :background ,equake-active-tab-background-colour)) " "))))

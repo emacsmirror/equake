@@ -145,7 +145,7 @@
 (require 'subr-x)
 (require 'dash)                         ; for -let*
 (require 'tco)                          ; tail-call optimisation
-(setq lexical-binding 't)
+(setq lexical-binding 't)               ; redundant?
 
 
 ;; (defvar equake-restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
@@ -284,10 +284,6 @@
   (local-set-key (kbd "C-M-{") 'equake-move-tab-left)
   (local-set-key (kbd "C-M-}") 'equake-move-tab-right)
   (local-set-key (kbd "C-|") 'equake-rename-etab))
-
-(add-hook 'eshell-mode-hook 'equake-key-bindings)
-(add-hook 'term-mode-hook 'equake-key-bindings)
-(add-hook 'shell-mode-hook 'equake-key-bindings)
 
 (defun-tco equake-equake-frame-p (monitor frames)
   "Test if *EQUAKE* is an existing frame in MONITOR given a list of FRAMES."
@@ -522,8 +518,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (force-mode-line-update)
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil))) ; no scroll-bars
           (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
-            (set-frame-parameter (selected-frame) 'menu-bar-lines 0)  ; no menu-bar
-            (set-frame-parameter (selected-frame) 'tool-bar-lines 0)) ; no tool-bar
+            (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bar
+            (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bar
+            (equake-key-bindings))                                   ; set equake bindings
           (equake-set-last-etab)
           (equake-set-winhistory))
       (setq inhibit-message 'nil))))
@@ -707,10 +704,11 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
         (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-inactive-tab-foreground-colour :background ,equake-inactive-tab-background-colour)) " ") ; 'highlight' current tab
       (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-active-tab-foreground-colour :background ,equake-active-tab-background-colour)) " "))))
 
-(defun equake-launch-frame-if-none-exists ()
-  "Launch a frame if no frames exist."
-  (when (equal (frame-list) 'nil)
-    (shell-command "emacsclient -n -c")))
+;; (defun equake-launch-frame-if-none-exists ()
+;;   "Launch a frame if no frames exist."
+;;   (interactive)
+;;   (when (< (length (frame-list)) 2)
+;;     (shell-command "emacsclient -n -c")))
 
 (provide 'equake)
 

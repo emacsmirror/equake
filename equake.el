@@ -364,7 +364,6 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (equake-current-frame (equake-equake-frame-p monitorid (frame-list)))
           ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor (alist-get 'workarea (frame-monitor-attributes))))
           (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))))
-    (equake-kill-stray-transient-frames (frame-list))
     (if equake-current-frame            ; if frame exists, destroy it.
         (progn  (select-frame equake-current-frame)
                 (when (equal (buffer-name (current-buffer)) " *server*")
@@ -372,7 +371,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
                 (equake-set-last-buffer)
                 (equake-set-winhistory)
                 (when (string-match-p "EQUAKE\\[" (buffer-name (current-buffer)))
-                    (equake-set-last-etab))
+                  (equake-set-last-etab))
                 (delete-frame equake-current-frame)) ; destroy frame.
       ;; else, make it.
       (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" monitorid "]"))
@@ -389,7 +388,8 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-etab-list)))
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))))
           (equake-set-up-equake-frame))
-        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))))))
+        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))))
+        (equake-kill-stray-transient-frames (frame-list))))
 
 (defun-tco equake-filter-history (winhist filtwinhist)
   "Filter window history (WINHIST) into FILTWINHIST."
@@ -519,9 +519,13 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil))) ; no scroll-bars
           (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
             (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bar
-            (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bar
+            (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bar 
+            ;; (face-remap-add-relative 'default '(:family "DejaVu Sans Mono" :height 108))
+            ;; (face-remap-add-relative 'default '(:family "Go Mono" :height 108))
+            ;; (face-remap-add-relative 'default '(:family "Iosevka" :height 108))
+            ;; (face-remap-add-relative 'default '(:family "Iosevka Slab" :height 108))
             (equake-key-bindings))                                   ; set equake bindings
-          (equake-set-last-etab)
+          (equake-set-last-etab) 
           (equake-set-winhistory))
       (setq inhibit-message 'nil))))
 
@@ -621,7 +625,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   (interactive)
   (let* ((monitorid (equake-get-monitor-name))
          (current-etab (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitorid "]") (buffer-name (current-buffer)))))))
-    (equake-move-tab monitorid equake-tab-list current-etab 1)
+     (equake-move-tab monitorid equake-tab-list current-etab 1)
     (equake-set-winhistory))) ; call general tab move function
 
 (defun equake-move-tab-left ()
@@ -703,12 +707,6 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (if (equal tab current-etab)
         (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-inactive-tab-foreground-colour :background ,equake-inactive-tab-background-colour)) " ") ; 'highlight' current tab
       (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-active-tab-foreground-colour :background ,equake-active-tab-background-colour)) " "))))
-
-;; (defun equake-launch-frame-if-none-exists ()
-;;   "Launch a frame if no frames exist."
-;;   (interactive)
-;;   (when (< (length (frame-list)) 2)
-;;     (shell-command "emacsclient -n -c")))
 
 (provide 'equake)
 

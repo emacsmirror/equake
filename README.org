@@ -36,6 +36,9 @@ See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the 
 [[./image/equake01.gif]]
 
 * Installation
+Unless you're installing via Melpa (which doesn't work yet), make sure you have the 
+following external dependencies installed: [[https://github.com/magnars/dash.el][~dash~]],
+[[https://github.com/Wilfred/tco.el][~tco]].
 ** Melpa
 This package is not yet available via Melpa. 
 ** Quelpa

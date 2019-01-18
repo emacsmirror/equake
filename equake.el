@@ -49,15 +49,15 @@
 ;; (different shells can be opened and used in different tabs).  It is intended
 ;; to be bound to shortcut key like F12 to toggle it off-and-on.
 
-;; Installation
-;; Right now, clone the git repo somewhere and put it in your
+;; Installation:
+;; To install manually, clone the git repo somewhere and put it in your
 ;; load-path, e.g., add something like this to your init.el:
 ;; (add-to-list 'load-path
 ;;             "~/.emacs.d/equake/")
 ;;  (require 'equake)
 
-;; Usage
-;; Run with:
+;; Usage:
+;; Run with:---
 ;; emacsclient -n -e '(equake-invoke)' ,
 ;; after launching an Emacs daemon of course.
 ;; Alternatively, on multi-monitor setup, launch:
@@ -109,35 +109,19 @@
 ;; In stumpwm, I'm not sure: it doesn't seem to respect
 ;; Emacs frame settings.
 
-;; TODO
+;; TODO:
 ;; 1. defcustoms:
 ;;   (a) for keybindings
-;;   (b) make shell choice into actual list
+;;   (b) make shell choice into actual list, or else more flexible functions
 ;; 2. Prevent last tab from being closed, or at least prompt.
 ;; 3. Maybe do something to (optionally) silence the minibuffer?
 ;;    (setq inhibit-message t) doesn't seem to help
 ;;    But it's probably fine as is.
 ;; 4. Test on:
-;;    (a) Wayland -- seems to work ok on Gnome Shell Wayland
-;;    (b) MacOS -- ??
-;;    (c) Windows -- ??
+;;    (a) MacOS -- ??
+;;    (b) Windows -- ??
 ;;   Comments: In theory it should work on Mac & Windows, since frame.el defines
-;;             frame-types 'ns (=Next Step) and 'w32 (=Windows).  Maybe even on
-;;             Wayland via Xwayland? Yep, seems to work fine via Xwayland
-;;   New comments: Doesn't really work on stumpwm, it seems.  Trouble also on awesomewm:
-;;                   awesomewm erros:
-;; [   340.103667 ] error    3 BadWindow    request    2 minor    0 serial  20360: "BadWindow (invalid Window parameter)"
-;; [   340.103720 ] error    3 BadWindow    request    2 minor    0 serial  20360: "BadWindow (invalid Window parameter)"
-;; [   340.103741 ] error    3 BadWindow    request  129 minor    6 serial  20360: "BadWindow (invalid Window parameter)"
-;; [   340.119921 ] error    3 BadWindow    request    2 minor    0 serial  20365: "BadWindow (invalid Window parameter)"
-;; [   340.119961 ] error    3 BadWindow    request    2 minor    0 serial  20365: "BadWindow (invalid Window parameter)"
-;; [   340.119986 ] error    3 BadWindow    request  129 minor    6 serial  20365: "BadWindow (invalid Window parameter)"
-;; [   340.202927 ] error  152 XCB_DAMAGE_BAD_DAMAGE request  143 minor    2 serial  20375: "152"
-;; [   340.236201 ] error  152 XCB_DAMAGE_BAD_DAMAGE request  143 minor    2 serial  20407: "152"
-;; 
-;;   Other issues:  also trouble if monitor-attributes doesn't include name [as on TP X200]
-;;       changed code so it now falls back to using geometry field as name in that case, hopefully unique
-;;
+;;             frame-types 'ns (=Next Step) and 'w32 (=Windows).
 
 ;;; Code:
 
@@ -147,13 +131,10 @@
 (require 'tco)                          ; tail-call optimisation
 (setq lexical-binding 't)               ; redundant?
 
-
-;; (defvar equake-restore-mode-line mode-line-format)  ; store mode-line-format to be able to restore it
-
-(defvar equake-tab-list ())           ; initialise empty list of equake tabs
-(defvar equake-last-buffer-list ())           ; initialise empty list of equake last buffers
-(defvar equake-last-etab-list ())           ; initialise empty list of equake etab buffers
-(defvar equake-win-history ())           ; initialise empty list of equake window history
+(defvar equake-tab-list ())             ; initialise empty list of equake tabs
+(defvar equake-last-buffer-list ())     ; initialise empty list of equake last buffers
+(defvar equake-last-etab-list ())       ; initialise empty list of equake etab buffers
+(defvar equake-win-history ())          ; initialise empty list of equake window history
 
 (defgroup equake ()
   "Equake - Emacs drop-down console."
@@ -192,12 +173,12 @@
 (defcustom equake-unnamed-monitor 'nil
   "Set this to t if your monitor/screen lacks a 'name' property."
   :type 'boolean
-  :group 'equake)               ; set this to t if your monitor/screen doesn't provide a name attribute (may cause issues otherwise)
+  :group 'equake)
 
 (defcustom equake-show-monitor-in-mode-line 'nil
   "Toggle to show monitor id string as part of equake mode-line."
   :type 'boolean
-  :group 'equake) ; whether or not to prepend monitor id to mode-line before tabs
+  :group 'equake)
 
 (defcustom equake-console-foreground-colour "#eeeeee"
   "Background colour of Equake console."
@@ -519,13 +500,13 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil))) ; no scroll-bars
           (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
             (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bar
-            (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bar 
+            (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bar
             ;; (face-remap-add-relative 'default '(:family "DejaVu Sans Mono" :height 108))
             ;; (face-remap-add-relative 'default '(:family "Go Mono" :height 108))
             ;; (face-remap-add-relative 'default '(:family "Iosevka" :height 108))
             ;; (face-remap-add-relative 'default '(:family "Iosevka Slab" :height 108))
             (equake-key-bindings))                                   ; set equake bindings
-          (equake-set-last-etab) 
+          (equake-set-last-etab)
           (equake-set-winhistory))
       (setq inhibit-message 'nil))))
 

@@ -54,7 +54,9 @@ This package is not yet available via Melpa.
 #+BEGIN_SRC elisp
   (use-package equake
     :quelpa (equake :fetcher gitlab :repo "emacsomancer/equake")
-    :ensure t)
+    :ensure t
+    :config
+    (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing))
 #+END_SRC
 ** Manual
 Clone the git repo somewhere and get it into your Emacs' load-path, e.g., add
@@ -62,7 +64,8 @@ something like this to your =init.el= (assuming you put it into =~/.emacs.d/equa
 #+BEGIN_SRC elisp
 (add-to-list 'load-path                                   
             "~/.emacs.d/equake/")                         
- (require 'equake)                                        
+(require 'equake)
+(global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
 #+END_SRC
 
 * Usage

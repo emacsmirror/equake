@@ -279,33 +279,6 @@
           frame
         (equake-equake-frame-p monitor (cdr frames))))))
 
-(defun-tco equake-orphan-tabs (monitor buffers)   ; TODO: redesign to be interactive
-  "Rename orphaned Equake tab BUFFERS on MONITOR."
-  (let ((buff (car buffers)))
-    (when buff
-      (if (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buff))   ; find and rename all stray EQUAKE tabs/buffers
-          (progn (switch-to-buffer buff)
-                 (rename-buffer (concat "orphaned_etab==" (string-remove-prefix "EQUAKE" (buffer-name buff))) t)
-                 (emacs-lock-mode -1))) ; unlock buffer / allow kill
-      (equake-orphan-tabs monitor (cdr buffers)))))
-
-(defun-tco equake-hide-orphaned-tab-frames (buffers) ; associated with equake-orphan-tabs
-  "Delete any stray frame associated with orphaned tabs in BUFFERS."
-  (interactive)
-  (let ((buf (car buffers)))
-    (when buf                                                 ; if buffer exists ...
-      (when (cl-search "orphaned_etab==" (buffer-name buf)) ; if it's named ...
-        (delete-frame (window-frame (get-buffer-window buf)))) ; delete all frames associated with all windows displaying the buffer
-      (equake-hide-orphaned-tab-frames (cdr buffers)))))        ; cycle on to next buffer in list
-
-(defun-tco equake-remove-screen (monitorid tablist) ;; not currently used
-  "Remove stray MONITORIDs from Equake TABLIST."
-  (let ((cur-tab (car tablist)))
-    (when cur-tab
-      (if (equal (car cur-tab) monitorid) ; if monitorid found in global equake-tablist
-          (setq equake-tab-list (remove cur-tab equake-tab-list)) ; remove screen from equake-tab-list before proceeding
-        (equake-remove-screen monitorid (cdr tablist))))))  ; if monitorid not (yet) found in global equake-tablist
-
 (defun-tco equake-get-monitor-property (prop attributes)
   "Get a property PROP of the current monitor/screen ATTRIBUTES."
   (let ((field (car attributes)))

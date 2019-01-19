@@ -258,9 +258,6 @@
       (equake-ask-before-closing-equake)
     (save-buffers-kill-terminal)))
 
-;; de-activate and add advice to use it, but don't hijack standard bindings:
-;; 
-
 (defun equake-key-bindings ()
   "Set tab movement bindings."
   (local-set-key (kbd "C-+") 'equake-new-tab)
@@ -332,14 +329,6 @@
       (when (cl-search "*transient*" (frame-parameter frame 'title))
         (delete-frame frame))
       (equake-kill-stray-transient-frames (cdr frames)))))
-
-(defun equake/emacs-dropdown-console ()
-  "Just call `equake-invoke`.
-To insure backwards compatibility with earlier versions of equake,
-nag user to change external function call."
-  (message "Function name 'equake/emacs-dropdown-console' deprecated. Please change your
-external function call to 'equake-invoke'.")
-  (equake-invoke))
 
 (defun equake-invoke ()
   "Toggle Equake frames.

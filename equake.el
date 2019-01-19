@@ -263,13 +263,13 @@
 
 (defun equake-key-bindings ()
   "Set tab movement bindings."
-  (local-set-key (kbd "C-+") 'equake-new-tab)
-  (local-set-key (kbd "C-M-+") 'equake-new-tab-different-shell)
-  (local-set-key (kbd "C-{") 'equake-prev-tab)
-  (local-set-key (kbd "C-}") 'equake-next-tab)
-  (local-set-key (kbd "C-M-{") 'equake-move-tab-left)
-  (local-set-key (kbd "C-M-}") 'equake-move-tab-right)
-  (local-set-key (kbd "C-|") 'equake-rename-etab))
+  (local-set-key (kbd "C-+") #'equake-new-tab)
+  (local-set-key (kbd "C-M-+") #'equake-new-tab-different-shell)
+  (local-set-key (kbd "C-{") #'equake-prev-tab)
+  (local-set-key (kbd "C-}") #'equake-next-tab)
+  (local-set-key (kbd "C-M-{") #'equake-move-tab-left)
+  (local-set-key (kbd "C-M-}") #'equake-move-tab-right)
+  (local-set-key (kbd "C-|") #'equake-rename-etab))
 
 (defun-tco equake-equake-frame-p (monitor frames)
   "Test if *EQUAKE* is an existing frame in MONITOR given a list of FRAMES."
@@ -476,7 +476,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (equake-set-winhistory))
       (setq inhibit-message 'nil))))
 
-(add-hook 'buffer-list-update-hook 'equake-shell-after-buffer-change-hook)
+(add-hook 'buffer-list-update-hook #'equake-shell-after-buffer-change-hook)
 
 (defun equake-set-last-buffer ()
   "Set last seen buffer."
@@ -527,7 +527,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
         (progn (setq mode-line-format (list (equake-mode-line "" cur-monitor-tab-list)))
                (force-mode-line-update))))))
 
-(add-hook 'kill-buffer-hook 'equake-kill-etab-buffer-hook)
+(add-hook 'kill-buffer-hook #'equake-kill-etab-buffer-hook)
 
 (defun-tco equake-find-next-etab (tablist tab)
   "Return the next TAB from TABLIST."

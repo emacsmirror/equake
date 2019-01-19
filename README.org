@@ -179,7 +179,7 @@ so in theory these should also work with ~equake~. This has not been tested thou
 | C-M-+   | Add new tab with arbitrary shell |
 | C-\vert | Rename tab                       |
 
-* Changelog for beta versions
+* Changelog
 ** v0.3
 Lots of things seem to work well, but multi-monitor can still be a bit 
 fussy: equake doesn't always want to open on the 'active' monitor, and
@@ -246,7 +246,10 @@ are not currently used. These could be useful if repurposed to "clearing out" ta
 need to track down transitory mirroring of separate =equake= frames on multi-monitor.
 ** v0.51
 Note, *don't* use ~(left . 0) (top . 0)~ in your launching command (as previously advised), as
-this may interfere with launching the equake frame on the correct screen.
+this may interfere with launching pthe equake frame on the correct screen.
+** v0.73
+Cleaned up code (including proper implementation of tail-call optimisation), removed unused
+functions, remove hard-coded hijacking of =C-x C-c=. Updated docs to include information on improving the =eshell= experience.
 * Credits
 - I have tried to adapt some ideas from alphapapa's [[https://github.com/alphapapa/yequake][yequake]] package.
 - This was developed in part as an emacs-internal solution to what noctuid's [[https://github.com/noctuid/tdrop][tdrop]] application does in terms of raising/hiding frames.

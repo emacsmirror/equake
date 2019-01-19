@@ -108,6 +108,10 @@
 ;; 
 ;; In stumpwm, I'm not sure: it doesn't seem to respect
 ;; Emacs frame settings.
+;;
+;; Advice:
+;; add (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
+;; to your settings to prevent accidental closure of equake frames
 
 ;; TODO:
 ;; 1. defcustoms:
@@ -254,7 +258,8 @@
       (equake-ask-before-closing-equake)
     (save-buffers-kill-terminal)))
 
-(global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
+;; de-activate and add advice to use it, but don't hijack standard bindings:
+;; 
 
 (defun equake-key-bindings ()
   "Set tab movement bindings."
@@ -641,7 +646,6 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
         (if (equal prev-tab 'nil)   ; switch to last tab if at beginning of list
             (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (car  (reverse (cdr (equake-find-monitor-list monitorid equake-tab-list)))) (buffer-list)))
           (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid prev-tab (buffer-list))))))))
-
 
 (defun-tco equake-find-buffer-by-monitor-and-tabnumber (monitor tabnum buffers)
   "Return an Equake buffer from BUFFERS given a MONITOR/screen name and TABNUM."

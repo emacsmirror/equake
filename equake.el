@@ -244,6 +244,9 @@
   :type 'string
   :group 'equake)
 
+;; TODO: add defcustom to set font, e.g.:
+;; (face-remap-add-relative 'default '(:family "DejaVu Sans Mono" :height 108))
+
 (defun equake-ask-before-closing-equake ()
   "Make sure user really wants to close Equake, ask again."
   (interactive)
@@ -341,8 +344,8 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))))
     (if equake-current-frame            ; if frame exists, destroy it.
         (progn  (select-frame equake-current-frame)
-                (when (equal (buffer-name (current-buffer)) " *server*")
-                  (switch-to-buffer (other-buffer (current-buffer) 1)))
+                (when (equal (buffer-name (current-buffer)) " *server*") ; if opened to " *server*" buffer
+                  (switch-to-buffer (other-buffer (current-buffer) 1)))  ; switch to other buffer
                 (equake-set-last-buffer)
                 (equake-set-winhistory)
                 (when (string-match-p "EQUAKE\\[" (buffer-name (current-buffer)))
@@ -495,10 +498,6 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
             (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bar
             (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bar
-            ;; (face-remap-add-relative 'default '(:family "DejaVu Sans Mono" :height 108))
-            ;; (face-remap-add-relative 'default '(:family "Go Mono" :height 108))
-            ;; (face-remap-add-relative 'default '(:family "Iosevka" :height 108))
-            ;; (face-remap-add-relative 'default '(:family "Iosevka Slab" :height 108))
             (equake-key-bindings))                                   ; set equake bindings
           (equake-set-last-etab)
           (equake-set-winhistory))
@@ -581,10 +580,10 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
               (cond ((< target-pos 0) ; if trying to move tab beyond left edge
                      (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
                             (setq monitor-tab-list (append monitor-tab-list (list moving-tab))))) ; add tab to right edge
-                    ((> target-pos (1- (length monitor-tab-list)))
+                    ((> target-pos (1- (length monitor-tab-list))) ; if trying to move tab beyond right edge
                      (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
                             (setq monitor-tab-list (append (list moving-tab) monitor-tab-list)))) ; add tab to left edge
-                    (t (progn (let ((target-temp-id (nth target-pos monitor-tab-list))) ; store the original content of target position
+                    (t (progn (let ((target-temp-id (nth target-pos monitor-tab-list))) ; else, store the original content of target position
                                 (setf (nth target-pos monitor-tab-list) moving-tab (nth orig-pos monitor-tab-list) target-temp-id ))))) ; modify the list positions accordingly)))
               (setq reconstructed-local-tab (list (cons monitor monitor-tab-list))) ; cons monitor name with modified tab-list
               (setq equake-tab-list (remove examined-tab equake-tab-list)) ; remove the entire local monitor tab-list from global etab-list

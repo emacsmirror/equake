@@ -17,18 +17,29 @@ I wanted to have a Lisp shell and a Lisp console interface to that shell. Of cou
 =eshell= is already 99% of this, but having a tabbed drop-down console feels useful
 to me, though it may just be what I'm used to.
 
-At this point, =equake= is 'beta' quality: it's unlikely to wipe your home directory,
-terrorise your pets, or eat your relatives, but it may not always behave exactly as
-desired. My intention was for it to be robust, so it attempts to recover if it's
-forcibly closed (by 'orphaning' any opened tabs, but not deleting them, in case
-processes are still running etc).
+In order to have a better =eshell= experience, I would recommend using some additional
+=eshell=-related initialisation. Here is what I'm using: [[https://gitlab.com/emacsomancer/init-eshell.el][https://gitlab.com/emacsomancer/init-eshell.el]]. You could clone this somewhere in your 
+=load-path= and then add to your main Emacs initialisation file: 
 
-It also uses built-in Emacs functionality to probe for screen sizes via the
+=(with-eval-after-load 'eshell (require 'init-eshell))=
+
+I've also been using the [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell#plan-9-smart-shell][Plan 9-like smart display]] which is a built-in option of =eshell=.
+You can enable this by adding to your Emacs initialisation:
+
+#+begin_src elisp
+(require 'eshell)
+(require 'em-smart)
+(add-hook 'eshell-mode-hook 'eshell-smart-initialize)
+(require 'esh-module) ; require modules
+(add-to-list 'eshell-modules-list 'eshell-tramp)
+#+end_src
+
+(This also adds the tramp module, which I recommend.)
+
+Equake also uses built-in Emacs functionality to probe for screen sizes via the
 =frame.el= library, which potential means it should work cross-platform, as
 =frame.el= defines frame-types =\'ns= (Next Step, i.e. Mac) and =\'w32= (Windows). I
-haven't tested this though, and given the apparent difficulties with certain window
-managers, I wouldn't be surprised if it only works on Linux/Unix running X11 
-(or in Wayland via Xwayland, as it seems to work in Gnome Shell Wayland).
+haven't tested this though.
 
 See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the Babbage Files blog post]].
 

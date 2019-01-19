@@ -347,7 +347,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   (if (not winhist)
       filtwinhist
     (if (listp (car winhist))
-        (unless (string-match-p "EQUAKE\\[" (buffer-name (car (car winhist))))
+        (unless (string-match-p "EQUAKE\\[" (buffer-name (caar winhist)))
           (setq filtwinhist (remove (car winhist) filtwinhist)))
       (if (bufferp (car winhist))
           (unless (string-match-p "EQUAKE\\[" (buffer-name (car winhist)))
@@ -453,7 +453,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun-tco equake-find-monitor-list (monitor tabs)
   "Return the relevant list member associated with MONITOR/screen amongst TABS."
   (unless (equal tabs 'nil)
-    (if (equal monitor (car (car tabs)))
+    (if (equal monitor (caar tabs))
         (car tabs)
       (equake-find-monitor-list monitor (cdr tabs)))))
 
@@ -519,7 +519,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
       (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
           (if (equake-find-next-etab (cdr (equake-find-monitor-list monitor equake-tab-list)) killed-tab) ; switch to the next etab, if if exists
               (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (equake-find-next-etab (cdr (equake-find-monitor-list monitor equake-tab-list)) killed-tab) (buffer-list)))
-            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (car (cdr (equake-find-monitor-list monitor equake-tab-list))) (buffer-list))))) ;otherwise switch to last
+            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (cadr (equake-find-monitor-list monitor equake-tab-list)) (buffer-list))))) ;otherwise switch to last
       (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list member from global tab list
       (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (remove killed-tab (cdr cur-monitor-tab-list)))) ; edit current monitor tab list to remove tab
       (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list))) ; add edited current monitor tab list back to global tab list
@@ -534,7 +534,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   (cond ((equal (car tablist) 'nil)  ; return 'nil if we're at the end of the list
          'nil)
         ((equal (car tablist) tab)  ; if we find the current tab, cdr and then car the list to get the next tab
-         (car (cdr tablist)))
+         (cadr tablist))
         ((not (equal (car tablist) tab)) ; if not, then cdr the list and test again
          (equake-find-next-etab (cdr tablist) tab))))
 
@@ -592,7 +592,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
       (let* ((current-tab (string-to-number (substring (buffer-name) (1+ (cl-search "]" (buffer-name))) (1+ (cl-search "%" (buffer-name))))))
              (next-tab (equake-find-next-etab (cdr (equake-find-monitor-list monitorid equake-tab-list)) current-tab)))
         (if (equal next-tab 'nil)  ; switch to first tab if at end of list
-            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (car (cdr (equake-find-monitor-list monitorid equake-tab-list))) (buffer-list)))
+            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (cadr (equake-find-monitor-list monitorid equake-tab-list)) (buffer-list)))
           (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid next-tab (buffer-list))))))))
 
 (defun equake-prev-tab ()
@@ -605,7 +605,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
       (let* ((current-tab (string-to-number (substring (buffer-name) (1+ (cl-search "]" (buffer-name))) (1+ (cl-search "%" (buffer-name))))))
              (prev-tab (equake-find-next-etab (reverse (cdr (equake-find-monitor-list monitorid equake-tab-list))) current-tab)))
         (if (equal prev-tab 'nil)   ; switch to last tab if at beginning of list
-            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (car  (reverse (cdr (equake-find-monitor-list monitorid equake-tab-list)))) (buffer-list)))
+            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid (car (reverse (cdr (equake-find-monitor-list monitorid equake-tab-list)))) (buffer-list)))
           (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitorid prev-tab (buffer-list))))))))
 
 (defun-tco equake-find-buffer-by-monitor-and-tabnumber (monitor tabnum buffers)
@@ -628,7 +628,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 
 (defun-tco equake-mode-line (modelinestring buffers)
   "Content of MODELINESTRING for equake (show tabs), showing BUFFERS."
-  (let ((curtab (car (cdr buffers))))
+  (let ((curtab (cadr buffers)))
     (if (equal curtab 'nil)
         (list modelinestring (equake-shell-type-styling major-mode))                        ; when tabs exhausted, return modelinestring
       (setq modelinestring (concat modelinestring (equake-extract-format-tab-name curtab))) ; get name/number for tab in mode-line format

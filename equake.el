@@ -458,21 +458,20 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-shell-after-buffer-change-hook ()
   "Things to do when in Equake when the current buffer is changed."
   (let ((monitorid (equake-get-monitor-name)))
-    (if (cl-search (concat "EQUAKE[" monitorid) (buffer-name (current-buffer)))
-        (progn
-          ;; get monitor-local list of buffers and send it to be processed for the mode-line
-          (if equake-show-monitor-in-mode-line ; show monitorid or not
-              (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
-            (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
-          (force-mode-line-update)
-          (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil))) ; no scroll-bars
-          (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
-            (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bar
-            (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bar
-            (equake-key-bindings))                                   ; set equake bindings
-          (equake-set-last-etab)
-          (equake-set-winhistory))
-      (setq inhibit-message 'nil))))
+    (if (not (cl-search (concat "EQUAKE[" monitorid) (buffer-name (current-buffer))))
+        (setq inhibit-message 'nil)     
+      ;; get monitor-local list of buffers and send it to be processed for the mode-line
+      (if equake-show-monitor-in-mode-line ; show monitorid or not
+          (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
+        (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitorid equake-tab-list)))))
+      (force-mode-line-update)
+      (modify-frame-parameters (selected-frame) '((vertical-scroll-bars . nil) (horizontal-scroll-bars . nil))) ; no scroll-bars
+      (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
+        (set-frame-parameter (selected-frame) 'menu-bar-lines 0) ; no menu-bar
+        (set-frame-parameter (selected-frame) 'tool-bar-lines 0) ; no tool-bar
+        (equake-key-bindings))      ; set equake bindings
+      (equake-set-last-etab)
+      (equake-set-winhistory))))
 
 (add-hook 'buffer-list-update-hook #'equake-shell-after-buffer-change-hook)
 

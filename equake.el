@@ -535,8 +535,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
          'nil)
         ((equal (car tablist) tab)  ; if we find the current tab, cdr and then car the list to get the next tab
          (cadr tablist))
-        ((not (equal (car tablist) tab)) ; if not, then cdr the list and test again
-         (equake-find-next-etab (cdr tablist) tab))))
+        (t (equake-find-next-etab (cdr tablist) tab)))) ; if not, then cdr the list and test again
 
 (defun-tco equake-move-tab (monitor tablist moving-tab direction)
   "Move the current MOVING-TAB in the TABLIST on MONITOR one position to the right (DIRECTION=1) or left (DIRECTION=-1) in the TABLIST."

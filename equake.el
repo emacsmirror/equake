@@ -295,7 +295,7 @@
       (when equake-unnamed-monitor
         (let ((name (equake-get-monitor-property "geometry" (frame-monitor-attributes))))
           (when name
-              (format "%s" name)))))))
+            (format "%s" name)))))))
 
 (defun-tco equake-kill-stray-transient-frames (frames)
   "Destroy any stray transient FRAMES."
@@ -340,7 +340,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))))
           (equake-set-up-equake-frame))
         (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers)))))
-        (equake-kill-stray-transient-frames (frame-list))))
+    (equake-kill-stray-transient-frames (frame-list))))
 
 (defun-tco equake-filter-history (winhist filtwinhist)
   "Filter window history (WINHIST) into FILTWINHIST."
@@ -459,7 +459,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   "Things to do when in Equake when the current buffer is changed."
   (let ((monitorid (equake-get-monitor-name)))
     (if (not (cl-search (concat "EQUAKE[" monitorid) (buffer-name (current-buffer))))
-        (setq inhibit-message 'nil)     
+        (setq inhibit-message 'nil)
       ;; get monitor-local list of buffers and send it to be processed for the mode-line
       (if equake-show-monitor-in-mode-line ; show monitorid or not
           (setq mode-line-format (list (equake-mode-line (concat monitorid ": ") (equake-find-monitor-list monitorid equake-tab-list))))
@@ -514,9 +514,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
            (killed-tab (string-to-number (substring (buffer-name) (1+ (cl-search "]" (buffer-name))) (length (buffer-name)))))
            (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list)))
       (when (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)) ; if we're in an equake frame
-          (if (equake-find-next-etab (cdr (equake-find-monitor-list monitor equake-tab-list)) killed-tab) ; switch to the next etab, if if exists
-              (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (equake-find-next-etab (cdr (equake-find-monitor-list monitor equake-tab-list)) killed-tab) (buffer-list)))
-            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (cadr (equake-find-monitor-list monitor equake-tab-list)) (buffer-list))))) ;otherwise switch to last
+        (if (equake-find-next-etab (cdr (equake-find-monitor-list monitor equake-tab-list)) killed-tab) ; switch to the next etab, if if exists
+            (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (equake-find-next-etab (cdr (equake-find-monitor-list monitor equake-tab-list)) killed-tab) (buffer-list)))
+          (switch-to-buffer (equake-find-buffer-by-monitor-and-tabnumber monitor (cadr (equake-find-monitor-list monitor equake-tab-list)) (buffer-list))))) ;otherwise switch to last
       (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list member from global tab list
       (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (remove killed-tab (cdr cur-monitor-tab-list)))) ; edit current monitor tab list to remove tab
       (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list))) ; add edited current monitor tab list back to global tab list

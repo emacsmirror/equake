@@ -184,13 +184,13 @@
   :type 'boolean
   :group 'equake)
 
-(defcustom equake-console-foreground-colour "#eeeeee"
-  "Background colour of Equake console."
+(defcustom equake-console-foreground-colour "" ;;recommended: "#eeeeee"
+  "Foreground colour of Equake console if specified; use default foreground if empty string."
   :type 'string
   :group 'equake)
 
-(defcustom equake-console-background-colour "#000022"
-  "Background colour of Equake console."
+(defcustom equake-console-background-colour "" ;;recommended: "#000022"
+  "Background colour of Equake console if specified; use default background if empty string."
   :type 'string
   :group 'equake)
 
@@ -225,7 +225,7 @@
   :group 'equake)
 
 (defcustom equake-shell-type-shell-background "midnight blue"
-  "Background colour of shell-type indicator in mode-line when shell) is the underlying shell."
+  "Background colour of shell-type indicator in mode-line when shell is the underlying shell."
   :type 'string
   :group 'equake)
 
@@ -240,7 +240,7 @@
   :group 'equake)
 
 (defcustom equake-shell-type-shell-foreground "magenta"
-  "Background colour of shell-type indicator in mode-line when shell) is the underlying shell."
+  "Background colour of shell-type indicator in mode-line when shell is the underlying shell."
   :type 'string
   :group 'equake)
 
@@ -372,8 +372,10 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-set-up-equake-frame ()
   "Set-up new *EQUAKE* frame, including cosmetic alterations."
   (interactive)
-  (set-background-color equake-console-background-colour) ; set background colour
-  (set-foreground-color equake-console-foreground-colour) ; set foreground colour
+  (unless (equal equake-console-background-colour "")
+    (set-background-color equake-console-background-colour)) ; set background colour
+  (unless (equal equake-console-foreground-colour "")
+    (set-foreground-color equake-console-foreground-colour)) ; set foreground colour
   (set-frame-parameter (selected-frame) 'alpha `(,equake-active-opacity ,equake-inactive-opacity))
   (setq inhibit-message t))
 
@@ -425,10 +427,12 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   "Open a new shell tab on monitor, optionally OVERRIDE default shell."
   (interactive)
   (if override
-      (equake-launch-shell override)    ; launch with specified shell if set
-    (equake-launch-shell))              ; otherwise, launch shell normally
-  (set-background-color equake-console-background-colour) ; set background colour
-  (set-foreground-color equake-console-foreground-colour) ; set foreground colour
+      (equake-launch-shell override)   ; launch with specified shell if set
+    (equake-launch-shell))             ; otherwise, launch shell normally
+  (unless (equal equake-console-background-colour "")
+    (set-background-color equake-console-background-colour)) ; set background colour
+  (unless (equal equake-console-foreground-colour "")
+    (set-foreground-color equake-console-foreground-colour)) ; set foreground colour
   (setq inhibit-message t)
   (let* ((monitor (equake-get-monitor-name))
          (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor

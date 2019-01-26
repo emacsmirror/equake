@@ -572,7 +572,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   (interactive)
   (let* ((monitorid (equake-get-monitor-name))
          (current-etab (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitorid "]") (buffer-name (current-buffer)))))))
-     (equake-move-tab monitorid equake-tab-list current-etab 1)
+    (equake-move-tab monitorid equake-tab-list current-etab 1)
     (equake-set-winhistory))) ; call general tab move function
 
 (defun equake-move-tab-left ()

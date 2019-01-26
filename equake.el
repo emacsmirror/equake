@@ -384,8 +384,8 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (cond ((equal buffbeg 'nil)
            count)
           ((string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg))
-           (progn (setq count (1+ count))
-                  (equake-count-tabs monitor buffend count)))
+           (setq count (1+ count))
+           (equake-count-tabs monitor buffend count))
           ((not (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg)))
            (equake-count-tabs monitor buffend count)))))
 
@@ -396,9 +396,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (cond ((equal buffbeg 'nil)
            highest)
           ((string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg)) ; only consider relevant buffers
-           (progn (when (> (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg)))) highest)
-                    (setq highest (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg))))))
-                  (equake-highest-etab monitor buffend highest)))
+           (when (> (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg)))) highest)
+             (setq highest (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg))))))
+           (equake-highest-etab monitor buffend highest))
           ((not (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg)))
            (equake-highest-etab monitor buffend highest)))))
 
@@ -409,9 +409,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (cond ((equal buffbeg 'nil)
            lowest)
           ((string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg)) ; only consider relevant buffers
-           (progn (when (< (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg)))) lowest)
-                    (setq lowest (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg))))))
-                  (equake-lowest-etab monitor buffend lowest)))
+           (when (< (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg)))) lowest)
+             (setq lowest (string-to-number (replace-regexp-in-string "%[[:alnum:]]*" "" (string-remove-prefix (concat "EQUAKE[" monitor "]") (buffer-name buffbeg))))))
+           (equake-lowest-etab monitor buffend lowest))
           ((not (string-match-p (concat "EQUAKE\\[" monitor) (buffer-name buffbeg)))
            (equake-lowest-etab monitor buffend lowest)))))
 
@@ -522,8 +522,8 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
       (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (remove killed-tab (cdr cur-monitor-tab-list)))) ; edit current monitor tab list to remove tab
       (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list))) ; add edited current monitor tab list back to global tab list
       (when (cl-search (concat "EQUAKE[" monitor) (buffer-name (current-buffer)))
-        (progn (setq mode-line-format (list (equake-mode-line "" cur-monitor-tab-list)))
-               (force-mode-line-update))))))
+        (setq mode-line-format (list (equake-mode-line "" cur-monitor-tab-list)))
+        (force-mode-line-update)))))
 
 (add-hook 'kill-buffer-hook #'equake-kill-etab-buffer-hook)
 
@@ -548,13 +548,13 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
                    (target-pos (+ orig-pos direction)) ; find the target position of the moving tab
                    (reconstructed-local-tab 'nil))     ; initialise local variable
               (cond ((< target-pos 0) ; if trying to move tab beyond left edge
-                     (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
-                            (setq monitor-tab-list (append monitor-tab-list (list moving-tab))))) ; add tab to right edge
+                     (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
+                     (setq monitor-tab-list (append monitor-tab-list (list moving-tab)))) ; add tab to right edge
                     ((> target-pos (1- (length monitor-tab-list))) ; if trying to move tab beyond right edge
-                     (progn (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
-                            (setq monitor-tab-list (append (list moving-tab) monitor-tab-list)))) ; add tab to left edge
-                    (t (progn (let ((target-temp-id (nth target-pos monitor-tab-list))) ; else, store the original content of target position
-                                (setf (nth target-pos monitor-tab-list) moving-tab (nth orig-pos monitor-tab-list) target-temp-id ))))) ; modify the list positions accordingly)))
+                     (setq monitor-tab-list (remove moving-tab monitor-tab-list)) ; delete tab
+                     (setq monitor-tab-list (append (list moving-tab) monitor-tab-list))) ; add tab to left edge
+                    (t (let ((target-temp-id (nth target-pos monitor-tab-list))) ; else, store the original content of target position
+                         (setf (nth target-pos monitor-tab-list) moving-tab (nth orig-pos monitor-tab-list) target-temp-id )))) ; modify the list positions accordingly)))
               (setq reconstructed-local-tab (list (cons monitor monitor-tab-list))) ; cons monitor name with modified tab-list
               (setq equake-tab-list (remove examined-tab equake-tab-list)) ; remove the entire local monitor tab-list from global etab-list
               (setq equake-tab-list (append equake-tab-list reconstructed-local-tab)) ; append the named, modified monitor tab list to the global equake tab list

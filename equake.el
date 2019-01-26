@@ -358,9 +358,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-launch-shell (&optional override)
   "Launch a new shell session, OVERRIDE will set non-default shell."
   (interactive)
-  (let ((launchshell equake-default-shell))
-    (when override
-      (setq launchshell override))
+  (let ((launchshell (or override equake-default-shell)))
     (cond ((equal launchshell 'eshell)
            (eshell 'N))
           ((equal launchshell 'ansi-term)

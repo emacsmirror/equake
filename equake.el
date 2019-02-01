@@ -106,8 +106,7 @@
 ;; { rule = { instance = "*EQUAKE*", class = "Emacs" },
 ;;    properties = { titlebars_enabled = false } },
 ;; 
-;; In stumpwm, I'm not sure: it doesn't seem to respect
-;; Emacs frame settings.
+;; In stumpwm, I'm not sure: probably the frame needs to be set as floating.
 ;;
 ;; Advice:
 ;; add (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
@@ -183,68 +182,45 @@
   :type 'boolean
   :group 'equake)
 
-(defcustom equake-console-foreground-colour "" ;;recommended: "#eeeeee"
-  "Foreground colour of Equake console if specified; use default foreground if empty string."
-  :type 'string
-  :group 'equake)
+(defgroup equake-faces nil
+  "Faces used by Equake."
+  :group 'equake
+  :group 'faces)
 
-(defcustom equake-console-background-colour "" ;;recommended: "#000022"
-  "Background colour of Equake console if specified; use default background if empty string."
-  :type 'string
-  :group 'equake)
+(defface equake-buffer-face
+  '((t (:inherit default)))
+  "Face used for internal Equake buffer text."
+  :group 'equake-faces)
 
-(defcustom equake-inactive-tab-foreground-colour "black"
-  "Colour of foreground text of inactive Equake tabs."
-  :type 'string
-  :group 'equake)
+(defface equake-tab-inactive
+  '((t (:background "black"
+        :foreground "lightblue")))
+  "Face used for inactive Equake tabs in the mode-line."
+  :group 'equake-faces)
 
-(defcustom equake-inactive-tab-background-colour "lightblue"
-  "Background colour of inactive Equake tabs."
-  :type 'string
-  :group 'equake)
+(defface equake-tab-active
+  '((t (:background "lightblue"
+        :foreground "black")))
+  "Face used for active Equake tabs in the mode-line."
+  :group 'equake-faces)
 
-(defcustom equake-active-tab-foreground-colour "lightblue"
-  "Colour of foreground text of active Equake tabs."
-  :type 'string
-  :group 'equake)
+(defface equake-shell-type-eshell
+  '((t (:background "midnight blue"
+        :foreground "spring green")))
+  "Face used for indicating eshell shell type in the mode-line."
+  :group 'equake-faces)
 
-(defcustom equake-active-tab-background-colour "black"
-  "Background colour of active Equake tabs."
-  :type 'string
-  :group 'equake)
+(defface equake-shell-type-term
+  '((t (:background "midnight blue"
+        :foreground "gold")))
+  "Face used for indicating (ansi-)term shell type in the mode-line."
+  :group 'equake-faces)
 
-(defcustom equake-shell-type-eshell-background "midnight blue"
-  "Background colour of shell-type indicator in mode-line when eshell is the underlying shell."
-  :type 'string
-  :group 'equake)
-
-(defcustom equake-shell-type-term-background "midnight blue"
-  "Background colour of shell-type indicator in mode-line when (ansi-)term is the underlying shell."
-  :type 'string
-  :group 'equake)
-
-(defcustom equake-shell-type-shell-background "midnight blue"
-  "Background colour of shell-type indicator in mode-line when shell is the underlying shell."
-  :type 'string
-  :group 'equake)
-
-(defcustom equake-shell-type-eshell-foreground "spring green"
-  "Background colour of shell-type indicator in mode-line when eshell is the underlying shell."
-  :type 'string
-  :group 'equake)
-
-(defcustom equake-shell-type-term-foreground "gold"
-  "Background colour of shell-type indicator in mode-line when (ansi-)term is the underlying shell."
-  :type 'string
-  :group 'equake)
-
-(defcustom equake-shell-type-shell-foreground "magenta"
-  "Background colour of shell-type indicator in mode-line when shell is the underlying shell."
-  :type 'string
-  :group 'equake)
-
-;; TODO: add defcustom to set font, e.g.:
-;; (face-remap-add-relative 'default '(:family "DejaVu Sans Mono" :height 108))
+(defface equake-shell-type-shell
+  '((t (:background "midnight blue"
+        :foreground "magenta")))
+  "Face used for indicating shell (comint) shell type in the mode-line."
+  :group 'equake-faces)
 
 (defun equake-ask-before-closing-equake ()
   "Make sure user really wants to close Equake, ask again."
@@ -372,10 +348,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-set-up-equake-frame ()
   "Set-up new *EQUAKE* frame, including cosmetic alterations."
   (interactive)
-  (unless (equal equake-console-background-colour "")
-    (set-background-color equake-console-background-colour)) ; set background colour
-  (unless (equal equake-console-foreground-colour "")
-    (set-foreground-color equake-console-foreground-colour)) ; set foreground colour
+  (buffer-face-set 'equake-buffer-face)
   (set-frame-parameter (selected-frame) 'alpha `(,equake-active-opacity ,equake-inactive-opacity))
   (setq inhibit-message t))
 
@@ -429,10 +402,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   (if override
       (equake-launch-shell override)   ; launch with specified shell if set
     (equake-launch-shell))             ; otherwise, launch shell normally
-  (unless (equal equake-console-background-colour "")
-    (set-background-color equake-console-background-colour)) ; set background colour
-  (unless (equal equake-console-foreground-colour "")
-    (set-foreground-color equake-console-foreground-colour)) ; set foreground colour
+  (buffer-face-set 'equake-buffer-face)
   (setq inhibit-message t)
   (let* ((monitor (equake-get-monitor-name))
          (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
@@ -637,11 +607,11 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-shell-type-styling (mode)
   "Style the shell-type indicator as per MODE."
   (cond ((equal (format "%s" mode) "eshell-mode")
-         (propertize " ((eshell)) " 'font-lock-face `(:foreground ,equake-shell-type-eshell-foreground :background ,equake-shell-type-eshell-background)))
+         (propertize " ((eshell)) " 'font-lock-face 'equake-shell-type-eshell))
         ((equal (format "%s" mode) "term-mode")
-         (propertize " ((term)) " 'font-lock-face `(:foreground ,equake-shell-type-term-foreground :background ,equake-shell-type-term-background)))
+         (propertize " ((term)) " 'font-lock-face 'equake-shell-type-term))     
         ((equal (format "%s" mode) "shell-mode")
-         (propertize " ((shell)) " 'font-lock-face `(:foreground ,equake-shell-type-shell-foreground :background ,equake-shell-type-shell-background)))))
+         (propertize " ((shell)) " 'font-lock-face 'equake-shell-type-shell))))
 
 (defun equake-extract-format-tab-name  (tab)
   "Extract Equake TAB name and format it for the modeline."
@@ -651,8 +621,8 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (when (equal etab-name "")                     ; if the name is null string
       (setq etab-name (number-to-string tab)))   ; set name to tab number
     (if (equal tab current-etab)
-        (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-inactive-tab-foreground-colour :background ,equake-inactive-tab-background-colour)) " ") ; 'highlight' current tab
-      (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face `(:foreground ,equake-active-tab-foreground-colour :background ,equake-active-tab-background-colour)) " "))))
+        (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face 'equake-tab-active) " ") ; 'highlight' current tab
+      (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face 'equake-tab-inactive) " "))))
 
 (provide 'equake)
 

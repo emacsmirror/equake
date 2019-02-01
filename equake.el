@@ -133,7 +133,6 @@
 (require 'subr-x)
 (require 'dash)                         ; for -let*
 (require 'tco)                          ; tail-call optimisation
-(setq lexical-binding 't)               ; redundant?
 
 (defvar equake-tab-list ())             ; initialise empty list of equake tabs
 (defvar equake-last-buffer-list ())     ; initialise empty list of equake last buffers
@@ -144,13 +143,13 @@
   "Equake - Emacs drop-down console."
   :group 'shell)
 
-(defcustom equake-width-percentage 1.0
-  "Percentage (.01-1.0) for width of equake console."
+(defcustom equake-width-fraction 1.0
+  "Fraction (.01-1.0) for width of equake console."
   :type 'float
   :group 'equake)
 
-(defcustom equake-height-percentage 0.4
-  "Percentage (.01-1.0) for height of equake console."
+(defcustom equake-height-fraction 0.4
+  "Fraction (.01-1.0) for height of equake console."
   :type 'float
   :group 'equake)
 
@@ -314,7 +313,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   (-let* ((monitorid (equake-get-monitor-name))
           (equake-current-frame (equake-equake-frame-p monitorid (frame-list)))
           ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor (alist-get 'workarea (frame-monitor-attributes))))
-          (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-percentage)) 2)))))
+          (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-width-fraction)) 2)))))
     (if equake-current-frame            ; if frame exists, destroy it.
         (progn  (select-frame equake-current-frame)
                 (when (equal (buffer-name (current-buffer)) " *server*") ; if opened to " *server*" buffer
@@ -329,8 +328,8 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
                                            (cons 'alpha `(,equake-active-opacity ,equake-inactive-opacity))
                                            (cons 'left mod-mon-xpos)
                                            (cons 'top mon-ypos)
-                                           (cons 'width (cons 'text-pixels (truncate (* monwidth equake-width-percentage))))
-                                           (cons 'height (cons 'text-pixels (truncate (* monheight equake-height-percentage))))))))
+                                           (cons 'width (cons 'text-pixels (truncate (* monwidth equake-width-fraction))))
+                                           (cons 'height (cons 'text-pixels (truncate (* monheight equake-height-fraction))))))))
         (select-frame new-frame)
         (set-window-prev-buffers nil (cdr (equake-find-monitor-list monitorid equake-win-history)))
         (let ((highest-montab (equake-highest-etab monitorid (buffer-list) -1)))

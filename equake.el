@@ -168,8 +168,8 @@
   :type  'const
   :group 'equake)
 
-(defcustom equake-default-sh-command "/bin/bash"
-  "Default shell command used by (ansi-)term."
+(defcustom equake-default-sh-command 'nil
+  "Default shell command used by (ansi-)term in equake tab."
   :type 'string
   :group 'equake)
 
@@ -357,13 +357,14 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-launch-shell (&optional override)
   "Launch a new shell session, OVERRIDE will set non-default shell."
   (interactive)
-  (let ((launchshell (or override equake-default-shell)))
+  (let ((launchshell (or override equake-default-shell))
+        (shell-command (or equake-default-sh-command shell-file-name)))
     (cond ((equal launchshell 'eshell)
            (eshell 'N))
           ((equal launchshell 'ansi-term)
-           (ansi-term equake-default-sh-command))
+           (ansi-term shell-command))
           ((equal launchshell 'term)
-           (term equake-default-sh-command))
+           (term shell-command))
           ((equal launchshell 'shell)
            (shell)
            (delete-other-windows)))))

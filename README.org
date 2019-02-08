@@ -47,7 +47,7 @@ See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the 
 [[./image/equake01.gif]]
 
 * Installation
-Unless you're installing via Melpa (which doesn't work yet), make sure you have the 
+Unless you're installing via Melpa, make sure you have the 
 following external dependencies installed: [[https://github.com/magnars/dash.el][ =dash= ]],
 [[https://github.com/Wilfred/tco.el][ =tco= ]].  This might be accomplish via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g.:
  #+begin_src elisp
@@ -58,9 +58,19 @@ following external dependencies installed: [[https://github.com/magnars/dash.el]
  :ensure t)
  #+end_src
 ** Melpa
-This package is not yet available via Melpa. 
+You can install this package from Melpa, including via =use-package=, e.g.
+#+begin_src elisp
+(use-package equake
+    :ensure t
+    :config  ; some examples of optional settings follow:
+    (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing) ; prevent accidental frame-closure
+    (setq equake-size-width 0.99) ; set width a bit less than full-screen (prevent 'overflow' on multi-monitor)
+    ;; set distinct face for Equake: white foreground with dark blue background, and different font
+    (set-face-attribute 'equake-buffer-face 'nil :inherit 'default :family "DejaVu Sans Mono" :background "#000022" :foreground "white"))
+#+end_src
+
 ** Quelpa
-[[https://framagit.org/steckerhalter/quelpa-use-package][quelpa-use-package]] should allow for easier installation:
+[[https://framagit.org/steckerhalter/quelpa-use-package][quelpa-use-package]] can be used to install directly from this git repo:
 
 #+BEGIN_SRC elisp
   (use-package equake
@@ -78,7 +88,6 @@ something like this to your =init.el= (assuming you put it into =~/.emacs.d/equa
 (require 'equake)
 (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
 #+END_SRC
-
 * Usage
 Run with 
 #+BEGIN_SRC shell
@@ -179,6 +188,7 @@ so in theory these should also work with ~equake~. This has not been tested thou
 | C-M-+   | Add new tab with arbitrary shell |
 | C-\vert | Rename tab                       |
 
+These are customisable via =customize=.
 * Changelog
 ** v0.3
 Lots of things seem to work well, but multi-monitor can still be a bit 

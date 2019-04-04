@@ -202,12 +202,12 @@ These are customisable via =customize=.
 ** v0.85
 Added (back) a 'non-destructive' method of raising the Equake frame, and
 made this the default. (The old behaviour can be re-enabled by setting
-=equake-use-frame-hide= to ='nil=, in case the ~make-frame-(in)visible~
+=equake-use-frame-hide= to =⁣'nil=, in case the ~make-frame-(in)visible~
 functions don't work well for you.) Also added a faster method of detecting
 which screen is active for multi-monitor users. This only works on X11
 (i.e. not Windows/MacOS or Wayland [as far as I know, at least; you're
 welcome to test this assumption], and is *not* default. To enable this, set
-=equake-use-xdotool-probe= to ='t= (and make sure =xdotool= is available on
+=equake-use-xdotool-probe= to =⁣'t= (and make sure =xdotool= is available on
 your system).
 ** v0.8
 First MELPA release.

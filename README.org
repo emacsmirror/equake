@@ -104,7 +104,7 @@ create a new equake console on your screen the first time, and subsequently
 toggle the console (i.e. hide or show it).
 
 For multi-monitor *X11* systems, you will likely want to enable
-=equake-use-xdotool-probe= (which defaults to ='nil=); this requires the
+=equake-use-xdotool-probe= (which defaults to =\'nil=); this requires the
 =xdotool= tool to be installed, but will provide a fast method for
 detecting which monitor is 'active'.
 
@@ -208,7 +208,8 @@ which screen is active for multi-monitor users. This only works on X11
 (i.e. not Windows/MacOS or Wayland [as far as I know, at least; you're
 welcome to test this assumption], and is *not* default. To enable this, set
 =equake-use-xdotool-probe= to ='t= (and make sure =xdotool= is available on
-your system).** v0.8
+your system).
+** v0.8
 First MELPA release.
 ** v0.73
 Cleaned up code (including proper implementation of tail-call

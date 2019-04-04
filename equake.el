@@ -335,8 +335,6 @@ background colour."
 
 (defun equake-get-monitor-name ()
   "Get the name or another constant designator of the current monitor/screen ATTRIBUTES."
-  ;; (if equake-use-xdotool-probe
-  ;;     (equake-calculate-mouse-location (display-monitor-attributes-list))
     (let ((name (equake-get-monitor-property "name" (frame-monitor-attributes))))
       (if name
           name
@@ -345,20 +343,10 @@ background colour."
           (when name
             (format "%s" name))))));)
 
-(defun equake-get-monitor-name-via-active-emacs-frame ()
-  "Get the name or another constant designator of the current monitor/screen ATTRIBUTES
-via frame-monitor-attributes."
-  (let ((name (equake-get-monitor-property "name" (frame-monitor-attributes))))
-      (if name
-          name
-        ;; if monitor lacks name property, fallback to using `geometry' as unique(?) identifier
-        (let ((name (equake-get-monitor-property "geometry" (frame-monitor-attributes))))
-          (when name
-            (format "%s" name))))))
-
 (defun equake-calculate-mouse-location (displaylist)
-  "Use xdotool to get the mouse location and check #'display-monitor-attributes-list
-to see which screen/monitor to raise/lower equake on."
+  "Use the xdotool to get the mouse location of DISPLAYLIST.
+And check #'display-monitor-attributes-list to see which screen/monitor to
+raise/lower equake on."
   (let* ((test-var-x (shell-command-to-string "xdotool getmouselocation --shell | head -n 1"))
          (x-mouse-pos (string-to-number (substring test-var-x 2 (length test-var-x)))))
     (if displaylist
@@ -368,7 +356,7 @@ to see which screen/monitor to raise/lower equake on."
           (if (and (> (+ x-limit x-size) x-mouse-pos) (< x-limit x-mouse-pos))
               (cdaar displaylist)
             (equake-calculate-mouse-location (cdr displaylist))))
-      (error "Mouse pointer location out of range."))))
+      (error "Mouse pointer location out of range"))))
 
 (defun-tco equake-kill-stray-transient-frames (frames)
   "Destroy any stray transient FRAMES."
@@ -380,8 +368,7 @@ to see which screen/monitor to raise/lower equake on."
       (equake-kill-stray-transient-frames (cdr frames)))))
 
 (defun equake-find-workarea-of-current-screen (monitorid mlist)
-  "Find the workarea of the currently active screen MONITORID given a list
-of screens MLIST."
+  "Find the workarea of the currently active screen MONITORID given a list of screens MLIST."
   (if mlist
       (if (equal (cdaar mlist) monitorid)
           (alist-get 'workarea (car mlist))
@@ -412,7 +399,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (equake-set-last-buffer)
           (equake-set-winhistory)
           (when (buffer-local-value equake-mode (current-buffer))
-            (equake-set-last-etab)) 
+            (equake-set-last-etab))
           (delete-frame equake-current-frame)) ; destroy frame.
       ;; else, make it.
       (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" monitorid "]"))

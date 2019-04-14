@@ -60,8 +60,14 @@
 ;; Run with:---
 ;; emacsclient -n -e '(equake-invoke)' ,
 ;; after launching an Emacs daemon of course.
-;; Alternatively, on multi-monitor setup, launch:
+;;
+;; For multimonitor use using X11, you can set
+;; (setq equake-use-xdotool-probe 't) to use xdotool to
+;; automatically detect which screen the Equake frame should open on.
+;;
+;; Alternatively, on a non-X11 multi-monitor setup, launch:
 ;; emacsclient -n -c -e '(equake-invoke)' -F '((title . "*transient*") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))'
+;; (although this may be noticably slower)
 ;; 
 ;; I recommend binding the relevant command to a key like F12 in your DE/WM.
 ;; Executing this command will create a new equake console
@@ -348,12 +354,16 @@ background colour."
 And check #'display-monitor-attributes-list to see which screen/monitor to
 raise/lower equake on."
   (let* ((test-var-x (shell-command-to-string "xdotool getmouselocation --shell | head -n 1"))
-         (x-mouse-pos (string-to-number (substring test-var-x 2 (length test-var-x)))))
+         (test-var-y (shell-command-to-string "xdotool getmouselocation --shell | head -n 2 |tail -n 1"))
+         (x-mouse-pos (string-to-number (substring test-var-x 2 (length test-var-x))))
+         (y-mouse-pos (string-to-number (substring test-var-y 2 (length test-var-y)))))
     (if displaylist
         (let* ((mon-geometry (cadar displaylist))
                (x-limit (second mon-geometry))
-               (x-size (fourth mon-geometry)))
-          (if (and (> (+ x-limit x-size) x-mouse-pos) (< x-limit x-mouse-pos))
+               (x-size (fourth mon-geometry))
+               (y-limit (third mon-geometry))
+               (y-size (fifth mon-geometry)))
+          (if (and (> (+ x-limit x-size) x-mouse-pos) (< x-limit x-mouse-pos) (> (+ y-limit y-size) y-mouse-pos))
               (cdaar displaylist)
             (equake-calculate-mouse-location (cdr displaylist))))
       (error "Mouse pointer location out of range"))))

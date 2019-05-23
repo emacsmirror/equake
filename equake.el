@@ -453,7 +453,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
           (if (< highest-montab 0) ; if no extant Equake tabs on current monitor,
               (equake-new-tab)     ; then launch new shell.
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-etab-list))) ; else, restore last Equake tab
-            (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list)))) ; and then restore last buffer used in frame.
+            (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))) ; and then restore last buffer used in frame.
+            (when (not (cl-search (concat "EQUAKE[" monitorid) (buffer-name (current-buffer)))) ; make sure to restore to an Equake buffer
+              (bury-buffer)))
           (equake-set-up-equake-frame)) ; set-up frame
         (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers))))) ; filter out irrelevant buffers.
     (unless (equal equake-use-xdotool-probe 't) ; if not using xdotool-probe

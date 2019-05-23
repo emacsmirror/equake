@@ -16,8 +16,8 @@
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
 ;; URL: https://gitlab.com/emacsomancer/equake
-;; Package-Version: 0.85
-;; Version: 0.85
+;; Package-Version: 0.86
+;; Version: 0.86
 ;; Package-Requires: ((emacs "25") (dash "2.14.1") (tco "20190309.55"))
 ;; Created: 2018-12-12
 ;; Keywords: convenience, frames, terminals, tools, window-system
@@ -49,14 +49,14 @@
 ;; (different shells can be opened and used in different tabs).  It is intended
 ;; to be bound to shortcut key like F12 to toggle it off-and-on.
 
-;; Installation:
+;;; Installation:
 ;; To install manually, clone the git repo somewhere and put it in your
 ;; load-path, e.g., add something like this to your init.el:
 ;; (add-to-list 'load-path
 ;;             "~/.emacs.d/equake/")
 ;;  (require 'equake)
 
-;; Usage:
+;;; Usage:
 ;; Run with:---
 ;; emacsclient -n -e '(equake-invoke)' ,
 ;; after launching an Emacs daemon of course.
@@ -84,9 +84,45 @@
 ;;
 ;; You'll probably also want to configure your WM/DE to
 ;; ignore the window in the task manager etc and
-;; have no titlebar or frame
-
-;; In KDE Plasma 5:
+;; have no titlebar or frame.
+;; 
+;;; In Stumpwm:
+;; add the following to your .stumpwmrc or ~/.stumpwm.d/init.lisp or
+;; other initialisation file:
+;; ;; BEGIN COMMON LISP HERE;; 
+;; (defcommand invoke-equake () ()
+;;   "Create Equake window if none; hide Equake if current window; summon Equake to current group and frame otherwise."
+;;   (if (and (not (equal (current-window) 'nil)) (search "*EQUAKE*[" (window-name (current-window)))) ; If there is a current window and it is Equake,
+;;       (hide-window (current-window)) ;; then hide Equake window via native Stumpwm method.
+;;     (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
+;;       (if (not found-equake)            ; If Equake cannot be found,
+;;           (run-shell-command "emacsclient -n -e '(equake-invoke)'") ; then invoke Equake via emacs function.
+;;         (progn (move-window-to-group found-equake (current-group)) ; But if Equake window is found, move it to the current group,
+;;                (pull-window found-equake) ; pull it into the current frame,
+;;                (unhide-window found-equake))))))                    ; and unhide the window (in case it's hidden).
+;; 
+;; (defun find-equake-in-group (windows-list) 
+;;   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
+;;   (let ((current-searched-window (car windows-list)))
+;;     (if (equal current-searched-window 'nil)
+;;         'nil
+;;         (if (search "*EQUAKE*[" (window-name current-searched-window))
+;;             current-searched-window
+;;             (find-equake-in-group (cdr windows-list))))))
+;; 
+;; (defun find-equake-globally (group-list)
+;;   "Recursively search through GROUP-LIST, a list of all groups on current screen, for an Equake window."
+;;   (if (equal (car group-list) 'nil)
+;;       'nil
+;;       (let ((equake-window (find-equake-in-group (list-windows (car group-list)))))
+;;         (if equake-window
+;;             equake-window               ; stop if found and return window
+;;             (find-equake-globally (cdr group-list))))))
+;; ;; END COMMON LISP HERE;;
+;; And add an appropriate keybinding to your stumpwm init to toggle, e.g.:
+;; (define-key *top-map* (kbd "F12") "invoke-equake")
+;; 
+;;; In KDE Plasma 5:
 ;; systemsettings > Window Management > Window Rules:
 ;; Button: New
 ;; 
@@ -105,29 +141,17 @@
 ;; Check: Focus stealing prevention - Force - None
 ;; Check: Focus protection - Force - Normal
 ;; Check: Accept focus - Force - Yes
-;; 
+;;
+;;; Other environments:
 ;; In awesomewm, probably adding to your 'Rules' something
 ;; like this:
 ;; 
 ;; { rule = { instance = "*EQUAKE*", class = "Emacs" },
 ;;    properties = { titlebars_enabled = false } },
 ;; 
-;; In stumpwm, I'm not sure: probably the frame needs to be set as floating.
-;;
-;; Advice:
+;;; Advice:
 ;; add (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
 ;; to your settings to prevent accidental closure of equake frames
-
-;; TODO:
-;; 1. defcustoms:
-;;   (a) for keybindings
-;;   (b) make shell choice into actual list, or else more flexible functions
-;; 2. Prevent last tab from being closed, or at least prompt.
-;; 3. Test on:
-;;    (a) MacOS -- reported to work
-;;    (b) Windows -- ??
-;;   Comments: In theory it should work on Mac & Windows, since frame.el defines
-;;             frame-types 'ns (=Next Step) and 'w32 (=Windows).
 
 ;;; Code:
 

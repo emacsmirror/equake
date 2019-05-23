@@ -137,6 +137,51 @@ You'll probably also want to configure your WM/DE to ignore the window in
 the task manager etc. and have no titlebar or frame. Below are some limited
 notes on how to do this in various environments [needs expanding].
 
+** Stumpwm
+As of now, Stumpwm doesn't seem to allow for float-splits (i.e. floating
+windows over tiled ones), nor does it seem easy to allow Emacs to specify
+the dimensions of the Equake frame in StumpWM. But Equake can be used
+nicely as a sort of full-screen overlay (or partial-screen overlay,
+depending on your tile configuration). Here is a configuration snippet for
+your .stumpwmrc/~/.stumpwm.d/init.lisp that sets this up, and allows for 
+Equake to work across groups ('workspaces'). (It turns out to generally work
+better to use Stumpwm's native ~hide-window~ function rather than Emacs's
+~make-frame-invisible~.)
+
+#+begin_src lisp
+(defcommand invoke-equake () ()
+            "Create Equake window if none; hide Equake if current window; summon Equake to current group and frame otherwise."
+            (if (and (not (equal (current-window) 'nil)) (search "*EQUAKE*[" (window-name (current-window)))) ; If there is a current window and it is Equake,
+                (hide-window (current-window)) ;; then hide Equake window via native Stumpwm method.
+                (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
+                  (if (not found-equake)            ; If Equake cannot be found,
+                      (run-shell-command "emacsclient -n -e '(equake-invoke)'") ; then invoke Equake via emacs function.
+                      (progn (move-window-to-group found-equake (current-group)) ; But if Equake window is found, move it to the current group,
+                             (pull-window found-equake) ; pull it into the current frame,
+                             (unhide-window found-equake))))))                    ; and unhide the window (in case it's hidden).
+
+(defun find-equake-in-group (windows-list) 
+  "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
+  (let ((current-searched-window (car windows-list)))
+    (if (equal current-searched-window 'nil)
+        'nil
+        (if (search "*EQUAKE*[" (window-name current-searched-window))
+            current-searched-window
+            (find-equake-in-group (cdr windows-list))))))
+
+(defun find-equake-globally (group-list)
+  "Recursively search through GROUP-LIST, a list of all groups on current screen, for an Equake window."
+  (if (equal (car group-list) 'nil)
+      'nil
+      (let ((equake-window (find-equake-in-group (list-windows (car group-list)))))
+        (if equake-window
+            equake-window               ; stop if found and return window
+            (find-equake-globally (cdr group-list))))))
+
+;; add an appropriate keybinding, e.g.
+(define-key *top-map* (kbd "F12") "invoke-equake")
+#+end_src
+
 ** In KDE Plasma 5
  =systemsettings > Window Management > Window Rules=:
  Click button =New=
@@ -167,10 +212,6 @@ notes on how to do this in various environments [needs expanding].
 
  Check: Accept focus - Force - Yes
 
-** StumpWM
-I'm not sure: it doesn't seem to respect Emacs frame settings. [Remains to
-be tested further.]
- 
 ** AwesomeWM
 Probably adding to your 'Rules' something like this:
  
@@ -199,6 +240,8 @@ and ~ns~ (NextStep/Mac), so in theory these should also work with
 
 These are customisable via =customize=.
 * Changelog
+** v0.86 
+Added Stumpwm configuration details.
 ** v0.85
 Added (back) a 'non-destructive' method of raising the Equake frame, and
 made this the default. (The old behaviour can be re-enabled by setting

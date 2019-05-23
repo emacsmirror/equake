@@ -62,7 +62,9 @@ accomplish via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g
  :ensure t)
  #+end_src
 ** Melpa
+
     [[https://melpa.org/#/equake][file:https://melpa.org/packages/equake-badge.svg]]
+    
 You can install this package from Melpa, including via =use-package=, e.g.
 #+begin_src elisp
 (use-package equake

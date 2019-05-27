@@ -103,6 +103,9 @@
 ;;         (desired-height-perc (read-from-string (run-shell-command "emacsclient -n -e 'equake-size-height'" t))))
 ;;     (truncate (* screen-height desired-height-perc))))
 ;; 
+;; (setq *equake-width* 1368) ; TODO: programmatically get screen dimensions before Emacs starts
+;; (setq *equake-height* 768)
+;; 
 ;; (defcommand invoke-equake () ()
 ;;   (if (and (not (equal (current-window) 'nil)) (search "*EQUAKE*[" (window-name (current-window)))) ; If there is a current window and it is Equake,
 ;;       (progn (unfloat-window (current-window) (current-group))
@@ -111,16 +114,36 @@
 ;;         (if (not found-equake)          ; If Equake cannot be found,
 ;;             (progn
 ;;               (run-shell-command "emacsclient -n -e '(equake-invoke)'") ; then invoke Equake via emacs function.
-;;               (setq equake-height (calc-equake-height))                 ; delay calculation of height & width setting until 1st time equake invoked
-;;               (setq equake-width (calc-equake-width))                   ; (otherwise Emacs may not be fully loaded)
+;;               (setq *equake-height* (calc-equake-height)) ; delay calculation of height & width setting until 1st time equake invoked
+;;               (setq *equake-width* (calc-equake-width)) ; (otherwise Emacs may not be fully loaded)
+;;               (setf screen-float-focus-color "Blue")
 ;;               (float-window found-equake (current-group)) ; float window
-;;               (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width equake-width :height equake-height))
+;;               (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width *equake-width* :height *equake-height*))
 ;;             (progn (focus-window found-equake)
 ;;                    (move-window-to-group found-equake (current-group)) ; But if Equake window is found, move it to the current group,
 ;;                    (unhide-window found-equake) ; unhide window, in case hidden
 ;;                    (float-window found-equake (current-group)) ; float window
-;;                    (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width equake-width :height equake-height)))))) ; set size
+;;                    (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width *equake-width* :height *equake-height*)))))) ; set size
 ;; 
+;; ;; (defun find-equake-in-group (windows-list) 
+;;   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
+;;   (let ((current-searched-window (car windows-list)))
+;;     (if (equal current-searched-window 'nil)
+;;         'nil
+;;         (if (search "*EQUAKE*[" (window-name current-searched-window))
+;;             current-searched-window
+;;             (find-equake-in-group (cdr windows-list))))))
+;; 
+;; (defun find-equake-globally (group-list)
+;;   "Recursively search through GROUP-LIST, a list of all groups on current screen, for an Equake window."
+;;   (if (equal (car group-list) 'nil)
+;;       'nil
+;;       (let ((equake-window (find-equake-in-group (list-windows (car group-list)))))
+;;         (if equake-window
+;;             equake-window               ; stop if found and return window
+;;             (find-equake-globally (cdr group-list))))))
+;; Set the mouse focus policy to :ignore
+;; (setf *mouse-focus-policy* :ignore)  ;; otherwise Equake will tend to disappear
 ;; (defun find-equake-in-group (windows-list) 
 ;;   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
 ;;   (let ((current-searched-window (car windows-list)))
@@ -138,6 +161,8 @@
 ;;         (if equake-window
 ;;             equake-window               ; stop if found and return window
 ;;             (find-equake-globally (cdr group-list))))))
+;; Set the mouse focus policy to :ignore
+;; (setf *mouse-focus-policy* :ignore)  ;; otherwise Equake will tend to disappear
 ;; Set the mouse focus policy to :ignore
 ;; (setf *mouse-focus-policy* :ignore)  ;; otherwise Equake will tend to disappear
 ;; ;; END COMMON LISP HERE;;

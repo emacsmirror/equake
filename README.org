@@ -168,6 +168,9 @@ I highly recommend adopting the mouse focus behaviour shown below.
         (desired-height-perc (read-from-string (run-shell-command "emacsclient -n -e 'equake-size-height'" t))))
     (truncate (* screen-height desired-height-perc))))
 
+(setq *equake-width* 1368) ; TODO: programmatically get screen dimensions before Emacs starts
+(setq *equake-height* 768)  
+
 (defcommand invoke-equake () ()
   (if (and (not (equal (current-window) 'nil)) (search "*EQUAKE*[" (window-name (current-window)))) ; If there is a current window and it is Equake,
       (progn (unfloat-window (current-window) (current-group))
@@ -176,15 +179,16 @@ I highly recommend adopting the mouse focus behaviour shown below.
         (if (not found-equake)          ; If Equake cannot be found,
             (progn
               (run-shell-command "emacsclient -n -e '(equake-invoke)'") ; then invoke Equake via emacs function.
-              (setq equake-height (calc-equake-height))                 ; delay calculation of height & width setting until 1st time equake invoked
-              (setq equake-width (calc-equake-width))                   ; (otherwise Emacs may not be fully loaded)
+              (setq *equake-height* (calc-equake-height)) ; delay calculation of height & width setting until 1st time equake invoked
+              (setq *equake-width* (calc-equake-width)) ; (otherwise Emacs may not be fully loaded)
+              (setf screen-float-focus-color "Blue")
               (float-window found-equake (current-group)) ; float window
-              (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width equake-width :height equake-height))
+              (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width *equake-width* :height *equake-height*))
             (progn (focus-window found-equake)
                    (move-window-to-group found-equake (current-group)) ; But if Equake window is found, move it to the current group,
                    (unhide-window found-equake) ; unhide window, in case hidden
                    (float-window found-equake (current-group)) ; float window
-                   (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width equake-width :height equake-height)))))) ; set size
+                   (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width *equake-width* :height *equake-height*)))))) ; set size
 
 (defun find-equake-in-group (windows-list) 
   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."

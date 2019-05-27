@@ -52,6 +52,8 @@ See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the 
 [[./image/equake-in-stumpwm.gif]] 
 [[./image/equake-in-stumpwm.webm][(click for higher rez video)]]
 
+[[./image/equake-in-stumpw.webm]]
+
 ** Equake running in KDE Plasma 5
 [[./image/equake-in-kdeplasma5.gif]]
 

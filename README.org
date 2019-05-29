@@ -68,7 +68,8 @@ accomplish via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g
  #+end_src
 ** Melpa
 
-    {{{melpa}}}
+
+[[https://melpa.org/#/equake][file:https://melpa.org/packages/equake-badge.svg]]
     
 You can install this package from Melpa, including via =use-package=, e.g.
 #+begin_src elisp
@@ -371,9 +372,10 @@ default shell (=eshell=, =shell=, =ansi-term=, =term=), and colours.
 
 * Licence
 GPLv3+
-{{{GPLv3}}}
+
+[[https://www.gnu.org/licenses/gpl-3.0][https://img.shields.io/badge/License-GPL%20v3-blue.svg]]
 
 * COMMENT Local Macros                                              :ARCHIVE:
-#+macro: melpa [[https://melpa.org/#/ox-hugo][[[https://melpa.org/#/equake][file:https://melpa.org/packages/equake-badge.svg]]
+#+macro: melpa [[https://melpa.org/#/equake][file:https://melpa.org/packages/equake-badge.svg]]
 #+macro: GPLv3 [[https://www.gnu.org/licenses/gpl-3.0][https://img.shields.io/badge/License-GPL%20v3-blue.svg]]
 

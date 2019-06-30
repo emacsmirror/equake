@@ -174,7 +174,6 @@ I highly recommend adopting the mouse focus behaviour shown below.
 
 (defcommand invoke-equake () ()
   (if (and (not (equal (current-window) 'nil)) (search "*EQUAKE*[" (window-name (current-window)))) ; If there is a current window and it is Equake,
-      (progn (unfloat-window (current-window) (current-group))
              (hide-window (current-window))) ;; then hide Equake window via native Stumpwm method.
       (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
         (if (not found-equake)          ; If Equake cannot be found,

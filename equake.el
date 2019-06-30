@@ -111,7 +111,6 @@
 ;;          (equake-on-top (find-equake-in-group on-top-windows)))
 ;;     (if equake-on-top
 ;;         (progn (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows))
-;;                (unfloat-window equake-on-top (current-group))
 ;;                (hide-window equake-on-top)) ;; then hide Equake window via native Stumpwm method.)
 ;;       (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
 ;;         (if (not found-equake)          ; If Equake cannot be found,

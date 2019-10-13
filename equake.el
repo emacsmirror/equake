@@ -215,6 +215,13 @@
   :keymap (let ((map (make-sparse-keymap)))
             map))
 
+(define-minor-mode rash-mode
+  "Minor mode for drop-down consoles for rash console."
+  :lighter " rash"
+  :keymap (let ((map (make-sparse-keymap)))
+            map))
+
+
 (add-hook 'equake-mode-hook 'equake-inhibit-message-locally)
 
 (defun equake-inhibit-message-locally ()
@@ -318,7 +325,7 @@
   :group 'equake)
 
 (defcustom equake-default-shell 'eshell
-  "Default shell used by Equake, choices are `eshell', `ansi-term', `term', `shell'."
+  "Default shell used by Equake, choices are `eshell', `rash', `ansi-term', `term', `shell'."
   :type  'symbol
   :group 'equake)
 
@@ -376,8 +383,13 @@ background colour."
   "Face used for indicating `(ansi-)term' shell type in the mode-line."
   :group 'equake-faces)
 
+(defface equake-shell-type-rash
+  '((t (:background "midnight blue" :foreground "red")))
+  "Face used for indicating `(ansi-)term' shell type in the mode-line."
+  :group 'equake-faces)
+
 (defface equake-shell-type-shell
-  '((t (:background "midnight blue" :foreground "magenta")))
+  '((t (:background "midnight blue" :foreground "cyan")))
   "Face used for indicating (inferior) `shell' shell type in the mode-line."
   :group 'equake-faces)
 
@@ -531,13 +543,26 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
       (setq sh-command shell-file-name))
     (cond ((equal launchshell 'eshell)
            (eshell 'N))
+          ((equal launchshell 'rash)
+           (ansi-term sh-command)
+           (rash-mode)
+           ;; (comint-send-string ;; "*ansi-term*"
+           ;;  (buffer-name (current-buffer))
+           ;;  "racket -l rash/repl --"))
+           )
           ((equal launchshell 'ansi-term)
            (ansi-term sh-command))
           ((equal launchshell 'term)
            (term sh-command))
           ((equal launchshell 'shell)
            (shell)
-           (delete-other-windows)))))
+           (delete-other-windows)
+           ;; (let* ((monitor (equake-get-monitor-name))
+           ;;        (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
+           ;;        (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))) ; find the tab-list associated with the current monitor
+           ;;   (rename-buffer (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%"))   ; rename buffer with monitor id and new tab number
+           ;;   (equake-mode))
+           ))))
 
 (defun equake-set-up-equake-frame ()
   "Set-up new *EQUAKE* frame, including cosmetic alterations."
@@ -583,7 +608,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-new-tab-different-shell ()
   "Open a new shell tab, but using a shell different from the default."
   (interactive)
-  (let ((shells '("eshell" "ansi-term" "term" "shell")))
+  (let ((shells '("eshell" "rash" "ansi-term" "term" "shell")))
     (equake-new-tab (intern (message "%s" (ido-completing-read "Choose shell:" shells ))))))
 
 (defun equake-new-tab (&optional override)
@@ -595,8 +620,11 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   (buffer-face-set 'equake-buffer-face)
   (let* ((monitor (equake-get-monitor-name))
          (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
-         (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))) ; find the tab-list associated with the current monitor
-    (rename-buffer (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%")) ; rename buffer with monitor id and new tab number
+         (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))
+         (newbuffname (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%"))) ; find the tab-list associated with the current monitor
+    (rename-buffer newbuffname) ; rename buffer with monitor id and new tab number
+    (when (equal rash-mode 't)
+      (comint-send-string newbuffname "racket -l rash/repl --\n"))
     (if (equal equake-tab-list 'nil)
         (setq equake-tab-list (list (cons monitor (list newhighest))))
       (if (equal cur-monitor-tab-list 'nil)
@@ -794,7 +822,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 
 (defun equake-shell-type-styling (mode)
   "Style the shell-type indicator as per MODE."
-  (cond ((equal (format "%s" mode) "eshell-mode")
+  (cond ((equal rash-mode 't)
+         (propertize " ((rash)) " 'font-lock-face 'equake-shell-type-rash))
+        ((equal (format "%s" mode) "eshell-mode")
          (propertize " ((eshell)) " 'font-lock-face 'equake-shell-type-eshell))
         ((equal (format "%s" mode) "term-mode")
          (propertize " ((term)) " 'font-lock-face 'equake-shell-type-term))

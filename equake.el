@@ -544,8 +544,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (cond ((equal launchshell 'eshell)
            (eshell 'N))
           ((equal launchshell 'rash)
-           (ansi-term sh-command)
+           (shell sh-command)
            (rash-mode)
+           (delete-other-windows)
            ;; (comint-send-string ;; "*ansi-term*"
            ;;  (buffer-name (current-buffer))
            ;;  "racket -l rash/repl --"))

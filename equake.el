@@ -221,7 +221,6 @@
   :keymap (let ((map (make-sparse-keymap)))
             map))
 
-
 (add-hook 'equake-mode-hook 'equake-inhibit-message-locally)
 
 (defun equake-inhibit-message-locally ()
@@ -304,6 +303,17 @@
          (define-key equake-mode-map (kbd equake-rename-etab-binding) 'equake-rename-etab))
   :group 'equake-bindings)
 
+(defcustom equake-available-shells
+  '("eshell"
+    "vterm"
+    "rash"
+    "ansi-term"
+    "term"
+    "shell")
+  "List of available `shell' modes for Equake."
+  :type 'list
+  :group 'equake)
+
 (defcustom equake-size-width 1.0
   "Fraction (.01-1.0) for width of Equake console."
   :type 'float
@@ -325,7 +335,7 @@
   :group 'equake)
 
 (defcustom equake-default-shell 'eshell
-  "Default shell used by Equake, choices are `eshell', `rash', `ansi-term', `term', `shell'."
+  "Default shell used by Equake, choices are `eshell', `vterm', `rash', `ansi-term', `term', `shell'."
   :type  'symbol
   :group 'equake)
 
@@ -376,6 +386,11 @@ background colour."
 (defface equake-shell-type-eshell
   '((t (:background "midnight blue" :foreground "spring green")))
   "Face used for indicating `eshell' shell type in the mode-line."
+  :group 'equake-faces)
+
+(defface equake-shell-type-vterm
+  '((t (:background "midnight blue" :foreground "lightsteelblue")))
+  "Face used for indicating `vterm' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-term
@@ -543,8 +558,10 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
       (setq sh-command shell-file-name))
     (cond ((equal launchshell 'eshell)
            (eshell 'N))
+          ((equal launchshell 'vterm)
+           (vterm))
           ((equal launchshell 'rash)
-           (shell sh-command)
+           (vterm)
            (rash-mode)
            (delete-other-windows)
            ;; (comint-send-string ;; "*ansi-term*"
@@ -609,7 +626,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-new-tab-different-shell ()
   "Open a new shell tab, but using a shell different from the default."
   (interactive)
-  (let ((shells '("eshell" "rash" "ansi-term" "term" "shell")))
+  (let ((shells equake-available-shells))
     (equake-new-tab (intern (message "%s" (ido-completing-read "Choose shell:" shells ))))))
 
 (defun equake-new-tab (&optional override)
@@ -825,6 +842,8 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   "Style the shell-type indicator as per MODE."
   (cond ((equal rash-mode 't)
          (propertize " ((rash)) " 'font-lock-face 'equake-shell-type-rash))
+        ((equal (format "%s" mode) "vterm-mode")
+         (propertize " ((vterm)) " 'font-lock-face 'equake-shell-type-vterm))
         ((equal (format "%s" mode) "eshell-mode")
          (propertize " ((eshell)) " 'font-lock-face 'equake-shell-type-eshell))
         ((equal (format "%s" mode) "term-mode")

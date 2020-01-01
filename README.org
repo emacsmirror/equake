@@ -298,6 +298,7 @@ You can also customise faces, e.g. via:
 * Changelog
 ** v0.90
 Added support for =vterm= and =rash=.
+'Breaking' change: set inhibit-messages-locally to default to false. You can turn this back on via =customize= or =(setq equake-inhibit-message-choice 't)=.
 ** v0.86 
 Added Stumpwm configuration details.
 ** v0.85

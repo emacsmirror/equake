@@ -245,7 +245,7 @@
   "Keybindings for Equake drop-down console. "
   :group 'equake)
 
-(defcustom equake-inhibit-message-choice 't
+(defcustom equake-inhibit-message-choice nil
   "Whether or not messages are displayed in the echo area."
   :group 'equake)
 

@@ -221,6 +221,10 @@
   :keymap (let ((map (make-sparse-keymap)))
             map))
 
+(setq equake-rash-installed
+      (and (not (equal "" (shell-command-to-string "command -v raco")))
+           (not (equal " [none]" (shell-command-to-string "echo -n \"$(raco pkg show rash | tail -1)\"")))))
+
 (add-hook 'equake-mode-hook 'equake-inhibit-message-locally)
 
 (defun equake-inhibit-message-locally ()
@@ -311,7 +315,6 @@
     "term"
     "shell")
   "List of available `shell' modes for Equake."
-  :type 'list
   :group 'equake)
 
 (defcustom equake-size-width 1.0
@@ -549,38 +552,36 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
         (setq filtwinhist (remove (car winhist) filtwinhist)))
       (equake-filter-history (cdr winhist) filtwinhist))))
 
-(defun equake-launch-shell (&optional override)
+(defun equake-launch-shell (launchshell)
   "Launch a new shell session, OVERRIDE will set non-default shell."
   (interactive)
-  (let ((launchshell (or override equake-default-shell))
-        (sh-command equake-default-sh-command))
+  (let ((sh-command equake-default-sh-command)
+        (success 't))
     (when (equal sh-command "")
       (setq sh-command shell-file-name))
     (cond ((equal launchshell 'eshell)
            (eshell 'N))
           ((equal launchshell 'vterm)
-           (vterm))
+           (if (require 'vterm nil 'noerror)
+               (vterm)
+             (setq success 'nil)))
           ((equal launchshell 'rash)
-           (vterm)
-           (rash-mode)
-           (delete-other-windows)
-           ;; (comint-send-string ;; "*ansi-term*"
-           ;;  (buffer-name (current-buffer))
-           ;;  "racket -l rash/repl --"))
-           )
+           (if (not equake-rash-installed)
+               (setq success 'nil)
+               (if (require 'vterm nil 'noerror)
+                   (vterm)
+                 (shell)
+                 (delete-other-windows))
+             (rash-mode)))
           ((equal launchshell 'ansi-term)
            (ansi-term sh-command))
           ((equal launchshell 'term)
            (term sh-command))
           ((equal launchshell 'shell)
            (shell)
-           (delete-other-windows)
-           ;; (let* ((monitor (equake-get-monitor-name))
-           ;;        (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
-           ;;        (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))) ; find the tab-list associated with the current monitor
-           ;;   (rename-buffer (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%"))   ; rename buffer with monitor id and new tab number
-           ;;   (equake-mode))
-           ))))
+           (delete-other-windows))
+          ('t (setq success 'nil)))
+    success))
 
 (defun equake-set-up-equake-frame ()
   "Set-up new *EQUAKE* frame, including cosmetic alterations."
@@ -626,37 +627,40 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
 (defun equake-new-tab-different-shell ()
   "Open a new shell tab, but using a shell different from the default."
   (interactive)
-  (let ((shells equake-available-shells))
-    (equake-new-tab (intern (message "%s" (ido-completing-read "Choose shell:" shells ))))))
+    (equake-new-tab (intern (message "%s" (ido-completing-read "Choose shell:" equake-available-shells 'nil 't 'nil 'nil "eshell")))))
 
 (defun equake-new-tab (&optional override)
   "Open a new shell tab on monitor, optionally OVERRIDE default shell."
   (interactive)
-  (if override
-      (equake-launch-shell override)   ; launch with specified shell if set
-    (equake-launch-shell))             ; otherwise, launch shell normally
-  (buffer-face-set 'equake-buffer-face)
-  (let* ((monitor (equake-get-monitor-name))
-         (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
-         (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))
-         (newbuffname (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%"))) ; find the tab-list associated with the current monitor
-    (rename-buffer newbuffname) ; rename buffer with monitor id and new tab number
-    (when (equal rash-mode 't)
-      (comint-send-string newbuffname "racket -l rash/repl --\n"))
-    (if (equal equake-tab-list 'nil)
-        (setq equake-tab-list (list (cons monitor (list newhighest))))
-      (if (equal cur-monitor-tab-list 'nil)
-          (setq equake-tab-list  (append equake-tab-list (list (cons monitor (list newhighest)))))
-        (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list from global equake tab list
-        ;; pull into car (=monitor name) and cdr (=tab list); append newhighest to tab list and then cons monitor name and tab list back together
-        (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (append (cdr cur-monitor-tab-list) (list newhighest))))
-        (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list)))))
-    (equake-set-winhistory)
-    (if equake-show-monitor-in-mode-line ; show monitorid or not
-        (setq mode-line-format (list (equake-mode-line (concat monitor ": ") (equake-find-monitor-list monitor equake-tab-list))))
-      (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitor equake-tab-list)))))
-    (equake-mode)                         ; set Equake minor mode for buffer
-    (force-mode-line-update)))
+  (let ((launchshell (or override equake-default-shell)))
+    (if (not (equake-launch-shell launchshell))
+        (progn (if inhibit-message
+                   (progn (setq-local inhibit-message 'nil)
+                          (message "No such shell or relevant shell not installed")
+                          (setq-local inhibit-message 't))
+                 (message "No such shell or relevant shell not installed")))
+      (buffer-face-set 'equake-buffer-face)
+      (let* ((monitor (equake-get-monitor-name))
+             (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor
+             (cur-monitor-tab-list (equake-find-monitor-list monitor equake-tab-list))
+             (newbuffname (concat "EQUAKE[" monitor "]" (number-to-string newhighest) "%"))) ; find the tab-list associated with the current monitor
+        (rename-buffer newbuffname) ; rename buffer with monitor id and new tab number
+        (when (equal rash-mode 't)
+          (comint-send-string newbuffname "racket -l rash/repl --\n"))
+        (if (equal equake-tab-list 'nil)
+            (setq equake-tab-list (list (cons monitor (list newhighest))))
+          (if (equal cur-monitor-tab-list 'nil)
+              (setq equake-tab-list  (append equake-tab-list (list (cons monitor (list newhighest)))))
+            (setq equake-tab-list (remove cur-monitor-tab-list equake-tab-list)) ; remove old monitor tab-list from global equake tab list
+            ;; pull into car (=monitor name) and cdr (=tab list); append newhighest to tab list and then cons monitor name and tab list back together
+            (setq cur-monitor-tab-list (cons (car cur-monitor-tab-list) (append (cdr cur-monitor-tab-list) (list newhighest))))
+            (setq equake-tab-list (append equake-tab-list (list cur-monitor-tab-list)))))
+        (equake-set-winhistory)
+        (if equake-show-monitor-in-mode-line ; show monitorid or not
+            (setq mode-line-format (list (equake-mode-line (concat monitor ": ") (equake-find-monitor-list monitor equake-tab-list))))
+          (setq mode-line-format (list (equake-mode-line "" (equake-find-monitor-list monitor equake-tab-list)))))
+        (equake-mode)                         ; set Equake minor mode for buffer
+        (force-mode-line-update)))))
 
 (defun-tco equake-find-monitor-list (monitor tabs)
   "Return the relevant list member associated with MONITOR/screen amongst TABS."

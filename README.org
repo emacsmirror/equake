@@ -7,16 +7,25 @@
 'cheat' consoles in games like Quake, similar to Guake or Yakuake, but
 written fully in Elisp.
 
-The motivation for its creation was to easily swap =eshell= into a workflow
-habituated to drop-down terminal emulators, but it can be used also with
-=shell=, =ansi-term=, or =term=. And different tabs can be opened using
-different shells (i.e. you could have one tab running =eshell=, one running
-=ansi-term=, and so on and so forth).
-
 I wanted to have a Lisp shell and a Lisp console interface to that
 shell. Of course, =eshell= is already 99% of this, but having a tabbed
 drop-down console feels useful to me, though it may just be what I'm used
 to.
+
+Thus the motivation for its creation was to easily swap =eshell= into a
+workflow habituated to drop-down terminal emulators, but it can be used
+also with =shell=, =ansi-term=, =term=, [[https://github.com/akermu/emacs-libvterm][vterm]] or [[http://rash-lang.org/][rash]]. And different tabs
+can be opened using different shells (i.e. you could have one tab running
+=eshell=, one running =ansi-term=, and so on and so forth).
+
+=vterm= is not currently included in Emacs by default, but I would highly
+recommend using it in place of any/all of =ansi-term=, =term=, =shell=, as
+it effectively subsumes and supersedes the uses of these. (In my personal
+config I only have =eshell=, =vterm=, and =rash= enabled.)
+
+=rash= is a shell implemented in Racket, and requires Racket to be
+installed and then the installation of =rash= itself (e.g. via =raco pkg
+install rash=).
 
 In order to have a better =eshell= experience, I would recommend using some
 additional =eshell=-related initialisation. Here is what I'm using:
@@ -43,7 +52,8 @@ initialisation:
 Equake also uses built-in Emacs functionality to probe for screen sizes via
 the =frame.el= library, which potential means it should work
 cross-platform, as =frame.el= defines frame-types =\'ns= (Next Step,
-i.e. Mac) and =\'w32= (Windows). I haven't tested this though.
+i.e. Mac) and =\'w32= (Windows).
+
 
 See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the Babbage Files blog post]].
 
@@ -51,6 +61,10 @@ See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the 
 ** Equake running in StumpWM
 [[./image/equake-in-stumpwm.gif]] 
 [[./image/equake-in-stumpwm.webm][(click for higher rez video)]]
+
+** Equake demonstrated at emacsconf 2019 
+./image/equake-emacsconf2019.mp4
+[ https://media.emacsconf.org/2019/30.html ]
 
 ** Equake running in KDE Plasma 5
 [[./image/equake-in-kdeplasma5.gif]]
@@ -134,10 +148,11 @@ emacsclient -e '(equake/emacs-dropdown-console)'
 #+END_SRC      
 has been deprecated.]
 
-It works with =eshell=, =ansi-term=, =term=, =shell=. But it was really
-designed to work with eshell, which is the default (although this is
-configurable), because of the [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][incredible]] [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell][brilliance]] of eshell.  New console
-tabs can be specified to open with a shell other than the default shell.
+It works with =eshell=, =ansi-term=, =term=, =shell=, =vterm=, =rash=. But
+it was really designed to work with eshell, which is the default (although
+this is configurable), because of the [[http://www.howardism.org/Technical/Emacs/eshell-fun.html][incredible]] [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell][brilliance]] of eshell.  New
+console tabs can be specified to open with a shell other than the default
+shell.
 
 Equake is designed to work with multi-screen setups, with a different set
 of tabs for each screen.
@@ -262,7 +277,7 @@ The ~frame.el~ library defines methods for interacting with ~w32~ (Windows)
 and ~ns~ (NextStep/Mac), so in theory these should also work with
 ~equake~. This has not been tested though.
 
-* Keybindings
+* Keybindings & other customisation
 | C-{     | Switch to tab on left            |
 | C-}     | Switch to tab on right           |
 | C-M-{   | Move tab one position left       |
@@ -271,8 +286,18 @@ and ~ns~ (NextStep/Mac), so in theory these should also work with
 | C-M-+   | Add new tab with arbitrary shell |
 | C-\vert | Rename tab                       |
 
-These are customisable via =customize=.
+These are customisable via =customize=, as are other attributes.
+
+You can also customise faces, e.g. via:
+#+begin_src elisp
+(set-face-attribute 'equake-buffer-face 'nil :inherit 'default :background "#000022" :foreground "white")
+(set-face-attribute 'term 'nil :inherit 'default :foreground "white") ; term/ansi-term inherit the faces of their modes
+(set-face-attribute 'vterm-color-default 'nil :inherit 'default :foreground "white") ; as does vterm
+#+end_src
+
 * Changelog
+** v0.90
+Added support for =vterm= and =rash=.
 ** v0.86 
 Added Stumpwm configuration details.
 ** v0.85

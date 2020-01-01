@@ -223,7 +223,7 @@
 
 (setq equake-rash-installed
       (and (not (equal "" (shell-command-to-string "command -v raco")))
-           (not (equal " [none]" (shell-command-to-string "echo -n \"$(raco pkg show rash | tail -1)\"")))))
+           (not (equal " [none]" (shell-command-to-string "printf \"$(raco pkg show rash | tail -1)\"")))))
 
 (defvar equake-tab-list ()
   "List of Equake tabs, sorted by numerical identifier and screen.")

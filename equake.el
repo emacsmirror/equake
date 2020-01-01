@@ -225,12 +225,6 @@
       (and (not (equal "" (shell-command-to-string "command -v raco")))
            (not (equal " [none]" (shell-command-to-string "echo -n \"$(raco pkg show rash | tail -1)\"")))))
 
-(add-hook 'equake-mode-hook 'equake-inhibit-message-locally)
-
-(defun equake-inhibit-message-locally ()
-  "Set `inhibit-message' buffer-locally."
-  (setq-local inhibit-message t))
-
 (defvar equake-tab-list ()
   "List of Equake tabs, sorted by numerical identifier and screen.")
 
@@ -250,6 +244,18 @@
 (defgroup equake-bindings ()
   "Keybindings for Equake drop-down console. "
   :group 'equake)
+
+(defcustom equake-inhibit-message-choice 't
+  "Whether or not messages are displayed in the echo area."
+  :group 'equake)
+
+(add-hook 'equake-mode-hook 'equake-inhibit-message-locally)
+
+(defun equake-inhibit-message-locally ()
+  "Set `inhibit-message' buffer-locally."
+  (if equake-inhibit-message-choice
+      (setq-local inhibit-message t)
+    (setq-local inhibit-message nil)))
 
 (defcustom equake-new-tab-binding "C-+"
   "Keybinding for creating new Equake tab using default shell."

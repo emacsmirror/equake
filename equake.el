@@ -644,9 +644,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (if (not (equake-launch-shell launchshell))
         (progn (if inhibit-message
                    (progn (setq-local inhibit-message 'nil)
-                          (message "No such shell or relevant shell not installed")
+                          (message "No such shell or relevant shell not installed.")
                           (setq-local inhibit-message 't))
-                 (message "No such shell or relevant shell not installed")))
+                 (message "No such shell or relevant shell not installed.")))
       (buffer-face-set 'equake-buffer-face)
       (let* ((monitor (equake-get-monitor-name))
              (newhighest (1+ (equake-highest-etab monitor (buffer-list) -1))) ; figure out number to be set for the new tab for the current monitor

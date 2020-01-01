@@ -247,7 +247,8 @@
 
 (defcustom equake-inhibit-message-choice nil
   "Whether or not messages are displayed in the echo area."
-  :group 'equake)
+  :group 'equake
+  :type 'boolean)
 
 (add-hook 'equake-mode-hook 'equake-inhibit-message-locally)
 
@@ -321,7 +322,8 @@
     "term"
     "shell")
   "List of available `shell' modes for Equake."
-  :group 'equake)
+  :group 'equake
+  :type 'sexp)
 
 (defcustom equake-size-width 1.0
   "Fraction (.01-1.0) for width of Equake console."

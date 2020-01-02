@@ -63,7 +63,8 @@ See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the 
 [[./image/equake-in-stumpwm.webm][(click for higher rez video)]]
 
 ** Equake demonstrated at emacsconf 2019 
-./image/equake-emacsconf2019.mp4
+[[./image/equake-emacsconf2019.mp4][./image/equake-emacsconf2019.mp4]]
+
 [ https://media.emacsconf.org/2019/30.html ]
 
 ** Equake running in KDE Plasma 5

@@ -392,7 +392,7 @@ default shell (=eshell=, =shell=, =ansi-term=, =term=), and colours.
 * Credits
 - This was developed in part as an emacs-internal solution to what noctuid's [[https://github.com/noctuid/tdrop][tdrop]] application does in terms of raising/hiding frames.
 - I have tried to adapt some ideas from alphapapa's [[https://github.com/alphapapa/yequake][yequake]] package.
-- Tabs inspired by terminal emulators like [[https://en.wikipedia.org/wiki/Yakuake][Yakuake]].
+- Tabs inspired by terminal emulators like [[https://github.com/KDE/yakuake][Yakuake]].
 
 * Licence
 GPLv3+

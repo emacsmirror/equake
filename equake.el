@@ -94,19 +94,20 @@
 ;; get optimal Equake behaviour:
 ;; ;; BEGIN COMMON LISP HERE;;
 ;; (defun calc-equake-width ()
-;;   (let ((screen-width (caddr (with-input-from-string (s (run-shell-command "emacsclient -n -e '(equake-find-workarea-of-current-screen (equake-calculate-mouse-location (display-monitor-attributes-list)) (display-monitor-attributes-list))'" t)) (read s))))
-;;         (desired-width-perc (read-from-string (run-shell-command "emacsclient -n -e 'equake-size-width'" t))))
+;;   (let ((screen-width (caddr (with-input-from-stringp (s (run-shell-command (concat emacsclient-launch " -n -e '(equake-find-workarea-of-current-screen (equake-calculate-mouse-location (display-monitor-attributes-list)) (display-monitor-attributes-list))'") t)) (read s))))
+;;         (desired-width-perc (read-from-string (run-shell-command (concat emacsclient-location " -n -e 'equake-size-width'") t))))
 ;;     (truncate (* screen-width desired-width-perc))))
-;; 
+
 ;; (defun calc-equake-height ()
-;;   (let ((screen-height (cadddr (with-input-from-string (s (run-shell-command "emacsclient -n -e '(equake-find-workarea-of-current-screen (equake-calculate-mouse-location (display-monitor-attributes-list)) (display-monitor-attributes-list))'" t)) (read s))))
-;;         (desired-height-perc (read-from-string (run-shell-command "emacsclient -n -e 'equake-size-height'" t))))
+;;   (let ((screen-height (cadddr (with-input-from-string (s (run-shell-command (concat emacsclient-location " -n -e '(equake-find-workarea-of-current-screen (equake-calculate-mouse-location (display-monitor-attributes-list)) (display-monitor-attributes-list))'") t)) (read s))))
+;;         (desired-height-perc (read-from-string (run-shell-command (concat emacsclient-location " -n -e 'equake-size-height'") t))))
 ;;     (truncate (* screen-height desired-height-perc))))
-;; 
-;; (setq *equake-width* 1368) ; TODO: programmatically get screen dimensions before Emacs starts
-;; (setq *equake-height* 768)
-;; 
+
+;; (setf *equake-width* 1368)
+;; (setf *equake-height* 768)
+
 ;; (defcommand invoke-equake () ()
+;;   "Raise/lower Equake drop-down console."
 ;;   (let* ((on-top-windows (group-on-top-windows (current-group)))
 ;;          (equake-on-top (find-equake-in-group on-top-windows)))
 ;;     (if equake-on-top
@@ -115,36 +116,19 @@
 ;;       (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
 ;;         (if (not found-equake)          ; If Equake cannot be found,
 ;;             (progn
-;;               (run-shell-command "emacsclient -n -e '(equake-invoke)'") ; then invoke Equake via emacs function.
-;;               (setq *equake-height* (calc-equake-height)) ; delay calculation of height & width setting until 1st time equake invoked
-;;               (setq *equake-width* (calc-equake-width))) ; (otherwise Emacs may not be fully loaded)
-;;           (progn (raise-window found-equake)
-;;                    (move-window-to-group found-equake (current-group)) ; But if Equake window is found, move it to the current group,
+;;               (run-shell-command (concat emacsclient-location " -n -e '(equake-invoke)'")) ; then invoke Equake via emacs function.
+;;               (setf *equake-height* (calc-equake-height)) ; delay calculation of height & width setting until 1st time equake invoked
+;;               (setf *equake-width* (calc-equake-width))) ; (otherwise Emacs may not be fully loaded)
+;;             ;; (toggle-always-on-top))   ; make on top
+;;             (progn (raise-window found-equake)
+;;                    (unless (equalp (current-group) (window-group found-equake)) ; But if Equake window is found, and if it's in a different group
+;;                      (move-window-to-group found-equake (current-group)))   ; move it to the current group,
 ;;                    (unhide-window found-equake) ; unhide window, in case hidden
 ;;                    (float-window found-equake (current-group)) ; float window
 ;;                    (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width *equake-width* :height *equake-height*) ; set size
 ;;                    (focus-window found-equake)
 ;;                    (toggle-always-on-top))))))) ; make on top
-;; 
-;; ;; (defun find-equake-in-group (windows-list) 
-;;   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
-;;   (let ((current-searched-window (car windows-list)))
-;;     (if (equal current-searched-window 'nil)
-;;         'nil
-;;         (if (search "*EQUAKE*[" (window-name current-searched-window))
-;;             current-searched-window
-;;             (find-equake-in-group (cdr windows-list))))))
-;; 
-;; (defun find-equake-globally (group-list)
-;;   "Recursively search through GROUP-LIST, a list of all groups on current screen, for an Equake window."
-;;   (if (equal (car group-list) 'nil)
-;;       'nil
-;;       (let ((equake-window (find-equake-in-group (list-windows (car group-list)))))
-;;         (if equake-window
-;;             equake-window               ; stop if found and return window
-;;             (find-equake-globally (cdr group-list))))))
-;; Set the mouse focus policy to :click
-;; (setf *mouse-focus-policy* :click)  ;; also StumpWM default (I think)
+
 ;; (defun find-equake-in-group (windows-list) 
 ;;   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
 ;;   (let ((current-searched-window (car windows-list)))
@@ -153,7 +137,7 @@
 ;;         (if (search "*EQUAKE*[" (window-name current-searched-window))
 ;;             current-searched-window
 ;;             (find-equake-in-group (cdr windows-list))))))
-;; 
+
 ;; (defun find-equake-globally (group-list)
 ;;   "Recursively search through GROUP-LIST, a list of all groups on current screen, for an Equake window."
 ;;   (if (equal (car group-list) 'nil)
@@ -162,10 +146,9 @@
 ;;         (if equake-window
 ;;             equake-window               ; stop if found and return window
 ;;             (find-equake-globally (cdr group-list))))))
-;; Set the mouse focus policy to :ignore
-;; (setf *mouse-focus-policy* :ignore)  ;; otherwise Equake will tend to disappear
-;; Set the mouse focus policy to :ignore
-;; (setf *mouse-focus-policy* :ignore)  ;; otherwise Equake will tend to disappear
+
+;; ;; Set the mouse focus policy; 
+;; (setf *mouse-focus-policy* :click) ;; options: :click, :ignore, :sloppy
 ;; ;; END COMMON LISP HERE;;
 ;; And add an appropriate keybinding to your stumpwm init to toggle, e.g.:
 ;; (define-key *top-map* (kbd "F12") "invoke-equake")
@@ -250,7 +233,7 @@
   :group 'equake
   :type 'boolean)
 
-(add-hook 'equake-mode-hook 'equake-inhibit-message-locally)
+(add-hook 'equake-mode-hook #'equake-inhibit-message-locally)
 
 (defun equake-inhibit-message-locally ()
   "Set `inhibit-message' buffer-locally."

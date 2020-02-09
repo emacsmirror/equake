@@ -822,7 +822,8 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
   "Rename current Equake tab."
   (interactive)
   (let* ((buffer-prefix (replace-regexp-in-string "%\.*" "" (buffer-name (current-buffer)))) ; get everything before the '%' and any characters that follow it
-         (newname (read-string "Enter a new tab name: ")))
+         (buffer-pretty-name (replace-regexp-in-string "\.*%" "" (buffer-name (current-buffer)))) ; strip everything before the '%'
+         (newname (read-string "Enter a new tab name: " buffer-pretty-name)))
     (rename-buffer (concat buffer-prefix "%" newname))))
 
 (defun-tco equake-mode-line (modelinestring buffers)

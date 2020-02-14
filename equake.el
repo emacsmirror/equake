@@ -205,7 +205,7 @@
             map))
 
 (setq equake-rash-installed
-      (and (not (equal "" (shell-command-to-string "command -v raco")))
+      (and (executable-find "raco")
            (not (equal " [none]" (shell-command-to-string "printf \"$(raco pkg show rash | tail -1)\"")))))
 
 (defvar equake-tab-list ()

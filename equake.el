@@ -233,6 +233,11 @@
   :group 'equake
   :type 'boolean)
 
+(defcustom equake-hide-from-taskbar-choice t
+  "Whether or not to hide Equake from taskbar (may not work in all DEs or WMs)."
+  :group 'equake
+  :type 'boolean)
+
 (add-hook 'equake-mode-hook #'equake-inhibit-message-locally)
 
 (defun equake-inhibit-message-locally ()
@@ -487,6 +492,13 @@ raise/lower equake on."
   (when (buffer-local-value equake-mode (current-buffer))
     (equake-set-last-etab)))
 
+(defun equake-hide-from-taskbar ()
+  "Hide Equake from the taskbar."
+  (let ((monitor-name (equake-get-monitor-name)))
+    (shell-command (concat "xprop -name "
+                           "*EQUAKE*[" monitor-name "]"
+                           " -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR"))))
+
 (defun equake-invoke ()
   "Toggle Equake frames.
 Run with \"emacsclient -n -e '(equake-invoke)'\".
@@ -525,7 +537,9 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
             (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))) ; and then restore last buffer used in frame.
             (when (not (cl-search (concat "EQUAKE[" monitorid) (buffer-name (current-buffer)))) ; make sure to restore to an Equake buffer
               (bury-buffer)))
-          (equake-set-up-equake-frame)) ; set-up frame
+          (equake-set-up-equake-frame) ; set-up frame
+          (when equake-hide-from-taskbar-choice
+            (equake-hide-from-taskbar))) ; hide equake from taskbar 
         (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers))))) ; filter out irrelevant buffers.
     (unless (equal equake-use-xdotool-probe 't) ; if not using xdotool-probe
       (equake-kill-stray-transient-frames (frame-list))))) ; get rid of any Equake multi-monitor launcher `probes'.

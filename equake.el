@@ -503,9 +503,10 @@ raise/lower equake on."
 (defun equake-hide-from-taskbar ()
   "Hide Equake from the taskbar."
   (let ((monitor-name (equake-get-monitor-name)))
-    (shell-command (concat "xprop -name "
+    (when (executable-find "xprop")
+      (shell-command (concat "xprop -name "
                            "*EQUAKE*[" monitor-name "]"
-                           " -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR"))))
+                           " -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR")))))
 
 (defun equake-invoke ()
   "Toggle Equake frames.

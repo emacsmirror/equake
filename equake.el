@@ -396,7 +396,7 @@ background colour."
   :group 'equake-faces)
 
 (defface equake-shell-type-vterm
-  '((t (:background "midnight blue" :foreground "lightsteelblue")))
+  '((t (:background "midnight blue" :foreground "thistle2")))
   "Face used for indicating `vterm' shell type in the mode-line."
   :group 'equake-faces)
 

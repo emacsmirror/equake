@@ -61,10 +61,6 @@
 ;; emacsclient -n -e '(equake-invoke)' ,
 ;; after launching an Emacs daemon of course.
 ;;
-;; For multimonitor use using X11, you can set
-;; (setq equake-use-xdotool-probe 't) to use xdotool to
-;; automatically detect which screen the Equake frame should open on.
-;;
 ;; I recommend binding the relevant command to a key like F12 in your DE/WM.
 ;; Executing this command will create a new equake console
 ;; on your screen the first time, and subsequently toggle
@@ -359,12 +355,6 @@ environment variable."
   :type 'boolean
   :group 'equake)
 
-(defcustom equake-use-xdotool-probe 'nil
-  "Use xdotool to probe for mouse location.
-Only works on X11 systems; unnecessary for single-screen setups."
-  :type 'boolean
-  :group 'equake)
-
 (defgroup equake-faces nil
   "Faces for the Equake drop-down console."
   :group 'equake
@@ -433,12 +423,9 @@ background colour."
           frame
         (equake-equake-frame-p monitor (cdr frames))))))
 
-(defun equake-get-monitor-name (&optional use-xdotool)
-  "Get a name of the current monitor.
-If USE-XDOTOOL is nil or omitted, determine current monitor by
-the currently selected frame.  Otherwise, use mouse location (via
-xdotool)."
-  (equake--get-monitor-property 'name use-xdotool))
+(defun equake-get-monitor-name ()
+  "Get a name of the current monitor."
+  (equake--get-monitor-property 'name))
 
 (defun equake-record-history (equake-current-frame)
   "Store the EQUAKE-CURRENT-FRAME for easier recovery of destroyed equake frames."
@@ -463,9 +450,8 @@ xdotool)."
 Run with \"emacsclient -n -e '(equake-invoke)'\"."
   (interactive)
   (equake--select-some-graphic-frame)
-  (let* ((monitor-name (equake-get-monitor-name equake-use-xdotool-probe))
-         (target-workarea (equake--get-monitor-property
-                           'workarea equake-use-xdotool-probe))
+  (let* ((monitor-name (equake-get-monitor-name))
+         (target-workarea (equake--get-monitor-property 'workarea))
          (current-equake-frame (equake-equake-frame-p monitor-name (frame-list))))
     (if current-equake-frame
         (equake--hide-or-destroy-frame current-equake-frame)
@@ -805,21 +791,10 @@ selection anyway.  Thus, selection change is of no concern."
   (if-let ((graphic-frame (-first #'display-graphic-p (frame-list))))
       (select-frame graphic-frame t)))
 
-(defun equake--get-monitor-property (prop &optional use-xdotool)
-  "Get a property PROP of the current monitor.
-If USE-XDOTOOL is nil or omitted, determine current monitor by
-the currently selected frame.  Otherwise, use mouse location (via
-xdotool)."
-  (-if-let ((x y) (and use-xdotool (equake--get-mouse-location)))
-      (frame-monitor-attribute prop nil x y)
-    (frame-monitor-attribute prop (selected-frame))))
-
-(defun equake--get-mouse-location ()
-  "Get a mouse location in the form of '(x y)."
-  (->> "eval $(xdotool getmouselocation --shell) && printf \"$X $Y\""
-       (shell-command-to-string)
-       (split-string)
-       (-map #'string-to-number)))
+(defun equake--get-monitor-property (prop)
+  "Get a property PROP of the current monitor."
+  (-let (((x . y) (mouse-absolute-pixel-position)))
+    (frame-monitor-attribute prop nil x y)))
 
 (defun equake--hide-or-destroy-frame (current-frame)
   "Hide or destroy CURRENT-FRAME, depending on `equake-use-frame-hide'."

@@ -125,22 +125,6 @@ command to a key like F12 in your DE/WM.  Executing this command will
 create a new equake console on your screen the first time, and subsequently
 toggle the console (i.e. hide or show it).
 
-For multi-monitor *X11* systems, you will likely want to enable
-=equake-use-xdotool-probe= (which defaults to =⁣'nil=); this requires the
-=xdotool= tool to be installed, but will provide a fast method for
-detecting which monitor is 'active'.
-
-For multi-monitor *non-X11* set-ups, an 'emacs probe' may be required in
-order to make sure we're opening equake on the right monitor. Thus for
-multi-screen set-ups, you can make your equake toggle command instead:
-
-#+BEGIN_SRC shell
-emacsclient -n -c -e '(equake-invoke)' -F '((title . "*transient*") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))'
-#+END_SRC
-
-This will be slower than the first equake toggle command mentioned, so
-don't use it unless necessary.
-
 [Nb: running with
 #+BEGIN_SRC shell
 emacsclient -e '(equake/emacs-dropdown-console)'

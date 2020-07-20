@@ -428,7 +428,7 @@ background colour."
   (equake--get-monitor-property 'name))
 
 (defun equake-record-history (equake-current-frame)
-  "Store the EQUAKE-CURRENT-FRAME for easier recovery of destroyed equake frames."
+  "Store the EQUAKE-CURRENT-FRAME for easier recovery of destroyed Equake frames."
   (select-frame equake-current-frame)
   (when (equal (buffer-name (current-buffer)) " *server*") ; if opened to " *server*" buffer
     (switch-to-buffer (other-buffer (current-buffer) 1))) ; switch to other buffer
@@ -782,11 +782,11 @@ Run with \"emacsclient -n -e '(equake-invoke)'\"."
 (defun equake--select-some-graphic-frame ()
   "Try to select some graphic frame.
 
-It's purpose is to move selection from non-graphical frames.
-Many functions for working with monitors implicitly rely on a
-display of a selected frame.  If the frame is non graphic, they
-work unexpectedly.  This function is designed to be called right
-before invoking an equake frame, which is going to change
+Its purpose is to move selection from non-graphical frames.  Many
+functions for working with monitors implicitly rely on a display
+of a selected frame.  If the frame is non-graphical, they work
+unexpectedly.  This function is designed to be called right
+before invoking an Equake frame, which is going to change
 selection anyway.  Thus, selection change is of no concern."
   (if-let ((graphic-frame (-first #'display-graphic-p (frame-list))))
       (select-frame graphic-frame t)))
@@ -809,7 +809,7 @@ selection anyway.  Thus, selection change is of no concern."
     (delete-frame current-frame)))
 
 (defun equake--set-up-new-frame (monitor-name target-workarea)
-  "Make and set-up a new equake frame, including cosmetic alterations.
+  "Make and set-up a new Equake frame, including cosmetic alterations.
 
 The frame is going to be created on a monitor MONITOR-NAME with workarea TARGET-WORKAREA."
   (let* ((frame (equake--make-new-frame monitor-name target-workarea))
@@ -829,7 +829,7 @@ The frame is going to be created on a monitor MONITOR-NAME with workarea TARGET-
     (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers))))) ; filter out irrelevant buffers.
 
 (defun equake--make-new-frame (monitor-name target-workarea)
-  "Make a new equake frame on monitor MONITOR-NAME.
+  "Make a new Equake frame on monitor MONITOR-NAME.
 The monitor should have a workarea TARGET-WORKAREA.  If
 MONITOR-NAME is nil, make a new frame on some monitor."
   (if monitor-name
@@ -837,10 +837,10 @@ MONITOR-NAME is nil, make a new frame on some monitor."
     (equake--make-new-frame-when-no-monitor)))
 
 (defun equake--make-new-frame-when-no-monitor ()
-  "Make a graphical equake frame on some monitor.
+  "Make a graphical Equake frame on some monitor.
 
 When there are no graphical frames on a monitor we can't
-determine explicitly what's the monitor name.  That means we
+determine explicitly what the monitor name is.  That means we
 can't tell Emacs to create a frame on this exact monitor.  In
 that case we just create some graphical frame (with an utility of
 `(getenv \"DISPLAY\")') and determine a monitor name after the
@@ -854,7 +854,7 @@ fact."
     new-frame))
 
 (defun equake--make-frame-parameters (monitor-name target-workarea)
-  "Make an alist of parameters for an equake frame.
+  "Make an alist of parameters for an Equake frame.
 Given that frame is going to end up on a monitor MONITOR-NAME
 with workarea TARGET-WORKAREA, make an alist of parameters
 suitable for `make-frame' or `modify-frame-parameters'"

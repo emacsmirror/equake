@@ -290,6 +290,10 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.95
+Various under-the-hood improvements (thanks to Artem Yurchenko) including the ability to open of Equake frames without any pre-existing emacsclient frames; ability to create Equake frames in terminal mode; simplification of =equake-invoke= function.
+
+This version now requires at least Emacs 26.1.
 ** v0.90
 Added support for =vterm= and =rash=.
 'Breaking' change: set inhibit-messages-locally to default to false. You can turn this back on via =customize= or =(setq equake-inhibit-message-choice 't)=.

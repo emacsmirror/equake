@@ -1,4 +1,4 @@
-;;; equake.el --- Drop-down console for eshell & terminal emulation -*- lexical-binding: t; -*-
+;;; equake.el --- Drop-down console for (e)shell & terminal emulation -*- lexical-binding: t; -*-
 
 ;; *EQUAKE* - emacs shell dropdown console
 
@@ -11,13 +11,13 @@
 ;;          |_|                      ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Copyright (C) 2018-2019 Benjamin Slade
+;; Copyright (C) 2018-2020 Benjamin Slade
 
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
 ;; URL: https://gitlab.com/emacsomancer/equake
-;; Package-Version: 0.90
-;; Version: 0.90
+;; Package-Version: 0.95
+;; Version: 0.95
 ;; Package-Requires: ((emacs "26.1") (dash "2.14.1") (tco "20190309.55"))
 ;; Created: 2018-12-12
 ;; Keywords: convenience, frames, terminals, tools, window-system

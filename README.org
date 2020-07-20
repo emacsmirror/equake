@@ -59,10 +59,10 @@ See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the 
 
 * Screenshots
 ** Equake running in StumpWM
-[[./image/equake-in-stumpwm.gif]] 
+[[./image/equake-in-stumpwm.gif]]
 [[./image/equake-in-stumpwm.webm][(click for higher rez video)]]
 
-** Equake demonstrated at emacsconf 2019 
+** Equake demonstrated at emacsconf 2019
 [[https://media.emacsconf.org/2019/30.html][./image/emacsconf-2019-30-equake--emacsomancer.jpg]]
 
 ** Equake running in KDE Plasma 5
@@ -83,7 +83,7 @@ accomplish via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g
 
 
 [[https://melpa.org/#/equake][file:https://melpa.org/packages/equake-badge.svg]]
-    
+
 You can install this package from Melpa, including via =use-package=, e.g.
 #+begin_src elisp
 (use-package equake
@@ -110,13 +110,13 @@ Clone the git repo somewhere and get it into your Emacs' load-path, e.g.,
 add something like this to your =init.el= (assuming you put it into
 =~/.emacs.d/equake=):
 #+BEGIN_SRC elisp
-(add-to-list 'load-path                                   
-            "~/.emacs.d/equake/")                         
+(add-to-list 'load-path
+            "~/.emacs.d/equake/")
 (require 'equake)
 (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
 #+END_SRC
 * Usage
-Run with 
+Run with
 #+BEGIN_SRC shell
 emacsclient -n -e '(equake-invoke)'
 #+END_SRC
@@ -125,26 +125,10 @@ command to a key like F12 in your DE/WM.  Executing this command will
 create a new equake console on your screen the first time, and subsequently
 toggle the console (i.e. hide or show it).
 
-For multi-monitor *X11* systems, you will likely want to enable
-=equake-use-xdotool-probe= (which defaults to =⁣'nil=); this requires the
-=xdotool= tool to be installed, but will provide a fast method for
-detecting which monitor is 'active'.
-
-For multi-monitor *non-X11* set-ups, an 'emacs probe' may be required in
-order to make sure we're opening equake on the right monitor. Thus for
-multi-screen set-ups, you can make your equake toggle command instead:
-
+[Nb: running with
 #+BEGIN_SRC shell
-emacsclient -n -c -e '(equake-invoke)' -F '((title . "*transient*") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))'
-#+END_SRC 
-
-This will be slower than the first equake toggle command mentioned, so
-don't use it unless necessary.
-
-[Nb: running with 
-#+BEGIN_SRC shell
-emacsclient -e '(equake/emacs-dropdown-console)' 
-#+END_SRC      
+emacsclient -e '(equake/emacs-dropdown-console)'
+#+END_SRC
 has been deprecated.]
 
 It works with =eshell=, =ansi-term=, =term=, =shell=, =vterm=, =rash=. But
@@ -174,12 +158,12 @@ I highly recommend adopting the mouse focus behaviour shown below.
 
 #+begin_src lisp
 (defun calc-equake-width ()
-  (let ((screen-width (caddr (with-input-from-stringp (s (run-shell-command (concat emacsclient-launch " -n -e '(equake-find-workarea-of-current-screen (equake-calculate-mouse-location (display-monitor-attributes-list)) (display-monitor-attributes-list))'") t)) (read s))))
+  (let ((screen-width (caddr (with-input-from-stringp (s (run-shell-command (concat emacsclient-launch " -n -e '(equake--get-monitor-property 'workarea t)'") t)) (read s))))
         (desired-width-perc (read-from-string (run-shell-command (concat emacsclient-location " -n -e 'equake-size-width'") t))))
     (truncate (* screen-width desired-width-perc))))
 
 (defun calc-equake-height ()
-  (let ((screen-height (cadddr (with-input-from-string (s (run-shell-command (concat emacsclient-location " -n -e '(equake-find-workarea-of-current-screen (equake-calculate-mouse-location (display-monitor-attributes-list)) (display-monitor-attributes-list))'") t)) (read s))))
+  (let ((screen-height (cadddr (with-input-from-string (s (run-shell-command (concat emacsclient-location " -n -e '(equake--get-monitor-property 'workarea t)'") t)) (read s))))
         (desired-height-perc (read-from-string (run-shell-command (concat emacsclient-location " -n -e 'equake-size-height'") t))))
     (truncate (* screen-height desired-height-perc))))
 
@@ -192,13 +176,13 @@ I highly recommend adopting the mouse focus behaviour shown below.
          (equake-on-top (find-equake-in-group on-top-windows)))
     (when (and equake-on-top (not (find-equake-globally (screen-groups (current-screen)))))
       (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
-    (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))  
+    (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))
         (progn (if (eq (find-class 'float-group) (class-of (current-group)))
                    (when (> (length (group-windows (current-group))) 1)
                      (xwin-hide equake-on-top))
                    (progn (unfloat-window equake-on-top (current-group))
                           (hide-window equake-on-top))) ;; then hide Equake window via native Stumpwm method.)
-               (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows))) 
+               (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
         (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
           (if (not found-equake)          ; If Equake cannot be found,
               (progn
@@ -217,7 +201,7 @@ I highly recommend adopting the mouse focus behaviour shown below.
                      (focus-window found-equake)
                      (push found-equake (group-on-top-windows (current-group))))))))) ; make on top
 
-(defun find-equake-in-group (windows-list) 
+(defun find-equake-in-group (windows-list)
   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
   (let ((current-searched-window (car windows-list)))
     (if (equal current-searched-window 'nil)
@@ -235,7 +219,7 @@ I highly recommend adopting the mouse focus behaviour shown below.
             equake-window               ; stop if found and return window
             (find-equake-globally (cdr group-list))))))
 
-;; Set the mouse focus policy; 
+;; Set the mouse focus policy;
 (setf *mouse-focus-policy* :click) ;; options: :click, :ignore, :sloppy
 
 #+end_src
@@ -243,7 +227,7 @@ I highly recommend adopting the mouse focus behaviour shown below.
 ** In KDE Plasma 5
  =systemsettings > Window Management > Window Rules=:
  Click button =New=
- 
+
  In =Window matching tab=:
 
  =Description=: equake rules
@@ -272,9 +256,9 @@ I highly recommend adopting the mouse focus behaviour shown below.
 
 ** AwesomeWM
 Probably adding to your 'Rules' something like this:
- 
+
 #+BEGIN_SRC lua
- { rule = { instance = "*EQUAKE*", class = "Emacs" },      
+ { rule = { instance = "*EQUAKE*", class = "Emacs" },
     properties = { titlebars_enabled = false } },
 #+END_SRC
 
@@ -309,7 +293,7 @@ You can also customise faces, e.g. via:
 ** v0.90
 Added support for =vterm= and =rash=.
 'Breaking' change: set inhibit-messages-locally to default to false. You can turn this back on via =customize= or =(setq equake-inhibit-message-choice 't)=.
-** v0.86 
+** v0.86
 Added Stumpwm configuration details.
 ** v0.85
 Added (back) a 'non-destructive' method of raising the Equake frame, and
@@ -413,4 +397,3 @@ GPLv3+
 * COMMENT Local Macros                                              :ARCHIVE:
 #+macro: melpa [[https://melpa.org/#/equake][file:https://melpa.org/packages/equake-badge.svg]]
 #+macro: GPLv3 [[https://www.gnu.org/licenses/gpl-3.0][https://img.shields.io/badge/License-GPL%20v3-blue.svg]]
-

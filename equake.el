@@ -61,14 +61,6 @@
 ;; emacsclient -n -e '(equake-invoke)' ,
 ;; after launching an Emacs daemon of course.
 ;;
-;; For multimonitor use using X11, you can set
-;; (setq equake-use-xdotool-probe 't) to use xdotool to
-;; automatically detect which screen the Equake frame should open on.
-;;
-;; Alternatively, on a non-X11 multi-monitor setup, launch:
-;; emacsclient -n -c -e '(equake-invoke)' -F '((title . "*transient*") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))'
-;; (although this may be noticably slower)
-;; 
 ;; I recommend binding the relevant command to a key like F12 in your DE/WM.
 ;; Executing this command will create a new equake console
 ;; on your screen the first time, and subsequently toggle
@@ -87,19 +79,19 @@
 ;; have no titlebar or frame. It's most throughly tested with
 ;; KDE Plasma 5 & StumpWM, but should be able to be made to work
 ;; well with most DEs/WMs (I welcome notes on other environments).
-;; 
+;;
 ;;; In Stumpwm:
 ;; add the following to your .stumpwmrc or ~/.stumpwm.d/init.lisp or other
 ;; initialisation file (please adjust your mouse focus policy as below to
-;; get optimal Equake behaviour:
+;; get optimal Equake behaviour):
 ;; ;; BEGIN COMMON LISP HERE;;
 ;; (defun calc-equake-width ()
-;;   (let ((screen-width (caddr (with-input-from-stringp (s (run-shell-command (concat emacsclient-launch " -n -e '(equake-find-workarea-of-current-screen (equake-calculate-mouse-location (display-monitor-attributes-list)) (display-monitor-attributes-list))'") t)) (read s))))
+;;   (let ((screen-width (caddr (with-input-from-stringp (s (run-shell-command (concat emacsclient-launch " -n -e '(equake--get-monitor-property 'workarea t)'") t)) (read s))))
 ;;         (desired-width-perc (read-from-string (run-shell-command (concat emacsclient-location " -n -e 'equake-size-width'") t))))
 ;;     (truncate (* screen-width desired-width-perc))))
 
 ;; (defun calc-equake-height ()
-;;   (let ((screen-height (cadddr (with-input-from-string (s (run-shell-command (concat emacsclient-location " -n -e '(equake-find-workarea-of-current-screen (equake-calculate-mouse-location (display-monitor-attributes-list)) (display-monitor-attributes-list))'") t)) (read s))))
+;;   (let ((screen-height (cadddr (with-input-from-string (s (run-shell-command (concat emacsclient-location " -n -e '(equake--get-monitor-property 'workarea t)'") t)) (read s))))
 ;;         (desired-height-perc (read-from-string (run-shell-command (concat emacsclient-location " -n -e 'equake-size-height'") t))))
 ;;     (truncate (* screen-height desired-height-perc))))
 
@@ -112,13 +104,13 @@
 ;;          (equake-on-top (find-equake-in-group on-top-windows)))
 ;;     (when (and equake-on-top (not (find-equake-globally (screen-groups (current-screen)))))
 ;;       (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
-;;     (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))  
+;;     (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))
 ;;         (progn (if (eq (find-class 'float-group) (class-of (current-group)))
 ;;                    (when (> (length (group-windows (current-group))) 1)
 ;;                      (xwin-hide equake-on-top))
 ;;                    (progn (unfloat-window equake-on-top (current-group))
 ;;                           (hide-window equake-on-top))) ;; then hide Equake window via native Stumpwm method.)
-;;                (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows))) 
+;;                (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
 ;;         (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
 ;;           (if (not found-equake)          ; If Equake cannot be found,
 ;;               (progn
@@ -137,7 +129,7 @@
 ;;                      (focus-window found-equake)
 ;;                      (push found-equake (group-on-top-windows (current-group))))))))) ; make on top
 
-;; ;; (defun find-equake-in-group (windows-list) 
+;; ;; (defun find-equake-in-group (windows-list)
 ;;   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
 ;;   (let ((current-searched-window (car windows-list)))
 ;;     (if (equal current-searched-window 'nil)
@@ -155,16 +147,16 @@
 ;;             equake-window               ; stop if found and return window
 ;;             (find-equake-globally (cdr group-list))))))
 
-;; ;; Set the mouse focus policy; 
+;; ;; Set the mouse focus policy;
 ;; (setf *mouse-focus-policy* :click) ;; options: :click, :ignore, :sloppy
 ;; ;; END COMMON LISP HERE;;
 ;; And add an appropriate keybinding to your stumpwm init to toggle, e.g.:
 ;; (define-key *top-map* (kbd "F12") "invoke-equake")
-;; 
+;;
 ;;; In KDE Plasma 5:
 ;; systemsettings > Window Management > Window Rules:
 ;; Button: New
-;; 
+;;
 ;; In Window matching tab:
 ;; Description: equake rules
 ;; Window types: Normal Window
@@ -184,10 +176,10 @@
 ;;; Other environments:
 ;; In awesomewm, probably adding to your 'Rules' something
 ;; like this:
-;; 
+;;
 ;; { rule = { instance = "*EQUAKE*", class = "Emacs" },
 ;;    properties = { titlebars_enabled = false } },
-;; 
+;;
 ;;; Advice:
 ;; add (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
 ;; to your settings to prevent accidental closure of equake frames
@@ -363,12 +355,6 @@ environment variable."
   :type 'boolean
   :group 'equake)
 
-(defcustom equake-use-xdotool-probe 'nil
-  "Use xdotool to probe for mouse location.
-Only works on X11 systems; unnecessary for single-screen setups."
-  :type 'boolean
-  :group 'equake)
-
 (defgroup equake-faces nil
   "Faces for the Equake drop-down console."
   :group 'equake
@@ -437,58 +423,9 @@ background colour."
           frame
         (equake-equake-frame-p monitor (cdr frames))))))
 
-(defun-tco equake-get-monitor-property (prop attributes)
-  "Get a property PROP of the current monitor/screen ATTRIBUTES."
-  (let ((field (car attributes)))
-    (when field
-      (if (equal (format "%s" (car field)) prop)
-          (cdr field)
-        (equake-get-monitor-property prop (cdr attributes))))))
-
 (defun equake-get-monitor-name ()
-  "Get the name or another constant designator of the current monitor/screen ATTRIBUTES."
-    (let ((name (equake-get-monitor-property "name" (frame-monitor-attributes))))
-      (if name
-          name
-        ;; if monitor lacks name property, fallback to using `geometry' as unique(?) identifier
-        (let ((name (equake-get-monitor-property "geometry" (frame-monitor-attributes))))
-          (when name
-            (format "%s" name))))));)
-
-(defun equake-calculate-mouse-location (displaylist)
-  "Use the xdotool to get the mouse location of DISPLAYLIST.
-And check #'display-monitor-attributes-list to see which screen/monitor to
-raise/lower equake on."
-  (let* ((test-var-x (shell-command-to-string "xdotool getmouselocation --shell | head -n 1"))
-         (test-var-y (shell-command-to-string "xdotool getmouselocation --shell | head -n 2 |tail -n 1"))
-         (x-mouse-pos (string-to-number (substring test-var-x 2 (length test-var-x))))
-         (y-mouse-pos (string-to-number (substring test-var-y 2 (length test-var-y)))))
-    (if displaylist
-        (let* ((mon-geometry (cadar displaylist))
-               (x-limit (elt mon-geometry 1))
-               (x-size (elt mon-geometry 3))
-               (y-limit (elt mon-geometry 2))
-               (y-size (elt mon-geometry 4)))
-          (if (and (> (+ x-limit x-size) x-mouse-pos) (< x-limit x-mouse-pos) (> (+ y-limit y-size) y-mouse-pos))
-              (cdaar displaylist)
-            (equake-calculate-mouse-location (cdr displaylist))))
-      (error "Mouse pointer location out of range"))))
-
-(defun-tco equake-kill-stray-transient-frames (frames)
-  "Destroy any stray transient FRAMES."
-  (interactive)
-  (let ((frame (car frames)))
-    (when frame
-      (when (cl-search "*transient*" (frame-parameter frame 'title))
-        (delete-frame frame))
-      (equake-kill-stray-transient-frames (cdr frames)))))
-
-(defun equake-find-workarea-of-current-screen (monitorid mlist)
-  "Find the workarea of the currently active screen MONITORID given a list of screens MLIST."
-  (if mlist
-      (if (equal (cdaar mlist) monitorid)
-          (alist-get 'workarea (car mlist))
-        (equake-find-workarea-of-current-screen monitorid (cdr mlist)))))
+  "Get a name of the current monitor."
+  (equake--get-monitor-property 'name))
 
 (defun equake-record-history (equake-current-frame)
   "Store the EQUAKE-CURRENT-FRAME for easier recovery of destroyed equake frames."
@@ -510,48 +447,15 @@ raise/lower equake on."
 
 (defun equake-invoke ()
   "Toggle Equake frames.
-Run with \"emacsclient -n -e '(equake-invoke)'\".
-On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -F '((title . \"*transient*\") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)))'\"."
+Run with \"emacsclient -n -e '(equake-invoke)'\"."
   (interactive)
-  (-let* ((monitorid (if equake-use-xdotool-probe
-                         (equake-calculate-mouse-location (display-monitor-attributes-list))
-                       (equake-get-monitor-name)))
-          (equake-current-frame (equake-equake-frame-p monitorid (frame-list)))
-          (target-workarea (if equake-use-xdotool-probe
-                               (equake-find-workarea-of-current-screen monitorid (display-monitor-attributes-list))
-                             (alist-get 'workarea (frame-monitor-attributes equake-current-frame))))
-          ((mon-xpos mon-ypos monwidth monheight) (mapcar #'floor target-workarea))
-          (mod-mon-xpos (floor (+ mon-xpos (/ (- monwidth (* monwidth equake-size-width)) 2)))))
-    (if equake-current-frame ; if frame exists, hide or destroy it (depending on user options).
-        (if equake-use-frame-hide ; if user has make-frame-(in)visible option set
-            (if (frame-visible-p equake-current-frame)
-                (progn (equake-record-history equake-current-frame) ; record history
-                       (make-frame-invisible equake-current-frame) (make-frame-invisible equake-current-frame)) ; double-tap, otherwise frame lands in limbo
-              (make-frame-visible equake-current-frame)) ; make visible visible if invisible.
-          (equake-record-history equake-current-frame)   ; record history
-          (delete-frame equake-current-frame))           ; destroy frame.
-      ;; else, make it.
-      (-let* ((new-frame (make-frame (list (cons 'name (concat "*EQUAKE*[" monitorid "]"))
-                                           (cons 'alpha `(,equake-opacity-active ,equake-opacity-inactive))
-                                           (cons 'left mod-mon-xpos)
-                                           (cons 'top mon-ypos)
-                                           (cons 'width (cons 'text-pixels (truncate (* monwidth equake-size-width))))
-                                           (cons 'height (cons 'text-pixels (truncate (* monheight equake-size-height))))))))
-        (select-frame new-frame)
-        (set-window-prev-buffers nil (cdr (equake-find-monitor-list monitorid equake-win-history)))
-        (let ((highest-montab (equake-highest-etab monitorid (buffer-list) -1)))
-          (if (< highest-montab 0) ; if no extant Equake tabs on current monitor,
-              (equake-new-tab)     ; then launch new shell.
-            (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-etab-list))) ; else, restore last Equake tab
-            (switch-to-buffer (cdr (equake-find-monitor-list monitorid equake-last-buffer-list))) ; and then restore last buffer used in frame.
-            (when (not (cl-search (concat "EQUAKE[" monitorid) (buffer-name (current-buffer)))) ; make sure to restore to an Equake buffer
-              (bury-buffer)))
-          (equake-set-up-equake-frame) ; set-up frame
-          (when equake-hide-from-taskbar-choice
-            (equake-hide-from-taskbar))) ; hide equake from taskbar 
-        (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers))))) ; filter out irrelevant buffers.
-    (unless (equal equake-use-xdotool-probe 't) ; if not using xdotool-probe
-      (equake-kill-stray-transient-frames (frame-list))))) ; get rid of any Equake multi-monitor launcher `probes'.
+  (equake--select-some-graphic-frame)
+  (let* ((monitor-name (equake-get-monitor-name))
+         (target-workarea (equake--get-monitor-property 'workarea))
+         (current-equake-frame (equake-equake-frame-p monitor-name (frame-list))))
+    (if current-equake-frame
+        (equake--hide-or-destroy-frame current-equake-frame)
+      (equake--set-up-new-frame monitor-name target-workarea))))
 
 (defun-tco equake-filter-history (winhist filtwinhist)
   "Filter window history (WINHIST) into FILTWINHIST."
@@ -567,7 +471,7 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
       (equake-filter-history (cdr winhist) filtwinhist))))
 
 (defun equake-launch-shell (launchshell)
-  "Launch a new shell session, OVERRIDE will set non-default shell."
+  "Launch a new shell session, LAUNCHSHELL will set non-default shell."
   (interactive)
   (let ((sh-command equake-default-sh-command)
         (success 't))
@@ -596,12 +500,6 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
            (delete-other-windows))
           ('t (setq success 'nil)))
     success))
-
-(defun equake-set-up-equake-frame ()
-  "Set-up new *EQUAKE* frame, including cosmetic alterations."
-  (interactive)
-  (buffer-face-set 'equake-buffer-face)
-  (set-frame-parameter (selected-frame) 'alpha `(,equake-opacity-active ,equake-opacity-inactive)))
 
 (defun-tco equake-count-tabs (monitor buffers count)
   "COUNT current Equake tab BUFFERS on MONITOR."
@@ -880,6 +778,98 @@ On multi-monitor set-ups, run instead \"emacsclient -n -c -e '(equake-invoke)' -
     (if (equal tab current-etab)
         (concat " " (propertize (concat "[ " etab-name " ]") 'font-lock-face 'equake-tab-active) " ") ; 'highlight' current tab
       (concat " " (propertize  (concat "[ " etab-name " ]") 'font-lock-face 'equake-tab-inactive) " "))))
+
+(defun equake--select-some-graphic-frame ()
+  "Try to select some graphic frame.
+
+It's purpose is to move selection from non-graphical frames.
+Many functions for working with monitors implicitly rely on a
+display of a selected frame.  If the frame is non graphic, they
+work unexpectedly.  This function is designed to be called right
+before invoking an equake frame, which is going to change
+selection anyway.  Thus, selection change is of no concern."
+  (if-let ((graphic-frame (-first #'display-graphic-p (frame-list))))
+      (select-frame graphic-frame t)))
+
+(defun equake--get-monitor-property (prop)
+  "Get a property PROP of the current monitor."
+  (-let (((x . y) (mouse-absolute-pixel-position)))
+    (frame-monitor-attribute prop nil x y)))
+
+(defun equake--hide-or-destroy-frame (current-frame)
+  "Hide or destroy CURRENT-FRAME, depending on `equake-use-frame-hide'."
+  (if equake-use-frame-hide ; if user has make-frame-(in)visible option set
+      (if (frame-visible-p current-frame)
+          (progn (equake-record-history current-frame)
+                 ;; double-tap, otherwise frame lands in limbo
+                 (make-frame-invisible current-frame)
+                 (make-frame-invisible current-frame))
+        (make-frame-visible current-frame))
+    (equake-record-history current-frame)
+    (delete-frame current-frame)))
+
+(defun equake--set-up-new-frame (monitor-name target-workarea)
+  "Make and set-up a new equake frame, including cosmetic alterations.
+
+The frame is going to be created on a monitor MONITOR-NAME with workarea TARGET-WORKAREA."
+  (let* ((frame (equake--make-new-frame monitor-name target-workarea))
+         (monitor-name (frame-monitor-attribute 'name frame)))
+    (select-frame frame)
+    (set-window-prev-buffers nil (cdr (equake-find-monitor-list monitor-name equake-win-history)))
+    (let ((highest-montab (equake-highest-etab monitor-name (buffer-list) -1)))
+      (if (< highest-montab 0) ; if no extant Equake tabs on current monitor,
+          (equake-new-tab)     ; then launch new shell.
+        (switch-to-buffer (cdr (equake-find-monitor-list monitor-name equake-last-etab-list))) ; else, restore last Equake tab
+        (switch-to-buffer (cdr (equake-find-monitor-list monitor-name equake-last-buffer-list))) ; and then restore last buffer used in frame.
+        (when (not (cl-search (concat "EQUAKE[" monitor-name) (buffer-name (current-buffer)))) ; make sure to restore to an Equake buffer
+          (bury-buffer)))
+      (buffer-face-set 'equake-buffer-face)
+      (when equake-hide-from-taskbar-choice
+        (equake-hide-from-taskbar)))    ; hide equake from taskbar
+    (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers))))) ; filter out irrelevant buffers.
+
+(defun equake--make-new-frame (monitor-name target-workarea)
+  "Make a new equake frame on monitor MONITOR-NAME.
+The monitor should have a workarea TARGET-WORKAREA.  If
+MONITOR-NAME is nil, make a new frame on some monitor."
+  (if monitor-name
+      (make-frame (equake--make-frame-parameters monitor-name target-workarea))
+    (equake--make-new-frame-when-no-monitor)))
+
+(defun equake--make-new-frame-when-no-monitor ()
+  "Make a graphical equake frame on some monitor.
+
+When there are no graphical frames on a monitor we can't
+determine explicitly what's the monitor name.  That means we
+can't tell Emacs to create a frame on this exact monitor.  In
+that case we just create some graphical frame (with an utility of
+`(getenv \"DISPLAY\")') and determine a monitor name after the
+fact."
+  (let* ((new-frame (make-frame-on-display (getenv "DISPLAY")))
+         (monitor-name (frame-monitor-attribute 'name new-frame))
+         (target-workarea (frame-monitor-geometry new-frame))
+         (frame-parameters
+          (equake--make-frame-parameters monitor-name target-workarea)))
+    (modify-frame-parameters new-frame frame-parameters)
+    new-frame))
+
+(defun equake--make-frame-parameters (monitor-name target-workarea)
+  "Make an alist of parameters for an equake frame.
+Given that frame is going to end up on a monitor MONITOR-NAME
+with workarea TARGET-WORKAREA, make an alist of parameters
+suitable for `make-frame' or `modify-frame-parameters'"
+  (-let* (((mon-xpos mon-ypos mon-width mon-height) target-workarea)
+          (x-offset (/ (- mon-width (* mon-width equake-size-width)) 2))
+          (frame-xpos (floor (+ mon-xpos x-offset)))
+          (frame-width (truncate (* mon-width equake-size-width)))
+          (frame-height (truncate (* mon-height equake-size-height))))
+    (list (cons 'name (concat "*EQUAKE*[" monitor-name "]"))
+          (cons 'alpha `(,equake-opacity-active ,equake-opacity-inactive))
+          (cons 'left frame-xpos)
+          (cons 'top mon-ypos)
+          (cons 'width (cons 'text-pixels frame-width))
+          (cons 'height (cons 'text-pixels frame-height))
+          (cons 'monitor monitor-name))))
 
 (provide 'equake)
 

@@ -865,10 +865,19 @@ suitable for `make-frame' or `modify-frame-parameters'"
           (frame-height (truncate (* mon-height equake-size-height))))
     (list (cons 'name (concat "*EQUAKE*[" monitor-name "]"))
           (cons 'alpha `(,equake-opacity-active ,equake-opacity-inactive))
+
+          (cons 'user-position t)
           (cons 'left frame-xpos)
           (cons 'top mon-ypos)
+
+          (cons 'user-size t)
           (cons 'width (cons 'text-pixels frame-width))
           (cons 'height (cons 'text-pixels frame-height))
+
+          (cons 'auto-raise t)
+          (cons 'skip-taskbar equake-hide-from-taskbar-choice)
+          (cons 'undecorated t)
+
           (cons 'monitor monitor-name))))
 
 (provide 'equake)

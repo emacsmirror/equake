@@ -737,7 +737,7 @@ selection anyway.  Thus, selection change is of no concern."
                  ;; double-tap, otherwise frame lands in limbo
                  (make-frame-invisible current-frame)
                  (make-frame-invisible current-frame))
-        (make-frame-visible current-frame))
+        (raise-frame current-frame))
     (equake-record-history current-frame)
     (delete-frame current-frame)))
 
@@ -759,7 +759,8 @@ The frame is going to be created on a monitor MONITOR-NAME with workarea TARGET-
       (buffer-face-set 'equake-buffer-face)
       (when equake-hide-from-taskbar-choice
         (equake-hide-from-taskbar)))    ; hide equake from taskbar
-    (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers))))) ; filter out irrelevant buffers.
+    (set-window-prev-buffers nil (equake-filter-history (window-prev-buffers) (window-prev-buffers))) ; filter out irrelevant buffers.
+    (raise-frame)))
 
 (defun equake--make-new-frame (monitor-name target-workarea)
   "Make a new Equake frame on monitor MONITOR-NAME.

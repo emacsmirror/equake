@@ -16,8 +16,8 @@
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
 ;; URL: https://gitlab.com/emacsomancer/equake
-;; Package-Version: 0.95
-;; Version: 0.95
+;; Package-Version: 0.96
+;; Version: 0.96
 ;; Package-Requires: ((emacs "26.1") (dash "2.14.1") (tco "20190309.55"))
 ;; Created: 2018-12-12
 ;; Keywords: convenience, frames, terminals, tools, window-system
@@ -181,7 +181,7 @@
 ;;    properties = { titlebars_enabled = false } },
 ;;
 ;;; Advice:
-;; add (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
+;; add (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
 ;; to your settings to prevent accidental closure of equake frames
 
 ;;; Code:
@@ -402,16 +402,33 @@ background colour."
   "Face used for indicating (inferior) `shell' shell type in the mode-line."
   :group 'equake-faces)
 
+(defun equake-kill-emacs-advice (&rest _)
+  "Ask whether a user wants to kill an Equake frame.
+
+Intended as `:before-while' advice for
+`save-buffers-kill-terminal'"
+  (or (not (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name)))
+      (y-or-n-p (concat
+                 "Are you sure you want to close the equake console frame?\n"
+                 "[Advice: Cancel and use `C-x k` to close the buffer or "
+                 "invoke 'bury-buffer' instead, returning to your shell session.]"))))
+
 (defun equake-ask-before-closing-equake ()
   "Make sure user really wants to close Equake, ask again."
   (interactive)
-  (if (y-or-n-p (format "Are you sure you want to close the equake console frame? \n[Advice: Cancel and use `C-x k` to close the buffer or invoke 'bury-buffer' instead, returning to your shell session.]? "))
+  (declare (obsolete equake-kill-emacs-advice "Equake 0.96"))
+  (if (y-or-n-p (concat
+                 "PLEASE, CHANGE YOUR CONFIGURATION FILE TO USE `equake-kill-emacs-advice' "
+                 "INSTEAD OF `equake-check-if-in-equake-frame-before-closing'.\n"
+                 "Are you sure you want to close the equake console frame?\n"
+                 "[Advice: Cancel and use `C-x k` to close the buffer or invoke 'bury-buffer' instead, returning to your shell session.]?"))
       (save-buffers-kill-terminal)
     (print "Wisely cancelling the closing of the equake console frame...")))
 
 (defun equake-check-if-in-equake-frame-before-closing ()
   "Check if we're in an Equake frame."
   (interactive)
+  (declare (obsolete equake-kill-emacs-advice "Equake 0.96"))
   (if (cl-search "*EQUAKE*[" (frame-parameter (selected-frame) 'name))
       (equake-ask-before-closing-equake)
     (save-buffers-kill-terminal)))

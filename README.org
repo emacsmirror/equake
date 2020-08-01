@@ -86,13 +86,19 @@ accomplish via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g
 
 You can install this package from Melpa, including via =use-package=, e.g.
 #+begin_src elisp
-(use-package equake
+  (use-package equake
     :ensure t
-    :config  ; some examples of optional settings follow:
-    (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing) ; prevent accidental frame-closure
-    (setq equake-size-width 0.99) ; set width a bit less than full-screen (prevent 'overflow' on multi-monitor)
-    ;; set distinct face for Equake: white foreground with dark blue background, and different font
-    (set-face-attribute 'equake-buffer-face 'nil :inherit 'default :family "DejaVu Sans Mono" :background "#000022" :foreground "white"))
+    ;; some examples of optional settings follow:
+    :custom
+    ;; set width a bit less than full-screen (prevent 'overflow' on multi-monitor):
+    (equake-size-width 0.99)
+    ;; set distinct face for Equake: white foreground with dark blue background, and different font:
+    :custom-face
+    (equake-buffer-face
+     ((t (:inherit 'default :family "DejaVu Sans Mono" :background "#000022" :foreground "white"))))
+    :config
+    ;; prevent accidental frame closure:
+    (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice))
 #+end_src
 
 ** Quelpa
@@ -103,7 +109,7 @@ You can install this package from Melpa, including via =use-package=, e.g.
     :quelpa (equake :fetcher gitlab :repo "emacsomancer/equake")
     :ensure t
     :config
-    (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing))
+    (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice))
 #+END_SRC
 ** Manual
 Clone the git repo somewhere and get it into your Emacs' load-path, e.g.,
@@ -113,7 +119,7 @@ add something like this to your =init.el= (assuming you put it into
 (add-to-list 'load-path
             "~/.emacs.d/equake/")
 (require 'equake)
-(global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
+(advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
 #+END_SRC
 * Usage
 Run with
@@ -290,6 +296,13 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.96
+   - Deprecate =equake-check-if-in-equake-frame-before-closing= and
+     =equake-ask-before-closing-equake= in favour of
+     =equake-kill-emacs-advice=.
+   - Fix several Windows issues.
+   - Enforce frame rules by Emacs means.
+   - Unify Equake tabs properties access.
 ** v0.95
 Various under-the-hood improvements (thanks to Artem Yurchenko) including the ability to open of Equake frames without any pre-existing emacsclient frames; ability to create Equake frames in terminal mode; simplification of =equake-invoke= function.
 

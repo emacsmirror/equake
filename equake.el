@@ -221,6 +221,10 @@
 (defvar equake-win-history ()
   "A list of buffer history for Equake frames.")
 
+(defvar equake-persistent-display-file
+  (expand-file-name "equake-persistent-display" user-emacs-directory)
+  "A file to store memorized DISPLAY in.")
+
 (defgroup equake ()
   "Equake, a drop-down console for eshell and terminal emulation."
   :group 'shell)
@@ -354,6 +358,12 @@ environment variable."
 (defcustom equake-use-frame-hide 't
   "Hide frames rather than destroying frames."
   :type 'boolean
+  :group 'equake)
+
+(defcustom equake-display-guess-list
+  '(":0" ":1" "w32")
+  "A list of displays to try to connect to, when the actual DISPLAY is not yet known."
+  :type 'list
   :group 'equake)
 
 (defgroup equake-faces nil
@@ -793,10 +803,10 @@ MONITOR-NAME is nil, make a new frame on some monitor."
 When there are no graphical frames on a monitor we can't
 determine explicitly what the monitor name is.  That means we
 can't tell Emacs to create a frame on this exact monitor.  In
-that case we just create some graphical frame (with an utility of
-`(getenv \"DISPLAY\")') and determine a monitor name after the
+this case we just create some graphical frame (with an utility of
+`equake--get-display') and determine a monitor name after the
 fact."
-  (let* ((new-frame (make-frame-on-display (getenv "DISPLAY")))
+  (let* ((new-frame (make-frame-on-display (equake--get-display)))
          (monitor-name (frame-monitor-attribute 'name new-frame))
          (target-workarea (frame-monitor-geometry new-frame))
          (frame-parameters
@@ -890,6 +900,69 @@ OFFSET might be negative."
          (current-index (-elem-index tab-no tab-list))
          (next-index (mod (+ offset current-index) (length tab-list))))
     (elt tab-list next-index)))
+
+;;; DISPLAY guessing
+
+(defun equake--get-display ()
+  "Get a graphical display name.
+
+It's useful when the DISPLAY environment variable is unset or set
+incorrectly.  This issue arises when managing an Emacs daemon with
+systemd.
+
+First, we try to connect to the DISPLAY from the environment.  If
+that doesn't work we try DISPLAY from the persistent file on a
+disk (see `equake--read-display-from-disk').  At last, if
+everything else fails we try possible DISPLAY values from
+`equake-display-guess-list' which can be adjusted by a user.  If
+that fails as well, we signal an error."
+  (let ((candidates `(,(getenv "DISPLAY")
+                      ,(equake--read-display-from-disk)
+                      ,@equake-display-guess-list)))
+    (if-let ((display (-first #'equake--display-exists-p candidates)))
+        display
+      (error "Equake: can't access a working DISPLAY, please, open a graphical frame first"))))
+
+(defun equake--read-display-from-disk ()
+  "Read DISPLAY value from `equake-persistent-display-file'.
+
+See `equake--update-persistent-display-file'."
+  (condition-case nil
+      (with-temp-buffer
+        (insert-file-contents-literally equake-persistent-display-file)
+        (buffer-string))
+    (file-missing nil)))
+
+(defun equake--update-persistent-display-file (frame)
+  "Update a display value in the persistent file based on that of FRAME.
+
+Meant to be hooked to `after-make-frame-functions'.
+
+Since there is no way (known to me) to reliably get a display
+value when it's not set in the environment, we have to use a
+heuristic.  Every time a graphical frame is opened we store its
+display value in `equake-persistent-display-file'.  As long, as
+we don't change a display, this value remains valid and we can
+safely and properly launch Equake at all times.
+
+This approach does not eliminate the problem completely, since
+there is still a corner case when a user tries to invoke Equake
+on a new display before any other graphical frames have been
+launched."
+  (if-let ((display (frame-parameter frame 'display)))
+      (write-region display nil equake-persistent-display-file)))
+
+(add-hook 'after-make-frame-functions #'equake--update-persistent-display-file)
+
+(defun equake--display-exists-p (display)
+  "Check if it's possible to connect to DISPLAY.
+
+For some reason, we need to close connection right after opening
+it, otherwise `make-frame-on-display' just hangs Emacs.  I don't
+know why but I would like to know."
+  (condition-case nil
+      (progn (x-open-connection display) (x-close-connection display) t)
+    (error nil)))
 
 (provide 'equake)
 

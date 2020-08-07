@@ -71,7 +71,7 @@ See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the 
 * Installation
 Unless you're installing via Melpa, make sure you have the following
 external dependencies installed: [[https://github.com/magnars/dash.el][ =dash= ]], [[https://github.com/Wilfred/tco.el][ =tco= ]].  This might be
-accomplish via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g.:
+accomplished via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g.:
  #+begin_src elisp
 (use-package dash
  :ensure t)

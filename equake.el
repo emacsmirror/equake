@@ -16,8 +16,8 @@
 ;; Author: Benjamin Slade <slade@jnanam.net>
 ;; Maintainer: Benjamin Slade <slade@jnanam.net>
 ;; URL: https://gitlab.com/emacsomancer/equake
-;; Package-Version: 0.96
-;; Version: 0.96
+;; Package-Version: 0.97
+;; Version: 0.97
 ;; Package-Requires: ((emacs "26.1") (dash "2.14.1"))
 ;; Created: 2018-12-12
 ;; Keywords: convenience, frames, terminals, tools, window-system
@@ -455,7 +455,11 @@ Needed to assign a new name for a new tab (e.g. its number)")
 (defun equake-new-tab-different-shell ()
   "Open a new shell tab, but using a shell different from the default."
   (interactive)
-    (equake-new-tab (intern (message "%s" (ido-completing-read "Choose shell:" equake-available-shells 'nil 't 'nil 'nil "eshell")))))
+  (equake-new-tab
+   (intern
+    (message "%s"
+             (ido-completing-read "Choose shell:"
+                                  equake-available-shells 'nil 't 'nil 'nil)))))
 
 (defun equake-new-tab (&optional override)
   "Open a new shell tab on monitor, optionally OVERRIDE default shell."
@@ -483,16 +487,16 @@ Needed to assign a new name for a new tab (e.g. its number)")
   "Move current tab one position to the right."
   (interactive)
   (-let* ((monitor (equake--get-tab-property 'monitor))
-          (tab-list (alist-get monitor equake--tab-list)))
-    (equake--shift-item tab-list (current-buffer) +1)
+          (etab-list (alist-get monitor equake--tab-list)))
+    (equake--shift-item etab-list (current-buffer) +1)
     (equake--update-mode-line monitor)))
 
 (defun equake-move-tab-left ()
   "Move current tab one position to the left."
   (interactive)
   (-let* ((monitor (equake--get-tab-property 'monitor))
-          (tab-list (alist-get monitor equake--tab-list)))
-    (equake--shift-item tab-list (current-buffer) -1)
+          (etab-list (alist-get monitor equake--tab-list)))
+    (equake--shift-item etab-list (current-buffer) -1)
     (equake--update-mode-line monitor)))
 
 (defun equake-next-tab ()
@@ -566,14 +570,14 @@ around).
 
 OFFSET might be negative."
   (let* ((offset (or offset +1))
-         (tab-list (alist-get monitor equake--tab-list))
-         (current-index (-elem-index tab tab-list))
-         (next-index (mod (+ offset current-index) (length tab-list))))
-    (elt tab-list next-index)))
+         (etab-list (alist-get monitor equake--tab-list))
+         (current-index (-elem-index tab etab-list))
+         (next-index (mod (+ offset current-index) (length etab-list))))
+    (elt etab-list next-index)))
 
 (defun equake--rename-tab (base-name)
   "Rename the current buffer (presumed Equake tab) to BASE-NAME.
-The actuall buffer name is changed to some unique name that
+The actual buffer name is changed to some unique name that
 includes BASE-NAME."
   (setf (equake--get-tab-property 'tab-name) base-name)
   (let ((monitor (equake--get-tab-property 'monitor)))
@@ -583,8 +587,8 @@ includes BASE-NAME."
 
 (defun equake--update-mode-line (monitor)
   "Update the Equake mode line on MONITOR."
-  (let* ((tab-list (alist-get monitor equake--tab-list))
-         (tabs-part (mapconcat #'equake--format-tab tab-list "  "))
+  (let* ((etab-list (alist-get monitor equake--tab-list))
+         (tabs-part (mapconcat #'equake--format-tab etab-list "  "))
          (initial-part (if equake-show-monitor-in-mode-line
                            (format "%s:" monitor) ""))
          (final-part (equake--style-shell-type major-mode))
@@ -724,9 +728,9 @@ fact."
 
 (defun equake--make-frame-parameters (monitor target-workarea)
   "Make an alist of parameters for an Equake frame.
-Given that frame is going to end up on a monitor MONITOR with
-workarea TARGET-WORKAREA, make an alist of parameters suitable
-for `make-frame' or `modify-frame-parameters'"
+Given that this frame is going to end up on a monitor MONITOR
+with workarea TARGET-WORKAREA, make an alist of parameters
+suitable for `make-frame' or `modify-frame-parameters'"
   (-let* (((mon-xpos mon-ypos mon-width mon-height) target-workarea)
           (x-offset (/ (- mon-width (* mon-width equake-size-width)) 2))
           (frame-xpos (floor (+ mon-xpos x-offset)))
@@ -787,12 +791,12 @@ See `equake--update-persistent-display-file'."
 
 Meant to be hooked to `after-make-frame-functions'.
 
-Since there is no way (known to me) to reliably get a display
-value when it's not set in the environment, we have to use a
-heuristic.  Every time a graphical frame is opened we store its
-display value in `equake-persistent-display-file'.  As long, as
-we don't change a display, this value remains valid and we can
-safely and properly launch Equake at all times.
+Since there is no obvious way to reliably get a display value
+when it's not set in the environment, we have to use a heuristic.
+Every time a graphical frame is opened we store its display value
+in `equake-persistent-display-file'.  As long as we don't change
+a display, this value remains valid and we can safely and
+properly launch Equake at all times.
 
 This approach does not eliminate the problem completely, since
 there is still a corner case when a user tries to invoke Equake
@@ -805,8 +809,8 @@ launched."
   "Check if it's possible to connect to DISPLAY.
 
 For some reason, we need to close connection right after opening
-it, otherwise `make-frame-on-display' just hangs Emacs.  I don't
-know why but I would like to know."
+it, otherwise `make-frame-on-display' just hangs Emacs.  The
+reason remains to be determined."
   (condition-case nil
       (progn (x-open-connection display) (x-close-connection display) t)
     (error nil)))
@@ -826,8 +830,8 @@ know why but I would like to know."
 
 Its purpose is to move selection from non-graphical frames.  Many
 functions for working with monitors implicitly rely on a display
-of a selected frame.  If the frame is non-graphical, they work
-unexpectedly.  This function is designed to be called right
+of a selected frame.  If the frame is non-graphical, they work in
+unexpected ways.  This function is designed to be called right
 before invoking an Equake frame, which is going to change
 selection anyway.  Thus, selection change is of no concern."
   (if-let ((graphic-frame (-first #'display-graphic-p (frame-list))))
@@ -837,7 +841,7 @@ selection anyway.  Thus, selection change is of no concern."
   "Shift ITEM in LIST by SHIFT places.
 
 Perform shifting as if swapping ITEM with its adjacent element
-until ITEM takes the place its supposed to take.
+until ITEM takes the place it's supposed to take.
 
 E.g. (equake--shift-item '(1 2 3 4 5) 1 2)  -> (2 3 1 4 5)
      (equake--shift-item '(1 2 3 4 5) 1 -1) -> (2 3 4 5 1)

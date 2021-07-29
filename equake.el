@@ -532,11 +532,11 @@ Needed to assign a new name for a new tab (e.g. its number)")
       (when (frame-parameter nil 'equakep) ; if we're in an equake frame,
         (switch-to-buffer (equake--find-next-tab monitor killed-tab)))
       (cl-callf2 delq killed-tab (alist-get monitor equake--tab-list))
+      (equake--update-mode-line monitor)
       (when (null (cdr (assoc monitor equake--tab-list))) ;; if no more etabs,
-        ;; (message "no more tabs")
-        (setf (alist-get monitor equake--max-tab-no) 0)
-        (delete-frame (select-frame-by-name (concat "*EQUAKE*[" (symbol-name monitor) "]"))))
-      (equake--update-mode-line monitor))))
+        (setf (alist-get monitor equake--max-tab-no) 0) ;; reset the "highest tab number" and
+        ;; destroy the corresponding equake frame:
+        (delete-frame (select-frame-by-name (concat "*EQUAKE*[" (symbol-name monitor) "]")))))))
 
 (defun equake--tab-p (&optional buffer)
   "Return t if BUFFER is an Equake tab."

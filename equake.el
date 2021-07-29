@@ -530,7 +530,10 @@ Needed to assign a new name for a new tab (e.g. its number)")
     (let ((killed-tab (current-buffer))
           (monitor (equake--get-tab-property 'monitor)))
       (when (frame-parameter nil 'equakep) ; if we're in an equake frame,
-        (switch-to-buffer (equake--find-next-tab monitor killed-tab)))
+        (switch-to-buffer (equake--find-next-tab monitor killed-tab)) ;; switch to next buffer.
+        ;; (when (null (cdr (assoc monitor equake--tab-list))) ;; if no more etabs,
+        ;;   (equake--launch-shell))
+        )                                ;; restart equake in frame
       (cl-callf2 delq killed-tab (alist-get monitor equake--tab-list))
       (equake--update-mode-line monitor))))
 

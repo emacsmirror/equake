@@ -293,14 +293,6 @@
          (define-key equake-mode-map (kbd equake-rename-etab-binding) 'equake-rename-etab))
   :group 'equake-bindings)
 
-(defcustom equake-restore-last-etab-in-frame-binding "C-M-|"
-  "Keybinding for restoring last visited etab in Equake frame."
-  :type 'string
-  :set (lambda (sym defs)
-         (custom-set-default sym defs)
-         (define-key equake-mode-map (kbd equake-restore-last-etab-in-frame-binding) 'equake-restore-last-etab))
-  :group 'equake-bindings)
-
 (defcustom equake-available-shells
   '("eshell"
     "vterm"
@@ -541,7 +533,9 @@ Needed to assign a new name for a new tab (e.g. its number)")
   "Restore last visited etab in Equake frame."
   (interactive)
   (let ((monitor (equake--get-tab-property 'monitor)))
-    (switch-to-buffer (alist-get monitor equake--last-tab))))
+    (if equake-mode
+        (message "Currently in an Equake tab already.")
+        (switch-to-buffer (alist-get monitor equake--last-tab)))))
 
 (defun equake--on-kill-buffer ()
   "Things to do when an Equake buffer is killed." ; TODO: prevent last equake tab from being killed?

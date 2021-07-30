@@ -33,18 +33,20 @@ additional =eshell=-related initialisation. Here is what I'm using:
 somewhere in your =load-path= and then add to your main Emacs
 initialisation file:
 
-=(with-eval-after-load 'eshell (require 'init-eshell))=
-
+#+begin_src elisp
+  (with-eval-after-load 'eshell (require 'init-eshell))
+#+end_src
+  
 I've also been using the [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell#plan-9-smart-shell][Plan 9-like smart display]] which is a built-in
 option of =eshell=.  You can enable this by adding to your Emacs
 initialisation:
-
+  
 #+begin_src elisp
-(require 'eshell)
-(require 'em-smart)
-(add-hook 'eshell-mode-hook 'eshell-smart-initialize)
-(require 'esh-module) ; require modules
-(add-to-list 'eshell-modules-list 'eshell-tramp)
+  (require 'eshell)
+  (require 'em-smart)
+  (add-hook 'eshell-mode-hook 'eshell-smart-initialize)
+  (require 'esh-module) ; require modules
+  (add-to-list 'eshell-modules-list 'eshell-tramp)
 #+end_src
 
 (This also adds the tramp module, which I recommend.)
@@ -95,7 +97,17 @@ You can install this package from Melpa, including via =use-package=, e.g.
      ((t (:inherit 'default :family "DejaVu Sans Mono" :background "#000022" :foreground "white"))))
     :config
     ;; prevent accidental frame closure:
-    (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice))
+    (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
+    ;; binding to restore last Equake tab when viewing a non-Equake buffer
+    (global-set-key (kbd "C-M-^") #'equake-restore-last-etab)
+    ;; set default shell
+    (setq equake-default-shell 'vterm)
+    ;; set list of available shells
+    (setq equake-available-shells
+     '("shell"
+       "vterm"
+       "rash"
+       "eshell")))
 #+end_src
 
 ** Quelpa
@@ -108,6 +120,7 @@ You can install this package from Melpa, including via =use-package=, e.g.
     :config
     (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice))
 #+END_SRC
+
 ** Manual
 Clone the git repo somewhere and get it into your Emacs' load-path, e.g.,
 add something like this to your =init.el= (assuming you put it into
@@ -118,12 +131,14 @@ add something like this to your =init.el= (assuming you put it into
 (require 'equake)
 (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
 #+END_SRC
+
 * Usage
-Run with
+Run with:
 #+BEGIN_SRC shell
 emacsclient -n -e '(equake-invoke)'
 #+END_SRC
-, after launching an Emacs daemon of course.  I recommend binding this
+
+After launching an Emacs daemon of course.  I recommend binding this
 command to a key like F12 in your DE/WM.  Executing this command will
 create a new equake console on your screen the first time, and subsequently
 toggle the console (i.e. hide or show it).
@@ -152,8 +167,7 @@ configurations for other environments).
 
 ** Stumpwm
 The following is a configuration that allows for partial window splits of
-the Equake frame to behave as a floating drop-down window. The following is
-a configuration snippet for your =.stumpwmrc= / =~/.stumpwm.d/init.lisp=
+the Equake frame to behave as a floating drop-down window. The following is a configuration snippet for your =.stumpwmrc= / =~/.stumpwm.d/init.lisp=
 that sets this up, and allows for Equake to work across groups
 ('workspaces'). (It turns out to generally work better to use Stumpwm's
 native ~hide-window~ function rather than Emacs's ~make-frame-invisible~.)
@@ -293,6 +307,9 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.98
+- The Equake frame is destroyed when the last Equake etab associated with the frame is closed, and the tab numbering reset. (Re-invoking Equake after the frame is closed thus, as usual, creates a new frame. Tab numbering starts at '1' again.)
+- Add a convenience function, =equake-restore-last-etab=, to switch to the last used Equake etab when an Equake frame is viewing a non-Equake buffer (e.g. user has opened a file in the Equake frame). I recommend adding a keybinding for this. Perhaps to =C-M-^= (see recommended config above).
 ** v0.96
    - Deprecate =equake-check-if-in-equake-frame-before-closing= and
      =equake-ask-before-closing-equake= in favour of

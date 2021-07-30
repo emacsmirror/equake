@@ -293,6 +293,14 @@
          (define-key equake-mode-map (kbd equake-rename-etab-binding) 'equake-rename-etab))
   :group 'equake-bindings)
 
+(defcustom equake-restore-last-etab-in-frame-binding "C-M-|"
+  "Keybinding for restoring last visited etab in Equake frame."
+  :type 'string
+  :set (lambda (sym defs)
+         (custom-set-default sym defs)
+         (define-key equake-mode-map (kbd equake-restore-last-etab-in-frame-binding) 'equake-restore-last-etab))
+  :group 'equake-bindings)
+
 (defcustom equake-available-shells
   '("eshell"
     "vterm"
@@ -350,6 +358,11 @@ environment variable."
   '(":0" ":1" "w32")
   "A list of displays to try to connect to, when the actual DISPLAY is not yet known."
   :type 'list
+  :group 'equake)
+
+(defcustom equake-close-frame-after-last-etab-closes 't
+  "Whether or not to close the Equake frame after the last etab is closed."
+  :type 'boolean
   :group 'equake)
 
 (defgroup equake-faces nil
@@ -524,6 +537,12 @@ Needed to assign a new name for a new tab (e.g. its number)")
               (new-name (read-string "Enter a new tab name: " nil nil old-name)))
     (equake--rename-tab new-name)))
 
+(defun equake-restore-last-etab ()
+  "Restore last visited etab in Equake frame."
+  (interactive)
+  (let ((monitor (equake--get-tab-property 'monitor)))
+    (switch-to-buffer (alist-get monitor equake--last-tab))))
+
 (defun equake--on-kill-buffer ()
   "Things to do when an Equake buffer is killed." ; TODO: prevent last equake tab from being killed?
   (when equake-mode
@@ -533,7 +552,8 @@ Needed to assign a new name for a new tab (e.g. its number)")
         (switch-to-buffer (equake--find-next-tab monitor killed-tab)))
       (cl-callf2 delq killed-tab (alist-get monitor equake--tab-list))
       (equake--update-mode-line monitor)
-      (when (null (cdr (assoc monitor equake--tab-list))) ;; if no more etabs,
+      (when (and equake-close-frame-after-last-etab-closes ;; if user-chosen and  
+                 (null (cdr (assoc monitor equake--tab-list)))) ;; if no more etabs,
         (setf (alist-get monitor equake--max-tab-no) 0) ;; reset the "highest tab number" and
         ;; destroy the corresponding equake frame:
         (delete-frame (select-frame-by-name (concat "*EQUAKE*[" (symbol-name monitor) "]")))))))

@@ -33,18 +33,20 @@ additional =eshell=-related initialisation. Here is what I'm using:
 somewhere in your =load-path= and then add to your main Emacs
 initialisation file:
 
-=(with-eval-after-load 'eshell (require 'init-eshell))=
-
+#+begin_src elisp
+  (with-eval-after-load 'eshell (require 'init-eshell))
+#+end_src
+  
 I've also been using the [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell#plan-9-smart-shell][Plan 9-like smart display]] which is a built-in
 option of =eshell=.  You can enable this by adding to your Emacs
 initialisation:
-
+  
 #+begin_src elisp
-(require 'eshell)
-(require 'em-smart)
-(add-hook 'eshell-mode-hook 'eshell-smart-initialize)
-(require 'esh-module) ; require modules
-(add-to-list 'eshell-modules-list 'eshell-tramp)
+  (require 'eshell)
+  (require 'em-smart)
+  (add-hook 'eshell-mode-hook 'eshell-smart-initialize)
+  (require 'esh-module) ; require modules
+  (add-to-list 'eshell-modules-list 'eshell-tramp)
 #+end_src
 
 (This also adds the tramp module, which I recommend.)
@@ -70,13 +72,10 @@ See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the 
 
 * Installation
 Unless you're installing via Melpa, make sure you have the following
-external dependencies installed: [[https://github.com/magnars/dash.el][ =dash= ]], [[https://github.com/Wilfred/tco.el][ =tco= ]].  This might be
-accomplish via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g.:
+external dependencies installed: [[https://github.com/magnars/dash.el][ =dash= ]].  This might be
+accomplished via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g.:
  #+begin_src elisp
 (use-package dash
- :ensure t)
-
-(use-package tco
  :ensure t)
  #+end_src
 ** Melpa
@@ -86,13 +85,29 @@ accomplish via [[https://github.com/jwiegley/use-package][ =use-package= ]], e.g
 
 You can install this package from Melpa, including via =use-package=, e.g.
 #+begin_src elisp
-(use-package equake
+  (use-package equake
     :ensure t
-    :config  ; some examples of optional settings follow:
-    (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing) ; prevent accidental frame-closure
-    (setq equake-size-width 0.99) ; set width a bit less than full-screen (prevent 'overflow' on multi-monitor)
-    ;; set distinct face for Equake: white foreground with dark blue background, and different font
-    (set-face-attribute 'equake-buffer-face 'nil :inherit 'default :family "DejaVu Sans Mono" :background "#000022" :foreground "white"))
+    ;; some examples of optional settings follow:
+    :custom
+    ;; set width a bit less than full-screen (prevent 'overflow' on multi-monitor):
+    (equake-size-width 0.99)
+    ;; set distinct face for Equake: white foreground with dark blue background, and different font:
+    :custom-face
+    (equake-buffer-face
+     ((t (:inherit 'default :family "DejaVu Sans Mono" :background "#000022" :foreground "white"))))
+    :config
+    ;; prevent accidental frame closure:
+    (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
+    ;; binding to restore last Equake tab when viewing a non-Equake buffer
+    (global-set-key (kbd "C-M-^") #'equake-restore-last-etab)
+    ;; set default shell
+    (setq equake-default-shell 'vterm)
+    ;; set list of available shells
+    (setq equake-available-shells
+     '("shell"
+       "vterm"
+       "rash"
+       "eshell")))
 #+end_src
 
 ** Quelpa
@@ -103,8 +118,9 @@ You can install this package from Melpa, including via =use-package=, e.g.
     :quelpa (equake :fetcher gitlab :repo "emacsomancer/equake")
     :ensure t
     :config
-    (global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing))
+    (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice))
 #+END_SRC
+
 ** Manual
 Clone the git repo somewhere and get it into your Emacs' load-path, e.g.,
 add something like this to your =init.el= (assuming you put it into
@@ -113,14 +129,16 @@ add something like this to your =init.el= (assuming you put it into
 (add-to-list 'load-path
             "~/.emacs.d/equake/")
 (require 'equake)
-(global-set-key (kbd "C-x C-c") 'equake-check-if-in-equake-frame-before-closing)
+(advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
 #+END_SRC
+
 * Usage
-Run with
+Run with:
 #+BEGIN_SRC shell
 emacsclient -n -e '(equake-invoke)'
 #+END_SRC
-, after launching an Emacs daemon of course.  I recommend binding this
+
+After launching an Emacs daemon of course.  I recommend binding this
 command to a key like F12 in your DE/WM.  Executing this command will
 create a new equake console on your screen the first time, and subsequently
 toggle the console (i.e. hide or show it).
@@ -149,8 +167,7 @@ configurations for other environments).
 
 ** Stumpwm
 The following is a configuration that allows for partial window splits of
-the Equake frame to behave as a floating drop-down window. The following is
-a configuration snippet for your =.stumpwmrc= / =~/.stumpwm.d/init.lisp=
+the Equake frame to behave as a floating drop-down window. The following is a configuration snippet for your =.stumpwmrc= / =~/.stumpwm.d/init.lisp=
 that sets this up, and allows for Equake to work across groups
 ('workspaces'). (It turns out to generally work better to use Stumpwm's
 native ~hide-window~ function rather than Emacs's ~make-frame-invisible~.)
@@ -290,6 +307,17 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.98
+- The Equake frame is destroyed when the last Equake etab associated with the frame is closed, and the tab numbering reset. (Re-invoking Equake after the frame is closed thus, as usual, creates a new frame. Tab numbering starts at '1' again.)
+- Add a convenience function, =equake-restore-last-etab=, to switch to the last used Equake etab when an Equake frame is viewing a non-Equake buffer (e.g. user has opened a file in the Equake frame). I recommend adding a keybinding for this. Perhaps to =C-M-^= (see recommended config above).
+- Another new convenience function, =equake-close-tab-without-query=, closes the current Equake tab (only if the current buffer is, in fact, an Equake tab) without prompting for further confirmations about running processes and so on. It's bound to =C-M-_= by default.
+** v0.96
+   - Deprecate =equake-check-if-in-equake-frame-before-closing= and
+     =equake-ask-before-closing-equake= in favour of
+     =equake-kill-emacs-advice=.
+   - Fix several Windows issues.
+   - Enforce frame rules by Emacs means.
+   - Unify Equake tabs properties access.
 ** v0.95
 Various under-the-hood improvements (thanks to Artem Yurchenko) including the ability to open of Equake frames without any pre-existing emacsclient frames; ability to create Equake frames in terminal mode; simplification of =equake-invoke= function.
 

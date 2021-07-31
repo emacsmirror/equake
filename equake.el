@@ -293,6 +293,14 @@
          (define-key equake-mode-map (kbd equake-rename-etab-binding) 'equake-rename-etab))
   :group 'equake-bindings)
 
+(defcustom equake-close-tab-binding "C-M-_"
+  "Keybinding for closing current Equake tab."
+  :type 'string
+  :set (lambda (sym defs)
+         (custom-set-default sym defs)
+         (define-key equake-mode-map (kbd equake-close-tab-binding) 'equake-close-tab-without-query))
+  :group 'equake-binding)
+
 (defcustom equake-available-shells
   '("eshell"
     "vterm"
@@ -536,6 +544,14 @@ Needed to assign a new name for a new tab (e.g. its number)")
     (if equake-mode
         (message "Currently in an Equake tab already.")
         (switch-to-buffer (alist-get monitor equake--last-tab)))))
+
+(defun equake-close-tab-without-query ()
+  "Close the current Equake tab/buffer without querying."
+  (interactive)
+  (if (equake--tab-p)
+      (let ((kill-buffer-query-functions nil))
+        (kill-buffer (current-buffer)))
+    (message "Not an Equake tab.")))
 
 (defun equake--on-kill-buffer ()
   "Things to do when an Equake buffer is killed." ; TODO: prevent last equake tab from being killed?

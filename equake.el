@@ -564,7 +564,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
       (equake--update-mode-line monitor)
       (when (and equake-close-frame-after-last-etab-closes ;; if user-chosen and  
                  (null (cdr (assoc monitor equake--tab-list)))) ;; if no more etabs,
-        (setf (alist-get monitor equake--max-tab-no) 0) ;; reset the "highest tab number" and
+        (setf (alist-get monitor equake--max-tab-no) -1) ;; reset the "highest tab number" and
         ;; destroy the corresponding equake frame:
         (delete-frame (select-frame-by-name (concat "*EQUAKE*[" (symbol-name monitor) "]")))))))
 

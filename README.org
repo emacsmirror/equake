@@ -296,8 +296,9 @@ and ~ns~ (NextStep/Mac), so in theory these should also work with
 | C-+     | Add new tab using default shell  |
 | C-M-+   | Add new tab with arbitrary shell |
 | C-\vert | Rename tab                       |
+| C-M-_   | Close tab (without confirmation) |
 
-These are customisable via =customize=, as are other attributes.
+These are customisable via =customize=, as are other attributes. (I suggest also adding =(global-set-key (kbd "C-M-^") #'equake-restore-last-etab)= or similar to quickly switch back to your last used Equake tab in case you opened a non-Equake buffer in the Equake frame.)
 
 You can also customise faces, e.g. via:
 #+begin_src elisp

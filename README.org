@@ -309,7 +309,7 @@ You can also customise faces, e.g. via:
 
 * Changelog
 ** v0.98
-- The Equake frame is destroyed when the last Equake etab associated with the frame is closed, and the tab numbering reset. (Re-invoking Equake after the frame is closed thus, as usual, creates a new frame. Tab numbering starts at '1' again.)
+- The Equake frame is destroyed when the last Equake etab associated with the frame is closed, and the tab numbering reset. (Re-invoking Equake after the frame is closed thus, as usual, creates a new frame. Tab numbering starts at '0' again.)
 - Add a convenience function, =equake-restore-last-etab=, to switch to the last used Equake etab when an Equake frame is viewing a non-Equake buffer (e.g. user has opened a file in the Equake frame). I recommend adding a keybinding for this. Perhaps to =C-M-^= (see recommended config above).
 - Another new convenience function, =equake-close-tab-without-query=, closes the current Equake tab (only if the current buffer is, in fact, an Equake tab) without prompting for further confirmations about running processes and so on. It's bound to =C-M-_= by default.
 ** v0.96

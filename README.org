@@ -174,38 +174,27 @@ native ~hide-window~ function rather than Emacs's ~make-frame-invisible~.)
 I highly recommend adopting the mouse focus behaviour shown below.
 
 #+begin_src lisp
-(defun calc-equake-width ()
-  (let ((screen-width (caddr (with-input-from-stringp (s (run-shell-command (concat emacsclient-launch " -n -e '(equake--get-monitor-property 'workarea t)'") t)) (read s))))
-        (desired-width-perc (read-from-string (run-shell-command (concat emacsclient-location " -n -e 'equake-size-width'") t))))
-    (truncate (* screen-width desired-width-perc))))
-
-(defun calc-equake-height ()
-  (let ((screen-height (cadddr (with-input-from-string (s (run-shell-command (concat emacsclient-location " -n -e '(equake--get-monitor-property 'workarea t)'") t)) (read s))))
-        (desired-height-perc (read-from-string (run-shell-command (concat emacsclient-location " -n -e 'equake-size-height'") t))))
-    (truncate (* screen-height desired-height-perc))))
-
-(setf *equake-width* 1368)
-(setf *equake-height* 768)
+(defun calc-screen-dimensions ()
+  (mapcar (lambda (dim) (parse-integer dim)) (split-sequence:SPLIT-SEQUENCE #\x (string-trim '(#\newline) (run-shell-command "xdpyinfo | awk '/dimensions/{print $2}'" t)))))
 
 (defcommand invoke-equake () ()
   "Raise/lower Equake drop-down console."
   (let* ((on-top-windows (group-on-top-windows (current-group)))
-         (equake-on-top (find-equake-in-group on-top-windows)))
+         (equake-on-top (find-equake-in-group on-top-windows))
+         (equake-width (car (calc-screen-dimensions)))
+         (equake-height (round (* .40 (cadr (calc-screen-dimensions))))))
     (when (and equake-on-top (not (find-equake-globally (screen-groups (current-screen)))))
       (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
-    (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))
+    (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))  
         (progn (if (eq (find-class 'float-group) (class-of (current-group)))
                    (when (> (length (group-windows (current-group))) 1)
                      (xwin-hide equake-on-top))
                    (progn (unfloat-window equake-on-top (current-group))
                           (hide-window equake-on-top))) ;; then hide Equake window via native Stumpwm method.)
-               (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
+               (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows))) 
         (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
           (if (not found-equake)          ; If Equake cannot be found,
-              (progn
-                (run-shell-command (concat emacsclient-location " -n -e '(equake-invoke)'")) ; then invoke Equake via emacs function.
-                (setf *equake-height* (calc-equake-height)) ; delay calculation of height & width setting until 1st time equake invoked
-                (setf *equake-width* (calc-equake-width))) ; (otherwise Emacs may not be fully loaded)
+              (run-shell-command (concat emacsclient-location " -n -e '(equake-invoke)'"))  
               (progn (unless (eq (current-group) (window-group found-equake)) ; But if Equake window is found, and if it's in a different group
                        (move-window-to-group found-equake (current-group)))   ; move it to the current group,
                      (if (eq (find-class 'float-group) (class-of (current-group)))
@@ -214,7 +203,7 @@ I highly recommend adopting the mouse focus behaviour shown below.
                                 ;; (unfloat-window found-equake (current-group)) ;; in case in floating group
                                 (raise-window found-equake)
                                 (float-window found-equake (current-group)))) ; float window
-                     (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width *equake-width* :height *equake-height*) ; set size
+                     (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width equake-width :height equake-height) ; set size
                      (focus-window found-equake)
                      (push found-equake (group-on-top-windows (current-group))))))))) ; make on top
 

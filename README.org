@@ -198,7 +198,7 @@ I highly recommend adopting the mouse focus behaviour shown below.
         (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
           (if (not found-equake)          ; If Equake cannot be found,
               (progn (run-shell-command "emacsclient -n -e '(equake-invoke)'"))  
-p              (progn (unless (eq (current-group) (window-group found-equake)) ; But if Equake window is found, and if it's in a different group
+              (progn (unless (eq (current-group) (window-group found-equake)) ; But if Equake window is found, and if it's in a different group
                        (move-window-to-group found-equake (current-group)))   ; move it to the current group,
                      (if (eq (find-class 'float-group) (class-of (current-group)))
                          (xwin-unhide (window-xwin found-equake) (window-parent found-equake))

@@ -231,6 +231,11 @@
   :group 'equake
   :type 'boolean)
 
+(defcustom equake-open-non-terminal-in-new-frame nil
+  "If non-nil, then redirect non-terminal buffers to new frame."
+  :group 'equake
+  :type 'boolean)
+
 (defun equake-inhibit-message-locally ()
   "Set `inhibit-message' buffer-locally."
   (if equake-inhibit-message-choice
@@ -442,6 +447,16 @@ Intended as `:before-while' advice for
       (equake-ask-before-closing-equake)
     (save-buffers-kill-terminal)))
 
+(defun equake--open-in-new-frame (buffer alist)
+  (and (symbolp 'equake-mode)
+       (symbol-value 'equake-mode)
+       equake-open-non-terminal-in-new-frame))
+
+(setq display-buffer-alist
+      (append display-buffer-alist
+      '((equake--open-in-new-frame . ((display-buffer-reuse-window display-buffer-pop-up-frame) . ((reusable-frames . 0)))
+))))
+
 (defun equake-invoke ()
   "Toggle Equake frames.
 Run with \"emacsclient -n -e '(equake-invoke)'\"."
@@ -477,7 +492,8 @@ Needed to assign a new name for a new tab (e.g. its number)")
 (defun equake-new-tab (&optional override)
   "Open a new shell tab on monitor, optionally OVERRIDE default shell."
   (interactive)
-  (let ((launchshell (or override equake-default-shell)))
+  (let ((launchshell (or override equake-default-shell))
+        (equake-open-non-terminal-in-new-frame nil))
     (if (not (equake--launch-shell launchshell))
         (let ((inhibit-message t))
           (message "No such shell or relevant shell not installed."))
@@ -516,7 +532,8 @@ Needed to assign a new name for a new tab (e.g. its number)")
   "Switch to the next tab."
   (interactive)
   (-let* ((monitor (equake--get-tab-property 'monitor))
-          (next-tab (equake--find-next-tab monitor (current-buffer))))
+          (next-tab (equake--find-next-tab monitor (current-buffer)))
+          (equake-open-non-terminal-in-new-frame nil))
     (if (eq next-tab (current-buffer))
         (print "No other tab to switch to.")
       (switch-to-buffer next-tab))))
@@ -525,7 +542,8 @@ Needed to assign a new name for a new tab (e.g. its number)")
   "Switch to the previous tab."
   (interactive)
   (-let* ((monitor (equake--get-tab-property 'monitor))
-          (prev-tab (equake--find-next-tab monitor (current-buffer) -1)))
+          (prev-tab (equake--find-next-tab monitor (current-buffer) -1))
+          (equake-open-non-terminal-in-new-frame nil))
     (if (eq prev-tab (current-buffer))
         (print "No other tab to switch to.")
       (switch-to-buffer prev-tab))))

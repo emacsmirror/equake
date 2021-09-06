@@ -804,7 +804,8 @@ suitable for `make-frame' or `modify-frame-parameters'"
 
           (cons 'auto-raise t)
           (cons 'skip-taskbar equake-hide-from-taskbar-choice)
-          (cons 'undecorated t))))
+          (cons 'undecorated t)
+          (cons 'fullscreen nil))))
 
 ;;; DISPLAY guessing
 

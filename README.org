@@ -3,43 +3,25 @@
 
 [[./image/equake.png]]
 
-=equake= is a drop-down console in the style of the old (?)  drop-down
-'cheat' consoles in games like Quake, similar to Guake or Yakuake, but
-written fully in Elisp.
+=equake= is a drop-down console in the style of the old (?)  drop-down 'cheat' consoles in games like Quake, similar to Guake or Yakuake, but written fully in Elisp.
 
-I wanted to have a Lisp shell and a Lisp console interface to that
-shell. Of course, =eshell= is already 99% of this, but having a tabbed
-drop-down console feels useful to me, though it may just be what I'm used
-to.
+I wanted to have a Lisp shell and a Lisp console interface to that shell. Of course, =eshell= is already 99% of this, but having a tabbed drop-down console feels useful to me, though it may just be what I'm used to.
 
-Thus the motivation for its creation was to easily swap =eshell= into a
-workflow habituated to drop-down terminal emulators, but it can be used
-also with =shell=, =ansi-term=, =term=, [[https://github.com/akermu/emacs-libvterm][vterm]] or [[http://rash-lang.org/][rash]]. And different tabs
-can be opened using different shells (i.e. you could have one tab running
-=eshell=, one running =ansi-term=, and so on and so forth).
+Thus the motivation for its creation was to easily swap =eshell= into a workflow habituated to drop-down terminal emulators, but it can be used also with =shell=, =ansi-term=, =term=, [[https://github.com/akermu/emacs-libvterm][vterm]] or [[http://rash-lang.org/][rash]]. And different tabs can be opened using different shells (i.e. you could have one tab running =eshell=, one running =ansi-term=, and so on and so forth).
 
-=vterm= is not currently included in Emacs by default, but I would highly
-recommend using it in place of any/all of =ansi-term=, =term=, =shell=, as
-it effectively subsumes and supersedes the uses of these. (In my personal
-config I only have =eshell=, =vterm=, and =rash= enabled.)
+=vterm= is not currently included in Emacs by default, but I would highly recommend using it in place of any/all of =ansi-term=, =term=, =shell=, as it effectively subsumes and supersedes the uses of these. (In my personal config I only have =eshell=, =vterm=, and =rash= enabled.)
 
 =rash= is a shell implemented in Racket, and requires Racket to be
 installed and then the installation of =rash= itself (e.g. via =raco pkg
 install rash=).
 
-In order to have a better =eshell= experience, I would recommend using some
-additional =eshell=-related initialisation. Here is what I'm using:
-[[https://gitlab.com/emacsomancer/init-eshell.el][https://gitlab.com/emacsomancer/init-eshell.el]]. You could clone this
-somewhere in your =load-path= and then add to your main Emacs
-initialisation file:
+In order to have a better =eshell= experience, I would recommend using some additional =eshell=-related initialisation. Here is what I'm using: [[https://gitlab.com/emacsomancer/init-eshell.el][https://gitlab.com/emacsomancer/init-eshell.el]]. You could clone this somewhere in your =load-path= and then add to your main Emacs initialisation file:
 
 #+begin_src elisp
   (with-eval-after-load 'eshell (require 'init-eshell))
 #+end_src
   
-I've also been using the [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell#plan-9-smart-shell][Plan 9-like smart display]] which is a built-in
-option of =eshell=.  You can enable this by adding to your Emacs
-initialisation:
+I've also been using the [[https://www.masteringemacs.org/article/complete-guide-mastering-eshell#plan-9-smart-shell][Plan 9-like smart display]] which is a built-in option of =eshell=.  You can enable this by adding to your Emacs initialisation:
   
 #+begin_src elisp
   (require 'eshell)
@@ -51,10 +33,7 @@ initialisation:
 
 (This also adds the tramp module, which I recommend.)
 
-Equake also uses built-in Emacs functionality to probe for screen sizes via
-the =frame.el= library, which potential means it should work
-cross-platform, as =frame.el= defines frame-types =\'ns= (Next Step,
-i.e. Mac) and =\'w32= (Windows).
+Equake also uses built-in Emacs functionality to probe for screen sizes via the =frame.el= library, which potential means it should work cross-platform, as =frame.el= defines frame-types =\'ns= (Next Step, i.e. Mac) and =\'w32= (Windows).
 
 
 See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the Babbage Files blog post]].
@@ -166,12 +145,7 @@ to be made to work on most DEs/WMs (I welcome information on appropriate
 configurations for other environments).
 
 ** Stumpwm
-The following is a configuration that allows for partial window splits of
-the Equake frame to behave as a floating drop-down window. The following is a configuration snippet for your =.stumpwmrc= / =~/.stumpwm.d/init.lisp=
-that sets this up, and allows for Equake to work across groups
-('workspaces'). (It turns out to generally work better to use Stumpwm's
-native ~hide-window~ function rather than Emacs's ~make-frame-invisible~.)
-I highly recommend adopting the mouse focus behaviour shown below.
+The following is a configuration that allows for partial window splits of the Equake frame to behave as a floating drop-down window. The following is a configuration snippet for your =.stumpwmrc= / =~/.stumpwm.d/init.lisp= that sets this up, and allows for Equake to work across groups ('workspaces'). (It turns out to generally work better to use Stumpwm's native ~hide-window~ function rather than Emacs's ~make-frame-invisible~.)  I highly recommend adopting the mouse focus behaviour shown below.
 
 #+begin_src lisp
 (defun calc-screen-dimensions ()
@@ -300,14 +274,14 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.985
+- When =equake-open-non-terminal-in-new-frame= is set to =t= Equake is prevented from opening non-Equake buffers inside of an Equake frame, instead redirecting these to new frames.
 ** v0.98
 - The Equake frame is destroyed when the last Equake etab associated with the frame is closed, and the tab numbering reset. (Re-invoking Equake after the frame is closed thus, as usual, creates a new frame. Tab numbering starts at '0' again.)
 - Add a convenience function, =equake-restore-last-etab=, to switch to the last used Equake etab when an Equake frame is viewing a non-Equake buffer (e.g. user has opened a file in the Equake frame). I recommend adding a keybinding for this. Perhaps to =C-M-^= (see recommended config above).
 - Another new convenience function, =equake-close-tab-without-query=, closes the current Equake tab (only if the current buffer is, in fact, an Equake tab) without prompting for further confirmations about running processes and so on. It's bound to =C-M-_= by default.
 ** v0.96
-   - Deprecate =equake-check-if-in-equake-frame-before-closing= and
-     =equake-ask-before-closing-equake= in favour of
-     =equake-kill-emacs-advice=.
+   - Deprecate =equake-check-if-in-equake-frame-before-closing= and =equake-ask-before-closing-equake= in favour of =equake-kill-emacs-advice=.
    - Fix several Windows issues.
    - Enforce frame rules by Emacs means.
    - Unify Equake tabs properties access.
@@ -321,93 +295,42 @@ Added support for =vterm= and =rash=.
 ** v0.86
 Added Stumpwm configuration details.
 ** v0.85
-Added (back) a 'non-destructive' method of raising the Equake frame, and
-made this the default. (The old behaviour can be re-enabled by setting
-=equake-use-frame-hide= to =⁣'nil=, in case the ~make-frame-(in)visible~
-functions don't work well for you.) Also added a faster method of detecting
-which screen is active for multi-monitor users. This only works on X11
-(i.e. not Windows/MacOS or Wayland [as far as I know, at least; you're
-welcome to test this assumption], and is *not* default. To enable this, set
-=equake-use-xdotool-probe= to =⁣'t= (and make sure =xdotool= is available on
-your system).
+Added (back) a 'non-destructive' method of raising the Equake frame, and made this the default. (The old behaviour can be re-enabled by setting =equake-use-frame-hide= to =⁣'nil=, in case the ~make-frame-(in)visible~ functions don't work well for you.) Also added a faster method of detecting which screen is active for multi-monitor users. This only works on X11 (i.e. not Windows/MacOS or Wayland [as far as I know, at least; you're welcome to test this assumption], and is *not* default. To enable this, set =equake-use-xdotool-probe= to =⁣'t= (and make sure =xdotool= is available on your system).
 ** v0.8
 First MELPA release.
 ** v0.73
-Cleaned up code (including proper implementation of tail-call
-optimisation), removed unused functions, remove hard-coded hijacking of
-=C-x C-c=. Updated docs to include information on improving the =eshell=
-experience.
+Cleaned up code (including proper implementation of tail-call optimisation), removed unused functions, remove hard-coded hijacking of =C-x C-c=. Updated docs to include information on improving the =eshell= experience.
 ** v0.51
-Note, *don't* use ~(left . 0) (top . 0)~ in your launching command (as
-previously advised), as this may interfere with launching pthe equake frame
-on the correct screen.
+Note, *don't* use ~(left . 0) (top . 0)~ in your launching command (as previously advised), as this may interfere with launching pthe equake frame on the correct screen.
 ** v0.50
-Cleaned up code a bit more, removing unneeded functions. Orphaning tab
-functions remain, but are not currently used. These could be useful if
-repurposed to "clearing out" tabs. Still need to track down transitory
-mirroring of separate =equake= frames on multi-monitor.
+Cleaned up code a bit more, removing unneeded functions. Orphaning tab functions remain, but are not currently used. These could be useful if repurposed to "clearing out" tabs. Still need to track down transitory mirroring of separate =equake= frames on multi-monitor.
 ** v0.49
 General *overall* speed improvements. The multi-monitor workaround via
 #+begin_src emacs-lisp
 emacsclient -n -c -e '(equake-invoke)' -F '((title . "*transient*") (alpha . (0 . 0)) (width . (text-pixels . 0)) (height . (text-pixels . 0)) (left . 0) (top . 0))'
 #+end_src
+
 is now nearly as fast as running with the simpler
+
 #+begin_src emacs-lisp
 emacsclient -n -e '(equake-invoke)'
 #+end_src
-is. The latter is now *slightly* slower due to migration away from use of
-~make-frame-(in)visible~, and adoption of general use of ~delete-frame~
-when toggling an equake frame off. Unfortunately, ~make-frame-invisible~
-seems very buggy. Applying ~make-frame-invisible~ to a frame once appears
-to render it invisible, but Emacs still considers it to be visible, which
-means that ~frame-visible-p~ will still report the frame as being visible
-and functions like ~make-frame-visible~ and ~raise-frame~ will have no
-effect upon the frame in question.  Only a second application of
-~make-frame-invisible~ will register the frame as reportably invisible to
-Emacs. This is easily enough worked-around simply by a 'double tap' of
-~make-frame-invisible~. Unfortunately, there appear to be numerous other
-problems with Emacs visibility system. For instance, frames that are less
-than 100% width end up re-appearing in a position other than their original
-position, and frames sometimes spontaneously resize when
-re-appearing. Worse yet, applying ~set-frame-position~ on such
-malpositioned frames results in significant lag.
 
-So adopting ~destroy-frame~ as a general solution ended up being the best
-solution. This requires being able to remember the last used buffer and
-also the window-buffer-history, but I had implemented these features
-independently in case of accidental frame destruction.
+is. The latter is now *slightly* slower due to migration away from use of ~make-frame-(in)visible~, and adoption of general use of ~delete-frame~ when toggling an equake frame off. Unfortunately, ~make-frame-invisible~ seems very buggy. Applying ~make-frame-invisible~ to a frame once appears to render it invisible, but Emacs still considers it to be visible, which means that ~frame-visible-p~ will still report the frame as being visible and functions like ~make-frame-visible~ and ~raise-frame~ will have no effect upon the frame in question.  Only a second application of ~make-frame-invisible~ will register the frame as reportably invisible to Emacs. This is easily enough worked-around simply by a 'double tap' of ~make-frame-invisible~. Unfortunately, there appear to be numerous other problems with Emacs visibility system. For instance, frames that are less than 100% width end up re-appearing in a position other than their original position, and frames sometimes spontaneously resize when re-appearing. Worse yet, applying ~set-frame-position~ on such malpositioned frames results in significant lag.
 
-This also means that I think I have fixed the remaining bugs in the
-implementation of the restoration of the last-used buffer and the frame
-window's buffer-history.
+So adopting ~destroy-frame~ as a general solution ended up being the best solution. This requires being able to remember the last used buffer and also the window-buffer-history, but I had implemented these features independently in case of accidental frame destruction.
+
+This also means that I think I have fixed the remaining bugs in the implementation of the restoration of the last-used buffer and the frame window's buffer-history.
 ** v0.45
-There is now a better (though not perfect) solution for multi-monitor
-set-ups, described above. It uses an 'emacs probe' to determine which
-monitor the focus is on. It's a bit slower than the 'default' method, so
-I'm still looking for better solutions.
+There is now a better (though not perfect) solution for multi-monitor set-ups, described above. It uses an 'emacs probe' to determine which monitor the focus is on. It's a bit slower than the 'default' method, so I'm still looking for better solutions.
 ** v0.4
-I have made a number of improvements since the last major push to Gitlab.
-Speed is much improved, and equake now tries to restore tabs rather than
-orphan them when the equake frame is forcibly closed.
+I have made a number of improvements since the last major push to Gitlab.  Speed is much improved, and equake now tries to restore tabs rather than orphan them when the equake frame is forcibly closed.
 
-I'm not entirely sure how to improve multi-monitor behaviour, though I do
-have a couple of ideas. One is to try (again) to have equake launch with a
-'probe' emacsclient to make sure we're on the right screen. The other
-(non-exclusive) thing I plan to try is to query emacs focus and possibly
-raise non-active frames on the same screen (similar to how [[https://github.com/alphapapa/yequake][yequake]]
-does). Other suggestions welcome.
+I'm not entirely sure how to improve multi-monitor behaviour, though I do have a couple of ideas. One is to try (again) to have equake launch with a 'probe' emacsclient to make sure we're on the right screen. The other (non-exclusive) thing I plan to try is to query emacs focus and possibly raise non-active frames on the same screen (similar to how [[https://github.com/alphapapa/yequake][yequake]] does). Other suggestions welcome.
 ** v0.3
-Lots of things seem to work well, but multi-monitor can still be a bit
-fussy: equake doesn't always want to open on the 'active' monitor, and it
-seems to want an emacsclient frame to already be open somewhere on the
-screen. Each screen/monitor gets its own list of tabs. Whether this is
-desired behaviour or not is perhaps questionable: but I got used to the way
-that AwesomeWM functioned, where monitor behaved independently with its own
-set of virtual desktops &c., and the current equake design preserves a
-small measure of this behaviour.
+Lots of things seem to work well, but multi-monitor can still be a bit fussy: equake doesn't always want to open on the 'active' monitor, and it seems to want an emacsclient frame to already be open somewhere on the screen. Each screen/monitor gets its own list of tabs. Whether this is desired behaviour or not is perhaps questionable: but I got used to the way that AwesomeWM functioned, where monitor behaved independently with its own set of virtual desktops &c., and the current equake design preserves a small measure of this behaviour.
 
-=customize= should reveal a number of customisable features, including
-default shell (=eshell=, =shell=, =ansi-term=, =term=), and colours.
+=customize= should reveal a number of customisable features, including default shell (=eshell=, =shell=, =ansi-term=, =term=), and colours.
 
 * Credits
 - This was developed in part as an emacs-internal solution to what noctuid's [[https://github.com/noctuid/tdrop][tdrop]] application does in terms of raising/hiding frames.

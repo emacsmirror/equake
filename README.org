@@ -238,16 +238,34 @@ The following is a configuration that allows for partial window splits of the Eq
  Check: Accept focus - Force - Yes
 
 ** AwesomeWM
-Probably adding to your 'Rules' something like this:
+Add to your configuration:
 
 #+BEGIN_SRC lua
- { rule = { instance = "*EQUAKE*", class = "Emacs" },
-    properties = { titlebars_enabled = false } },
+ { rule = { name = "\\*EQUAKE\\*.*",
+    properties = { titlebars_enabled = false, floating = true, ontop = true } },
 #+END_SRC
 
+Or, if you're using a [[https://fennel-lang.org/][Fennel]] configuration, add:
+#+begin_src fennel
+     {:rule_any {
+                 :name [
+                  "\\*EQUAKE\\*.*"
+                   ]}
+         :properties {:floating true 
+                      :titlebars_enabled false
+                      :ontop true}}
+#+end_src
+
+*And*, importantly, you need to set =equake-restore-frame-use-offset= (otherwise, for some reason the Equake frame gradually creeps up and to left as you hide and unhide it) to =t= and set a horizontal and/or vertical offset in =equake-restore-frame-x-offset= and/or =equake-restore-frame-y-offset= in order to reposition the unhidden Equake frame, i.e. include in your =init.el= something like:
+
+#+begin_src elisp
+(setq equake-restore-frame-use-offset t)
+(setq equake-restore-frame-y-offset 20)
+#+end_src
+
+or else use =customize= to set "Equake Restore Frame Use Offset" to "t" and "Equake Restore Frame Y Offset" to "20" (or whatever offset value).
 ** Gnome Shell
-Appears to work in both X11 and Wayland (via Xwayland).  I'm not sure what
-the correlate of window rules is in Gnome Shell [remains to be documented].
+Appears to work in both X11 and Wayland (via Xwayland).  I'm not sure what the correlate of window rules is in Gnome Shell [remains to be documented].
 
 ** Outside of Linux/BSD (i.e. non-X11/Wayland)
 The ~frame.el~ library defines methods for interacting with ~w32~ (Windows)
@@ -274,6 +292,8 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.986
+- Added =equake-restore-frame-...= customisations as workaround for AwesomeWM behaviour of restoring hidden frames.
 ** v0.985
 - When =equake-open-non-terminal-in-new-frame= is set to =t= Equake is prevented from opening non-Equake buffers inside of an Equake frame, instead redirecting these to new frames.
 ** v0.98

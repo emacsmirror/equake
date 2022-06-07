@@ -364,17 +364,17 @@ environment variable."
   :type 'string
   :group 'equake)
 
-(defcustom equake-show-monitor-in-mode-line 'nil
+(defcustom equake-show-monitor-in-mode-line nil
   "Toggle to show monitor id string as part of Equake mode-line."
   :type 'boolean
   :group 'equake)
 
-(defcustom equake-use-frame-hide 't
+(defcustom equake-use-frame-hide t
   "Hide frames rather than destroying frames."
   :type 'boolean
   :group 'equake)
 
-(defcustom equake-restore-frame-use-offset 'nil
+(defcustom equake-restore-frame-use-offset nil
   "Enable applying offset when restoring hidden frames (hack for AwesomeWM)."
   :type 'boolean
   :group 'equake)
@@ -395,7 +395,7 @@ environment variable."
   :type 'list
   :group 'equake)
 
-(defcustom equake-close-frame-after-last-etab-closes 't
+(defcustom equake-close-frame-after-last-etab-closes t
   "Whether or not to close the Equake frame after the last etab is closed."
   :type 'boolean
   :group 'equake)
@@ -523,7 +523,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
    (intern
     (message "%s"
              (ido-completing-read "Choose shell:"
-                                  equake-available-shells 'nil 't 'nil 'nil)))))
+                                  equake-available-shells nil t nil nil)))))
 
 (defun equake-new-tab (&optional override)
   "Open a new shell tab on monitor, optionally OVERRIDE default shell."
@@ -961,7 +961,7 @@ HISTORY is of format given by `window-prev-buffers'."
   "Launch a new shell session, LAUNCHSHELL will set non-default shell."
   (interactive)
   (let ((sh-command equake-default-sh-command)
-        (success 't))
+        (success t))
     (when (equal sh-command "")
       (setq sh-command shell-file-name))
     (cond ((equal launchshell 'eshell)
@@ -969,10 +969,10 @@ HISTORY is of format given by `window-prev-buffers'."
           ((equal launchshell 'vterm)
            (if (require 'vterm nil 'noerror)
                (vterm)
-             (setq success 'nil)))
+             (setq success nil)))
           ((equal launchshell 'rash)
            (if (not equake-rash-installed)
-               (setq success 'nil)
+               (setq success nil)
                (if (require 'vterm nil 'noerror)
                    (vterm)
                  (shell)
@@ -985,7 +985,7 @@ HISTORY is of format given by `window-prev-buffers'."
           ((equal launchshell 'shell)
            (shell)
            (delete-other-windows))
-          ('t (setq success 'nil)))
+          (t (setq success nil)))
     success))
 
 ;;; Configuration

@@ -185,7 +185,7 @@
 ;;                  :name [
 ;;                   "\\*EQUAKE\\*.*"
 ;;                    ]}
-;;          :properties {:floating true 
+;;          :properties {:floating true
 ;;                       :titlebars_enabled false
 ;;                       :ontop true}}
 ;; *And*, importantly, you need to set equake-restore-frame-use-offset (otherwise, for some reason the Equake frame gradually creeps up and to left as you hide and unhide it) to t and set a horizontal and/or vertical offset in equake-restore-frame-x-offset and/or equake-restore-frame-y-offset in order to reposition the unhidden Equake frame, i.e. include in your init.el something like:
@@ -233,7 +233,7 @@
   :group 'shell)
 
 (defgroup equake-bindings ()
-  "Keybindings for Equake drop-down console. "
+  "Keybindings for Equake drop-down console."
   :group 'equake)
 
 (defcustom equake-inhibit-message-choice nil
@@ -407,8 +407,8 @@ environment variable."
 
 (defface equake-buffer-face
   '((t (:inherit default)))
-  "Face used for internal Equake buffer text, including font typeface and
-background colour."
+  "Face used for internal Equake buffer text.
+Includes font typeface and background colour."
   :group 'equake-faces)
 
 (defface equake-tab-inactive
@@ -478,6 +478,9 @@ Intended as `:before-while' advice for
     (save-buffers-kill-terminal)))
 
 (defun equake--open-in-new-frame (buffer alist)
+  "A predicate indicating whether equake should open in a new frame.
+Called during processing of the 'display-buffer-alist'.  Both arguments
+BUFFER and ALIST are unused."
   (and (symbolp 'equake-mode)
        (symbol-value 'equake-mode)
        equake-open-non-terminal-in-new-frame))
@@ -613,7 +616,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
         (switch-to-buffer (equake--find-next-tab monitor killed-tab)))
       (cl-callf2 delq killed-tab (alist-get monitor equake--tab-list))
       (equake--update-mode-line monitor)
-      (when (and equake-close-frame-after-last-etab-closes ;; if user-chosen and  
+      (when (and equake-close-frame-after-last-etab-closes ;; if user-chosen and
                  (null (cdr (assoc monitor equake--tab-list)))) ;; if no more etabs,
         (setf (alist-get monitor equake--max-tab-no) -1) ;; reset the "highest tab number" and
         ;; destroy the corresponding equake frame:

@@ -746,8 +746,9 @@ several parameters of it (e.g window history, last visited buffer
 etc) in variables, in order to be able to restore them when the
 frame is destroyed."
   (let ((monitor (equake--get-monitor (selected-frame))))
-    (setf (alist-get monitor equake--last-buffer) (current-buffer))
-    (setf (alist-get monitor equake--win-history) (window-prev-buffers))
+    (when (equake--tab-p (current-buffer))
+      (setf (alist-get monitor equake--last-buffer) (current-buffer))
+      (setf (alist-get monitor equake--win-history) (window-prev-buffers)))
     (when equake-mode
       (setf (alist-get monitor equake--last-tab) (current-buffer)))))
 

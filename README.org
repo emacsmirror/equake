@@ -139,7 +139,7 @@ of tabs for each screen.
 
 You'll probably also want to configure your WM/DE to ignore the window in
 the task manager etc. and have no titlebar or frame. Below are some limited
-notes on how to do this in various environments [needs expanding]. Equake
+notes on how to do this in various environments. Equake
 is most thoroughly tested on KDE Plasma 5 and StumpWM, but should be able
 to be made to work on most DEs/WMs (I welcome information on appropriate
 configurations for other environments).
@@ -265,7 +265,25 @@ Or, if you're using a [[https://fennel-lang.org/][Fennel]] configuration, add:
 
 or else use =customize= to set "Equake Restore Frame Use Offset" to "t" and "Equake Restore Frame Y Offset" to "20" (or whatever offset value).
 ** Gnome Shell
-Appears to work in both X11 and Wayland (via Xwayland).  I'm not sure what the correlate of window rules is in Gnome Shell [remains to be documented].
+Appears to work in both X11 and Wayland (via Xwayland). Except requires some funky workarounds for Wayland. Included is a shell script:
+
+- =equake-invoke-wayland.sh=
+#+begin_src shell
+#!/bin/sh
+
+equakestatus=$(emacsclient -n -e '(frame-live-p (alist-get (equake--get-monitor) equake--frame))')
+
+if [ "$equakestatus" = "nil" ]; then
+    emacsclient -c -e "(progn (select-frame-set-input-focus (selected-frame))
+                              (equake--transform-existing-frame-into-equake-frame)
+                              (goto-char (1- (point-max))))"
+else
+    emacsclient -n -e '(progn (setq equake-use-frame-hide nil)
+                              (equake-invoke))'
+fi
+#+end_src
+
+This uses a special call =(select-frame-set-input-focus (selected-frame))= to make sure the frame is focussed (and so should appear on top of any existing windows; this is a potentially useful trick in general for summoning emacsclient frame in GNOME Shell under Wayland), and then transforms that frame into an Equake frame. Hiding the Equake frame is done through a usual =equake-invoke= call, but makes sure to set =equake-use-frame-hide= to =nil= to destroy the frame rather than hiding it (a necessary workaround on GNOME Shell running under Wayland).
 
 ** Outside of Linux/BSD (i.e. non-X11/Wayland)
 The ~frame.el~ library defines methods for interacting with ~w32~ (Windows)
@@ -292,6 +310,10 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.99
+- Various bug fixes & code cleanup.
+- Add an option =equake-close-frame-on-focus-loss= to close the Equake frame when it loses focus.
+- Add a workaround for proper function on GNOME Shell under Wayland.
 ** v0.986
 - Added =equake-restore-frame-...= customisations as workaround for AwesomeWM behaviour of restoring hidden frames.
 ** v0.985

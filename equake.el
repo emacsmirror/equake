@@ -16,8 +16,8 @@
 ;; Author: Benjamin Slade <slade@lambda-y.net>
 ;; Maintainer: Benjamin Slade <slade@lambda-y.net>
 ;; URL: https://gitlab.com/emacsomancer/equake
-;; Package-Version: 0.986
-;; Version: 0.986
+;; Package-Version: 0.99
+;; Version: 0.99
 ;; Package-Requires: ((emacs "26.1") (dash "2.14.1"))
 ;; Created: 2018-12-12
 ;; Keywords: convenience, frames, terminals, tools, window-system
@@ -152,6 +152,22 @@
 ;; ;; END COMMON LISP HERE;;
 ;; And add an appropriate keybinding to your stumpwm init to toggle, e.g.:
 ;; (define-key *top-map* (kbd "F12") "invoke-equake")
+;;
+;;; In GNOME Shell (Wayland):
+;; use the shell script =equake-invoke-wayland.sh=:
+;;
+;; #!/bin/sh
+
+;; equakestatus=$(emacsclient -n -e '(frame-live-p (alist-get (equake--get-monitor) equake--frame))')
+
+;; if [ "$equakestatus" = "nil" ]; then
+;;     emacsclient -c -e "(progn (select-frame-set-input-focus (selected-frame))
+;;                               (equake--transform-existing-frame-into-equake-frame)
+;;                               (goto-char (1- (point-max))))"
+;; else
+;;     emacsclient -n -e '(progn (setq equake-use-frame-hide nil)
+;;                               (equake-invoke))'
+;; fi
 ;;
 ;;; In KDE Plasma 5:
 ;; systemsettings > Window Management > Window Rules:

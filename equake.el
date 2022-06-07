@@ -74,6 +74,8 @@
 ;; Equake is designed to work with multi-screen setups,
 ;; with a different set of tabs for each screen.
 ;;
+;; Additional functionality when xprop and wmctrl are installed.
+;;
 ;; You'll probably also want to configure your WM/DE to
 ;; ignore the window in the task manager etc and
 ;; have no titlebar or frame. It's most throughly tested with
@@ -811,6 +813,8 @@ For GNOME Shell under Wayland, used with an emacsclient call."
          (workarea (equake--get-monitor-attribute 'workarea)))
     (setf (alist-get monitor equake--frame) frame)
     (modify-frame-parameters frame (equake--make-frame-parameters monitor workarea))
+    (when (and (executable-find "wmctrl") (not equake-close-frame-on-focus-loss))
+      (shell-command "wmctrl -r :ACTIVE: -b toggle,above"))
     (equake--finish-equake-frame-setup frame monitor)))
 
 (defun equake--finish-equake-frame-setup (frame monitor)

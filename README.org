@@ -35,6 +35,7 @@ I've also been using the [[https://www.masteringemacs.org/article/complete-guide
 
 Equake also uses built-in Emacs functionality to probe for screen sizes via the =frame.el= library, which potential means it should work cross-platform, as =frame.el= defines frame-types =\'ns= (Next Step, i.e. Mac) and =\'w32= (Windows).
 
+Additionally functionality on Linux/Unix when =xprop= and =wmctrl= are installed. (Skipping taskbar on X for =xprop= and "Always on Top" in GNOME Shell Wayland for =wmctrl=.)
 
 See further discussion at [[https://babbagefiles.xyz/equake-elisp-console/][the Babbage Files blog post]].
 
@@ -284,6 +285,8 @@ fi
 #+end_src
 
 This uses a special call =(select-frame-set-input-focus (selected-frame))= to make sure the frame is focussed (and so should appear on top of any existing windows; this is a potentially useful trick in general for summoning emacsclient frame in GNOME Shell under Wayland), and then transforms that frame into an Equake frame. Hiding the Equake frame is done through a usual =equake-invoke= call, but makes sure to set =equake-use-frame-hide= to =nil= to destroy the frame rather than hiding it (a necessary workaround on GNOME Shell running under Wayland).
+
+If you want "Always on Top", make sure =wmctrl= is installed.
 
 ** Outside of Linux/BSD (i.e. non-X11/Wayland)
 The ~frame.el~ library defines methods for interacting with ~w32~ (Windows)

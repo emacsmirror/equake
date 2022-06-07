@@ -185,7 +185,7 @@
 ;;                  :name [
 ;;                   "\\*EQUAKE\\*.*"
 ;;                    ]}
-;;          :properties {:floating true 
+;;          :properties {:floating true
 ;;                       :titlebars_enabled false
 ;;                       :ontop true}}
 ;; *And*, importantly, you need to set equake-restore-frame-use-offset (otherwise, for some reason the Equake frame gradually creeps up and to left as you hide and unhide it) to t and set a horizontal and/or vertical offset in equake-restore-frame-x-offset and/or equake-restore-frame-y-offset in order to reposition the unhidden Equake frame, i.e. include in your init.el something like:
@@ -613,7 +613,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
         (switch-to-buffer (equake--find-next-tab monitor killed-tab)))
       (cl-callf2 delq killed-tab (alist-get monitor equake--tab-list))
       (equake--update-mode-line monitor)
-      (when (and equake-close-frame-after-last-etab-closes ;; if user-chosen and  
+      (when (and equake-close-frame-after-last-etab-closes ;; if user-chosen and
                  (null (cdr (assoc monitor equake--tab-list)))) ;; if no more etabs,
         (setf (alist-get monitor equake--max-tab-no) -1) ;; reset the "highest tab number" and
         ;; destroy the corresponding equake frame:
@@ -908,7 +908,7 @@ reason remains to be determined."
   (let ((frame (alist-get (equake--get-monitor) equake--frame)))
     (when (executable-find "xprop")
       (shell-command (concat "xprop -name "
-                           (frame-parameter frame 'name)
+                           (shell-quote-argument (frame-parameter frame 'name))
                            " -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR")))))
 
 (defun equake--select-some-graphic-frame ()

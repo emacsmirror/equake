@@ -769,7 +769,7 @@ frame is destroyed."
     (delete-frame current-frame)))
 
 (defun equake--set-up-new-frame ()
-  "Make and set up a new Equake frame, including cosmetic alterations."
+  "Begin new Equake frame setup, including cosmetic alterations."
   ;; N.B. the resulting frame should be marked as a finished Equake
   ;; frame only when it's fully configured. That means,
   ;; `(set-frame-parameter frame 'equakep t)' only at the end of
@@ -778,25 +778,11 @@ frame is destroyed."
          (monitor (equake--get-monitor frame)))
     (setf (alist-get monitor equake--frame) frame)
     (select-frame frame)
-    (unless (alist-get monitor equake--tab-list)
-      (equake-new-tab))
-    (->> (alist-get monitor equake--win-history)
-         (equake--filter-history)
-         (set-window-prev-buffers nil))
-    (when-let ((last-tab (alist-get monitor equake--last-tab)))
-      (switch-to-buffer last-tab))
-    (when-let ((last-buffer (alist-get monitor equake--last-buffer)))
-      (switch-to-buffer last-buffer))
-    (unless (equake--tab-p) ; make sure to restore to an Equake buffer
-      (bury-buffer))
-    (buffer-face-set 'equake-buffer-face)
-    (when equake-hide-from-taskbar-choice
-      (equake--hide-from-taskbar))
-    (raise-frame)
-    (set-frame-parameter frame 'equakep t))) ; mark a finished Equake frame
+    (equake--finish-equake-frame-setup frame monitor)))
 
 (defun equake--transform-existing-frame-into-equake-frame ()
-  "For GNOME Shell under Wayland, used with an emacslient call."
+  "Transform an existing frame into an Equake frame.
+For GNOME Shell under Wayland, used with an emacsclient call."
   ;; N.B. the resulting frame should be marked as a finished Equake
   ;; frame only when it's fully configured. That means,
   ;; `(set-frame-parameter frame 'equakep t)' only at the end of
@@ -806,23 +792,27 @@ frame is destroyed."
          (workarea (equake--get-monitor-attribute 'workarea)))
     (setf (alist-get monitor equake--frame) frame)
     (modify-frame-parameters frame (equake--make-frame-parameters monitor workarea))
-    ;; (select-frame frame)
-    (unless (alist-get monitor equake--tab-list)
-      (equake-new-tab))
-    (->> (alist-get monitor equake--win-history)
-         (equake--filter-history)
-         (set-window-prev-buffers nil))
-    (when-let ((last-tab (alist-get monitor equake--last-tab)))
-      (switch-to-buffer last-tab))
-    (when-let ((last-buffer (alist-get monitor equake--last-buffer)))
-      (switch-to-buffer last-buffer))
-    (unless (equake--tab-p) ; make sure to restore to an Equake buffer
-      (bury-buffer))
-    (buffer-face-set 'equake-buffer-face)
-    (when equake-hide-from-taskbar-choice
-      (equake--hide-from-taskbar))
-    (raise-frame)
-    (set-frame-parameter frame 'equakep t))) ; mark a finished Equake frame
+    (equake--finish-equake-frame-setup frame monitor)))
+
+(defun equake--finish-equake-frame-setup (frame monitor)
+  "Common operations for setting up Equake frames."
+  (unless (alist-get monitor equake--tab-list)
+    (equake-new-tab))
+  (->> (alist-get monitor equake--win-history)
+       (equake--filter-history)
+       (set-window-prev-buffers nil))
+  (when-let ((last-tab (alist-get monitor equake--last-tab)))
+    (switch-to-buffer last-tab))
+  (when-let ((last-buffer (alist-get monitor equake--last-buffer)))
+    (switch-to-buffer last-buffer))
+  (unless (equake--tab-p) ; make sure to restore to an Equake buffer
+    (bury-buffer))
+  (buffer-face-set 'equake-buffer-face)
+  (when equake-hide-from-taskbar-choice
+    (equake--hide-from-taskbar))
+  (raise-frame)
+  (set-frame-parameter frame 'equakep t)) ; mark a finished Equake frame
+
 
 (defun equake--make-new-frame ()
   "Make a new Equake frame on a current monitor on a current display.

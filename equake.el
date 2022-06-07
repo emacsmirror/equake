@@ -570,7 +570,8 @@ Needed to assign a new name for a new tab (e.g. its number)")
                            (tab-name . ,tab-name))
                  equake--tab-properties)
         (equake--rename-tab tab-name)
-        (equake-mode))))) ; set Equake minor mode for buffer
+        (equake-mode) ; set Equake minor mode for buffer
+        (equake--record-frame-history))))) ; make sure to record new tab
 
 (defun equake-move-tab-right ()
   "Move current tab one position to the right."
@@ -773,7 +774,7 @@ frame is destroyed."
     (when (equake--tab-p (current-buffer))
       (setf (alist-get monitor equake--last-buffer) (current-buffer))
       (setf (alist-get monitor equake--win-history) (window-prev-buffers)))
-    (when equake-mode
+    (when (and equake-mode (equake--tab-p (current-buffer)))
       (setf (alist-get monitor equake--last-tab) (current-buffer)))))
 
 (defun equake--hide-or-destroy-frame (current-frame)

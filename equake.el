@@ -912,7 +912,7 @@ reason remains to be determined."
   (let ((frame (alist-get (equake--get-monitor) equake--frame)))
     (when (executable-find "xprop")
       (shell-command (concat "xprop -name "
-                           (frame-parameter frame 'name)
+                           (shell-quote-argument (frame-parameter frame 'name))
                            " -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR")))))
 
 (defun equake--select-some-graphic-frame ()

@@ -185,7 +185,7 @@
 ;;                  :name [
 ;;                   "\\*EQUAKE\\*.*"
 ;;                    ]}
-;;          :properties {:floating true 
+;;          :properties {:floating true
 ;;                       :titlebars_enabled false
 ;;                       :ontop true}}
 ;; *And*, importantly, you need to set equake-restore-frame-use-offset (otherwise, for some reason the Equake frame gradually creeps up and to left as you hide and unhide it) to t and set a horizontal and/or vertical offset in equake-restore-frame-x-offset and/or equake-restore-frame-y-offset in order to reposition the unhidden Equake frame, i.e. include in your init.el something like:
@@ -374,6 +374,12 @@ environment variable."
   :type 'boolean
   :group 'equake)
 
+(defcustom equake-close-frame-on-focus-loss nil
+  "When non-nil, close (hide or destroy) the equake frame when it
+  loses focus."
+  :group 'equake
+  :type 'boolean)
+
 (defcustom equake-restore-frame-use-offset 'nil
   "Enable applying offset when restoring hidden frames (hack for AwesomeWM)."
   :type 'boolean
@@ -484,7 +490,7 @@ Intended as `:before-while' advice for
 
 (setq display-buffer-alist
       (append display-buffer-alist
-      '((equake--open-in-new-frame . ((display-buffer-reuse-window display-buffer-pop-up-frame) . ((reusable-frames . 0)))))))
+              '((equake--open-in-new-frame . ((display-buffer-reuse-window display-buffer-pop-up-frame) . ((reusable-frames . 0)))))))
 
 (defun equake-invoke ()
   "Toggle Equake frames.
@@ -594,7 +600,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
   (let ((monitor (equake--get-tab-property 'monitor)))
     (if equake-mode
         (message "Currently in an Equake tab already.")
-        (switch-to-buffer (alist-get monitor equake--last-tab)))))
+      (switch-to-buffer (alist-get monitor equake--last-tab)))))
 
 (defun equake-close-tab-without-query ()
   "Close the current Equake tab/buffer without querying."
@@ -613,7 +619,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
         (switch-to-buffer (equake--find-next-tab monitor killed-tab)))
       (cl-callf2 delq killed-tab (alist-get monitor equake--tab-list))
       (equake--update-mode-line monitor)
-      (when (and equake-close-frame-after-last-etab-closes ;; if user-chosen and  
+      (when (and equake-close-frame-after-last-etab-closes ;; if user-chosen and
                  (null (cdr (assoc monitor equake--tab-list)))) ;; if no more etabs,
         (setf (alist-get monitor equake--max-tab-no) -1) ;; reset the "highest tab number" and
         ;; destroy the corresponding equake frame:
@@ -901,6 +907,54 @@ reason remains to be determined."
       (progn (x-open-connection display) (x-close-connection display) t)
     (error nil)))
 
+;;; Close (hide or destroy) equake frame when it loses focus
+
+(defvar equake--last-frame-focus-state nil
+  "Last known focus state of the equake frame. Used to compare to
+  the current state to determine if focus has been lost.")
+
+(defun equake--after-focus-change ()
+  "Compare the equake frame's last known focus state to the current one.
+  If focus is lost, hide or destroy the frame."
+  (setq equake--focus-change-timer nil)
+  (let ((frame (alist-get (equake--get-monitor) equake--frame)))
+    (if (frame-live-p frame)
+        (let ((state (with-no-warnings (frame-focus-state frame))))
+          (when (and equake--last-frame-focus-state (not state))
+            (setq equake--last-frame-focus-state state)
+            ;; (message "lost focus")
+            (equake--hide-or-destroy-frame frame))
+          (when (and (not equake--last-frame-focus-state) state)
+            (setq equake--last-frame-focus-state state)
+            ;; (message "gained focus")
+            ))
+      ;; (message "dead frame")
+      (setq equake--last-frame-focus-state nil))))
+
+(defvar equake--focus-change-timer nil
+  "Holds the scheduled call to equake--after-focus-change.")
+
+(defvar equake--focus-change-debounce-delay 0.015
+  "Delay in seconds to use when debouncing focus change events.
+  Window manager may send spurious focus change events.  To filter
+  them, the code delays handling of focus-change events by this
+  number of seconds.  Based on rudimentary testing, 0.015 (i.e. 15
+  milliseconds) is a good compromise between performing the
+  filtering and introducing a visible delay.)")
+
+(defun equake--after-focus-change-hook ()
+  "If equake-close-frame-on-focus-loss is non-nil, schedule a call
+   to equake--after-focus-change, which does the real work.  The
+   schedule is delayed to debounce spurious focus change events from the
+   window manager."
+  (when equake-close-frame-on-focus-loss
+    (and equake--focus-change-timer (cancel-timer equake--focus-change-timer))
+    (setq equake--focus-change-timer
+          (run-with-timer equake--focus-change-debounce-delay nil
+                          #'equake--after-focus-change))))
+
+(add-function :after after-focus-change-function #'equake--after-focus-change-hook)
+
 ;;; Rest
 
 (defun equake--hide-from-taskbar ()
@@ -908,8 +962,8 @@ reason remains to be determined."
   (let ((frame (alist-get (equake--get-monitor) equake--frame)))
     (when (executable-find "xprop")
       (shell-command (concat "xprop -name "
-                           (frame-parameter frame 'name)
-                           " -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR")))))
+                             (frame-parameter frame 'name)
+                             " -f _NET_WM_STATE 32a -set _NET_WM_STATE _NET_WM_STATE_SKIP_TASKBAR")))))
 
 (defun equake--select-some-graphic-frame ()
   "Try to select some graphic frame.
@@ -970,10 +1024,10 @@ HISTORY is of format given by `window-prev-buffers'."
           ((equal launchshell 'rash)
            (if (not equake-rash-installed)
                (setq success 'nil)
-               (if (require 'vterm nil 'noerror)
-                   (vterm)
-                 (shell)
-                 (delete-other-windows))
+             (if (require 'vterm nil 'noerror)
+                 (vterm)
+               (shell)
+               (delete-other-windows))
              (rash-mode)))
           ((equal launchshell 'ansi-term)
            (ansi-term sh-command))

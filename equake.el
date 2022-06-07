@@ -353,7 +353,8 @@
   :group 'equake)
 
 (defcustom equake-default-shell 'eshell
-  "Default shell used by Equake, choices are `eshell', `vterm', `rash', `ansi-term', `term', `shell'."
+  "Default shell used by Equake, choices are
+`eshell', `vterm', `rash', `ansi-term', `term', `shell'."
   :type  'symbol
   :group 'equake)
 
@@ -397,7 +398,8 @@ environment variable."
 
 (defcustom equake-display-guess-list
   '(":0" ":1" "w32")
-  "A list of displays to try to connect to, when the actual DISPLAY is not yet known."
+  "A list of displays to try to connect to, when the actual DISPLAY is
+not yet known."
   :type 'list
   :group 'equake)
 

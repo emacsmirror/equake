@@ -374,7 +374,13 @@ environment variable."
   :type 'boolean
   :group 'equake)
 
-(defcustom equake-restore-frame-use-offset nil
+
+(defcustom equake-close-frame-on-focus-loss nil
+  "When non-nil, close (hide or destroy) the frame when it loses focus."
+  :group 'equake
+  :type 'boolean)
+
+(defcustom equake-restore-frame-use-offset 'nil
   "Enable applying offset when restoring hidden frames (hack for AwesomeWM)."
   :type 'boolean
   :group 'equake)
@@ -487,7 +493,7 @@ BUFFER and ALIST are unused."
 
 (setq display-buffer-alist
       (append display-buffer-alist
-      '((equake--open-in-new-frame . ((display-buffer-reuse-window display-buffer-pop-up-frame) . ((reusable-frames . 0)))))))
+              '((equake--open-in-new-frame . ((display-buffer-reuse-window display-buffer-pop-up-frame) . ((reusable-frames . 0)))))))
 
 (defun equake-invoke ()
   "Toggle Equake frames.
@@ -597,7 +603,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
   (let ((monitor (equake--get-tab-property 'monitor)))
     (if equake-mode
         (message "Currently in an Equake tab already.")
-        (switch-to-buffer (alist-get monitor equake--last-tab)))))
+      (switch-to-buffer (alist-get monitor equake--last-tab)))))
 
 (defun equake-close-tab-without-query ()
   "Close the current Equake tab/buffer without querying."
@@ -905,6 +911,54 @@ reason remains to be determined."
       (progn (x-open-connection display) (x-close-connection display) t)
     (error nil)))
 
+;;; Close (hide or destroy) equake frame when it loses focus
+
+(defvar equake--last-frame-focus-state nil
+  "Last known focus state of the equake frame.
+Used to compare to the current state to determine if focus has been lost.")
+
+(defun equake--after-focus-change ()
+  "Compare the equake frame's last known focus state to the current one.
+If focus is lost, hide or destroy the frame."
+  (setq equake--focus-change-timer nil)
+  (let ((frame (alist-get (equake--get-monitor) equake--frame)))
+    (if (frame-live-p frame)
+        (let ((state (with-no-warnings (frame-focus-state frame))))
+          (when (and equake--last-frame-focus-state (not state))
+            (setq equake--last-frame-focus-state state)
+            ;; (message "lost focus")
+            (equake--hide-or-destroy-frame frame))
+          (when (and (not equake--last-frame-focus-state) state)
+            (setq equake--last-frame-focus-state state)
+            ;; (message "gained focus")
+            ))
+      ;; (message "dead frame")
+      (setq equake--last-frame-focus-state nil))))
+
+(defvar equake--focus-change-timer nil
+  "Holds the scheduled call to 'equake--after-focus-change'.")
+
+(defvar equake--focus-change-debounce-delay 0.015
+  "Delay in seconds to use when debouncing focus change events.
+Window manager may send spurious focus change events.  To filter
+them, the code delays handling of focus-change events by this
+number of seconds.  Based on rudimentary testing, 0.015 (i.e. 15
+milliseconds) is a good compromise between performing the
+filtering and introducing a visible delay.)")
+
+(defun equake--after-focus-change-hook ()
+  "Schedule a call to 'equake--after-focus-change', which does the real work.
+The schedule is delayed by 'equake--focus-change-debounce-delay' to de-bounce
+spurious focus change events from the window manager.  This scheduling, and
+hence the feature, is enabled if 'equake-close-frame-on-focus-loss' is non-nil."
+  (when equake-close-frame-on-focus-loss
+    (and equake--focus-change-timer (cancel-timer equake--focus-change-timer))
+    (setq equake--focus-change-timer
+          (run-with-timer equake--focus-change-debounce-delay nil
+                          #'equake--after-focus-change))))
+
+(add-function :after after-focus-change-function #'equake--after-focus-change-hook)
+
 ;;; Rest
 
 (defun equake--hide-from-taskbar ()
@@ -973,6 +1027,7 @@ HISTORY is of format given by `window-prev-buffers'."
              (setq success nil)))
           ((equal launchshell 'rash)
            (if (not equake-rash-installed)
+
                (setq success nil)
                (if (require 'vterm nil 'noerror)
                    (vterm)

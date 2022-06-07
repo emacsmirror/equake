@@ -375,8 +375,7 @@ environment variable."
   :group 'equake)
 
 (defcustom equake-close-frame-on-focus-loss nil
-  "When non-nil, close (hide or destroy) the equake frame when it
-  loses focus."
+  "When non-nil, close (hide or destroy) the frame when it loses focus."
   :group 'equake
   :type 'boolean)
 
@@ -910,12 +909,12 @@ reason remains to be determined."
 ;;; Close (hide or destroy) equake frame when it loses focus
 
 (defvar equake--last-frame-focus-state nil
-  "Last known focus state of the equake frame. Used to compare to
-  the current state to determine if focus has been lost.")
+  "Last known focus state of the equake frame.
+Used to compare to the current state to determine if focus has been lost.")
 
 (defun equake--after-focus-change ()
   "Compare the equake frame's last known focus state to the current one.
-  If focus is lost, hide or destroy the frame."
+If focus is lost, hide or destroy the frame."
   (setq equake--focus-change-timer nil)
   (let ((frame (alist-get (equake--get-monitor) equake--frame)))
     (if (frame-live-p frame)
@@ -932,21 +931,21 @@ reason remains to be determined."
       (setq equake--last-frame-focus-state nil))))
 
 (defvar equake--focus-change-timer nil
-  "Holds the scheduled call to equake--after-focus-change.")
+  "Holds the scheduled call to 'equake--after-focus-change'.")
 
 (defvar equake--focus-change-debounce-delay 0.015
   "Delay in seconds to use when debouncing focus change events.
-  Window manager may send spurious focus change events.  To filter
-  them, the code delays handling of focus-change events by this
-  number of seconds.  Based on rudimentary testing, 0.015 (i.e. 15
-  milliseconds) is a good compromise between performing the
-  filtering and introducing a visible delay.)")
+Window manager may send spurious focus change events.  To filter
+them, the code delays handling of focus-change events by this
+number of seconds.  Based on rudimentary testing, 0.015 (i.e. 15
+milliseconds) is a good compromise between performing the
+filtering and introducing a visible delay.)")
 
 (defun equake--after-focus-change-hook ()
-  "If equake-close-frame-on-focus-loss is non-nil, schedule a call
-   to equake--after-focus-change, which does the real work.  The
-   schedule is delayed to debounce spurious focus change events from the
-   window manager."
+  "Schedule a call to 'equake--after-focus-change', which does the real work.
+The schedule is delayed by 'equake--focus-change-debounce-delay' to de-bounce
+spurious focus change events from the window manager.  This scheduling, and
+hence the feature, is enabled if 'equake-close-frame-on-focus-loss' is non-nil."
   (when equake-close-frame-on-focus-loss
     (and equake--focus-change-timer (cancel-timer equake--focus-change-timer))
     (setq equake--focus-change-timer

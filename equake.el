@@ -269,6 +269,13 @@
   :group 'equake
   :type 'boolean)
 
+(defcustom equake-display-buffer-function #'display-buffer-pop-up-frame
+  "Sensible choices are are `display-buffer-pop-up-frame' for
+opening in a new frame, or `display-buffer-use-some-frame' to
+open in an existing (non-Equake) frame."
+  :group 'equake
+  :type 'function)
+
 (defun equake-inhibit-message-locally ()
   "Set `inhibit-message' buffer-locally."
   (if equake-inhibit-message-choice
@@ -511,9 +518,12 @@ BUFFER and ALIST are unused."
        (symbol-value 'equake-mode)
        equake-open-non-terminal-in-new-frame))
 
-(setq display-buffer-alist
-      (append display-buffer-alist
-              '((equake--open-in-new-frame . ((display-buffer-reuse-window display-buffer-pop-up-frame) . ((reusable-frames . 0)))))))
+(defun equake--display-buffer-function (buffer alist)
+  "For use in `display-buffer-alist'."
+  (funcall equake-display-buffer-function buffer alist))
+
+(add-to-list 'display-buffer-alist
+             '(equake--open-in-new-frame . ((display-buffer-reuse-window equake--display-buffer-function) . ((reusable-frames . 0)))))
 
 (defun equake-invoke ()
   "Toggle Equake frames.

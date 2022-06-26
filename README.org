@@ -313,6 +313,8 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.991
+- Add an option =equake-display-buffer-function= to choose whether when =equake-open-non-terminal-in-new-frame= is set to =t= (i.e. force opening new buffers to occur in a non-Equake frame) that buffer is opened in a window in a new frame (the default behaviour) or re-using an existing frame.
 ** v0.99
 - Various bug fixes & code cleanup.
 - Add an option =equake-close-frame-on-focus-loss= to close the Equake frame when it loses focus.

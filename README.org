@@ -313,6 +313,8 @@ You can also customise faces, e.g. via:
 #+end_src
 
 * Changelog
+** v0.9911
+Added =equake-invoke.sh= shell script; this eases Equake functionality in multi-workspace/group/tab environments by "pulling" an open Equake frame into the current workspace rather than (invisibly) minimising it on the non-active workspace. Copy =equake-invoke.sh= somewhere in your =$PATH= and bind the equake shortcut to run it.
 ** v0.991
 - Add an option =equake-display-buffer-function= to choose whether when =equake-open-non-terminal-in-new-frame= is set to =t= (i.e. force opening new buffers to occur in a non-Equake frame) that buffer is opened in a window in a new frame (the default behaviour) or re-using an existing frame.
 ** v0.99

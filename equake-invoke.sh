@@ -11,19 +11,19 @@
 #
 
 _equake_window_exists () {
-    wmctrl -lx 2> /dev/null | fgrep "*EQUAKE*" | awk '{print $1}'
+    wmctrl -lx 2> /dev/null | grep -F "*EQUAKE*" | awk '{print $1}'
 }
 
 _equake_window_focused () {
-    xdotool getwindowfocus getwindowname | fgrep "*EQUAKE*"
+    xdotool getwindowfocus getwindowname | grep -F "*EQUAKE*"
 }
 
-if [[ "$(_equake_window_exists)" == "" ]]; then
+if [ "$(_equake_window_exists)" = "" ]; then
     # don't have the window, so make one and raise it
     # spd-say "creating"
     emacsclient -n -e '(progn (equake-mode t)(equake-invoke))'
     wmctrl -a "*EQUAKE*"
-elif [[ "$(_equake_window_focused)" == "" ]]; then
+elif [ "$(_equake_window_focused)" = "" ]; then
     # have the window but it's not focused, so bring it here and focus it
     # spd-say "focusing"
     wmctrl -R "*EQUAKE*"

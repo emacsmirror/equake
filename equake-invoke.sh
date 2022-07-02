@@ -18,13 +18,21 @@ _equake_window_focused () {
     xdotool getwindowfocus getwindowname | grep -F "*EQUAKE*"
 }
 
+_equake_current_workspace () {
+    wmctrl -lx | grep -F "*EQUAKE*" | cut -d ' ' -f3
+}
+
+_user_current_workspace () {
+    wmctrl -d | grep -F '*' | cut -d ' ' -f1
+}
+
 if [ "$(_equake_window_exists)" = "" ]; then
     # don't have the window, so make one and raise it
     # spd-say "creating"
     emacsclient -n -e '(progn (equake-mode t)(equake-invoke))'
     wmctrl -a "*EQUAKE*"
-elif [ "$(_equake_window_focused)" = "" ]; then
-    # have the window but it's not focused, so bring it here and focus it
+elif [ "$(_equake_window_focused)" = "" ] && [ "$(_equake_current_workspace)" -ne "$(_user_current_workspace)" ]; then
+    # have the window but it's not focused, so bring it here and focus it, as long it's not on the current workspace
     # spd-say "focusing"
     wmctrl -R "*EQUAKE*"
 else

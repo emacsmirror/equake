@@ -558,7 +558,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
   (equake-new-tab
    (intern
     (message "%s"
-             (ido-completing-read "Choose shell:"
+             (completing-read "Choose shell:"
                                   equake-available-shells nil t nil nil)))))
 
 (defun equake-new-tab (&optional override)

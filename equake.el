@@ -527,7 +527,7 @@ BUFFER and ALIST are unused."
 
 (defun equake-invoke ()
   "Toggle Equake frames.
-Run with \"emacsclient -n -e '(equake-invoke)'\"."
+Invoke Equake externally via \"emacsclient -n -e \'(equake-invoke)\'\"."
   (interactive)
   (equake--select-some-graphic-frame)
   (let* ((monitor (equake--get-monitor))
@@ -999,10 +999,10 @@ milliseconds) is a good compromise between performing the
 filtering and introducing a visible delay.)")
 
 (defun equake--after-focus-change-hook ()
-  "Schedule a call to 'equake--after-focus-change', which does the real work.
-The schedule is delayed by 'equake--focus-change-debounce-delay' to de-bounce
+  "Schedule a call to `equake--after-focus-change', which does the real work.
+The schedule is delayed by `equake--focus-change-debounce-delay' to de-bounce
 spurious focus change events from the window manager.  This scheduling, and
-hence the feature, is enabled if 'equake-close-frame-on-focus-loss' is non-nil."
+hence the feature, is enabled if `equake-close-frame-on-focus-loss' is non-nil."
   (when equake-close-frame-on-focus-loss
     (and equake--focus-change-timer (cancel-timer equake--focus-change-timer))
     (setq equake--focus-change-timer

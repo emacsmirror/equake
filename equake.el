@@ -269,6 +269,10 @@
   :group 'equake
   :type 'boolean)
 
+(defcustom equake-shell-mode-setup nil
+  "Shell commands to run when opening a tab in shell-mode.
+E.g. \"bash \n clear \n\" to run bash and clear the screen.")
+
 (defcustom equake-display-buffer-function #'display-buffer-pop-up-frame
   "Sensible choices are are `display-buffer-pop-up-frame' for
 opening in a new frame, or `display-buffer-use-some-frame' to
@@ -1092,7 +1096,9 @@ HISTORY is of format given by `window-prev-buffers'."
            (term sh-command))
           ((equal launchshell 'shell)
            (shell)
-           (delete-other-windows))
+           (delete-other-windows)
+           (if equake-shell-mode-setup
+               (comint-send-string nil equake-shell-mode-setup)))
           (t (setq success nil)))
     success))
 

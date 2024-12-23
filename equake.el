@@ -102,36 +102,39 @@
 
 ;; (defcommand invoke-equake () ()
 ;;   "Raise/lower Equake drop-down console."
-;;   (let* ((on-top-windows (group-on-top-windows (current-group)))
-;;          (equake-on-top (find-equake-in-group on-top-windows)))
+;; (let* ((on-top-windows (group-on-top-windows (current-group)))
+;;          (equake-on-top (find-equake-in-group on-top-windows))
+;;          (equake-in-group (find-equake-in-group (group-windows (current-group))))
+;;          (equake-width (car (calc-screen-dimensions)))
+;;          (equake-height (round (* .40 (cadr (calc-screen-dimensions))))))
 ;;     (when (and equake-on-top (not (find-equake-globally (screen-groups (current-screen)))))
 ;;       (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
-;;     (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))
+;;     (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))  
 ;;         (progn (if (eq (find-class 'float-group) (class-of (current-group)))
 ;;                    (when (> (length (group-windows (current-group))) 1)
-;;                      (xwin-hide equake-on-top))
+;;                      (xwin-hide equake-on-top)
+;;                      (hide-window equake-on-top))
 ;;                    (progn (unfloat-window equake-on-top (current-group))
-;;                           (hide-window equake-on-top))) ;; then hide Equake window via native Stumpwm method.)
-;;                (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
+;;                           (xwin-hide equake-on-top)
+;;                           (move-windows-to-group (list equake-on-top) "void")))
+;;                 ;; then hide Equake window via native Stumpwm method.)
+;;                (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows))) 
 ;;         (let ((found-equake (find-equake-globally (screen-groups (current-screen))))) ; Otherwise, search all groups of current screen for Equake window:
 ;;           (if (not found-equake)          ; If Equake cannot be found,
-;;               (progn
-;;                 (run-shell-command (concat emacsclient-location " -n -e '(equake-invoke)'")) ; then invoke Equake via emacs function.
-;;                 (setf *equake-height* (calc-equake-height)) ; delay calculation of height & width setting until 1st time equake invoked
-;;                 (setf *equake-width* (calc-equake-width))) ; (otherwise Emacs may not be fully loaded)
+;;               (progn (run-shell-command (concat emacsclient-location " -n -e '(equake-invoke)'")))  
 ;;               (progn (unless (eq (current-group) (window-group found-equake)) ; But if Equake window is found, and if it's in a different group
 ;;                        (move-window-to-group found-equake (current-group)))   ; move it to the current group,
 ;;                      (if (eq (find-class 'float-group) (class-of (current-group)))
 ;;                          (xwin-unhide (window-xwin found-equake) (window-parent found-equake))
 ;;                          (progn (unhide-window found-equake) ; unhide window, in case hidden
-;;                                 ;; (unfloat-window found-equake (current-group)) ;; in case in floating group
 ;;                                 (raise-window found-equake)
-;;                                 (float-window found-equake (current-group)))) ; float window
-;;                      (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width *equake-width* :height *equake-height*) ; set size
-;;                      (focus-window found-equake)
+;;                                 (float-window-move-resize (find-equake-globally (screen-groups (current-screen))) :width equake-width :height equake-height) ; set size
+;;                                 (float-window found-equake (current-group))
+;;                                 (focus-window found-equake))) ; float window
+;;                      (focus-window found-equake t)
 ;;                      (push found-equake (group-on-top-windows (current-group))))))))) ; make on top
 
-;; ;; (defun find-equake-in-group (windows-list)
+;; (defun find-equake-in-group (windows-list)
 ;;   "Search through WINDOWS-LIST, i.e. all windows of a group, for an Equake window. Sub-component of '#find-equake-globally."
 ;;   (let ((current-searched-window (car windows-list)))
 ;;     (if (equal current-searched-window 'nil)

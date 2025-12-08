@@ -446,43 +446,43 @@ not yet known."
   :group 'faces)
 
 (defface equake-buffer-face
-  '((t (:inherit default)))
+  '((t (:inherit 'default)))
   "Face used for internal Equake buffer text.
 Includes font typeface and background colour."
   :group 'equake-faces)
 
 (defface equake-tab-inactive
-  '((t (:background "black" :foreground "lightblue" :inherit default)))
+  '((t (:background "black" :foreground "lightblue" :inherit equake-buffer-face)))
   "Face used for inactive Equake tabs in the mode-line."
   :group 'equake-faces)
 
 (defface equake-tab-active
-  '((t (:background "lightblue" :foreground "black" :inherit default)))
+  '((t (:background "lightblue" :foreground "black" :inherit equake-buffer-face)))
   "Face used for active Equake tabs in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-eshell
-  '((t (:background "midnight blue" :foreground "spring green" :inherit default)))
+  '((t (:background "midnight blue" :foreground "spring green" :inherit equake-buffer-face)))
   "Face used for indicating `eshell' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-vterm
-  '((t (:background "midnight blue" :foreground "thistle2" :inherit default)))
+  '((t (:background "midnight blue" :foreground "thistle2" :inherit equake-buffer-face)))
   "Face used for indicating `vterm' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-term
-  '((t (:background "midnight blue" :foreground "gold" :inherit default)))
+  '((t (:background "midnight blue" :foreground "gold" :inherit equake-buffer-face)))
   "Face used for indicating `(ansi-)term' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-rash
-  '((t (:background "midnight blue" :foreground "red" :inherit default)))
+  '((t (:background "midnight blue" :foreground "red" :inherit equake-buffer-face)))
   "Face used for indicating `(ansi-)term' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-shell
-  '((t (:background "midnight blue" :foreground "cyan" :inherit default)))
+  '((t (:background "midnight blue" :foreground "cyan" :inherit equake-buffer-face)))
   "Face used for indicating (inferior) `shell' shell type in the mode-line."
   :group 'equake-faces)
 

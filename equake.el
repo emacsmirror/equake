@@ -11,13 +11,13 @@
 ;;          |_|                      ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Copyright (C) 2018-2024 Benjamin Slade
+;; Copyright (C) 2018-2025 Benjamin Slade
 
 ;; Author: Benjamin Slade <slade@lambda-y.net>
 ;; Maintainer: Benjamin Slade <slade@lambda-y.net>
 ;; URL: https://github.com/emacsomancer/equake
-;; Package-Version: 0.99111
-;; Version: 0.99111
+;; Package-Version: 0.991111
+;; Version: 0.991111
 ;; Package-Requires: ((emacs "26.1") (dash "2.14.1"))
 ;; Created: 2018-12-12
 ;; Keywords: convenience, frames, terminals, tools, window-system
@@ -452,37 +452,37 @@ Includes font typeface and background colour."
   :group 'equake-faces)
 
 (defface equake-tab-inactive
-  '((t (:background "black" :foreground "lightblue")))
+  '((t (:background "black" :foreground "lightblue" :inherit default)))
   "Face used for inactive Equake tabs in the mode-line."
   :group 'equake-faces)
 
 (defface equake-tab-active
-  '((t (:background "lightblue" :foreground "black")))
+  '((t (:background "lightblue" :foreground "black" :inherit default)))
   "Face used for active Equake tabs in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-eshell
-  '((t (:background "midnight blue" :foreground "spring green")))
+  '((t (:background "midnight blue" :foreground "spring green" :inherit default)))
   "Face used for indicating `eshell' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-vterm
-  '((t (:background "midnight blue" :foreground "thistle2")))
+  '((t (:background "midnight blue" :foreground "thistle2" :inherit default)))
   "Face used for indicating `vterm' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-term
-  '((t (:background "midnight blue" :foreground "gold")))
+  '((t (:background "midnight blue" :foreground "gold" :inherit default)))
   "Face used for indicating `(ansi-)term' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-rash
-  '((t (:background "midnight blue" :foreground "red")))
+  '((t (:background "midnight blue" :foreground "red" :inherit default)))
   "Face used for indicating `(ansi-)term' shell type in the mode-line."
   :group 'equake-faces)
 
 (defface equake-shell-type-shell
-  '((t (:background "midnight blue" :foreground "cyan")))
+  '((t (:background "midnight blue" :foreground "cyan" :inherit default)))
   "Face used for indicating (inferior) `shell' shell type in the mode-line."
   :group 'equake-faces)
 

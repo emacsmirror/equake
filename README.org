@@ -200,7 +200,7 @@ to be made to work on most DEs/WMs (I welcome information on appropriate
 configurations for other environments).
 
 ** Stumpwm
-The following is a configuration that allows for partial window splits of the Equake frame to behave as a floating drop-down window. The following is a configuration snippet for your =.stumpwmrc= / =~/.stumpwm.d/init.lisp= that sets this up, and allows for Equake to work across groups ('workspaces'). (It turns out to generally work better to use Stumpwm's native ~hide-window~ function rather than Emacs's ~make-frame-invisible~.)  I highly recommend adopting the mouse focus behaviour shown below.
+The following is a configuration that allows for partial window splits of the Equake frame to behave as a floating drop-down window in [[https://stumpwm.github.io/][StumpWM]] (a Common Lisp window manager). The following is a configuration snippet for your =.stumpwmrc= / =~/.stumpwm.d/init.lisp= that sets this up, and allows for Equake to work across groups ('workspaces'). (It turns out to generally work better to use Stumpwm's native ~hide-window~ function rather than Emacs's ~make-frame-invisible~.)  I highly recommend adopting the mouse focus behaviour shown below.
 
 #+begin_src lisp
   (defun calc-screen-dimensions ()

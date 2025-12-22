@@ -67,41 +67,92 @@ accomplished via [[https://github.com/jwiegley/use-package][ =use-package= ]], e
 
 You can install this package from Melpa, including via =use-package=, e.g.
 #+begin_src elisp
-  (use-package equake
-    :ensure t
-    ;; some examples of optional settings follow:
-    :custom
-    ;; set width a bit less than full-screen (prevent 'overflow' on multi-monitor):
-    (equake-size-width 0.99)
-    ;; set distinct face for Equake: very light terminal green foreground with dark blue background, and different font (the Martian Mono font [see https://evilmartians.com/products/martian-mono ] is quite nice if you want to set a smallish type size and still have it be readable; see also the Nerd Fonts version: https://www.nerdfonts.com/font-downloads ; https://formulae.brew.sh/cask/font-martian-mono-nerd-font ):
-    :custom-face
-    (equake-buffer-face
-     ((t (:inherit 'default :height 80 :background "#000022" :foreground "#B3F2B3" :weight 'medium :family "Martian Mono"))))
-    :config
-    ;; prevent accidental frame closure:
-    (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
-    ;; binding to restore last Equake tab when viewing a non-Equake buffer
-    (global-set-key (kbd "C-M-^") #'equake-restore-last-etab)
-    ;; set default shell
-    (setq equake-default-shell 'vterm)
-    ;; set list of available shells
-    (setq equake-available-shells
-     '("shell"
-       "vterm"
-       "rash"
-       "eshell")))
+(use-package equake
+  :ensure t
+  ;; some examples of optional settings follow:
+  :custom
+  ;; set width a bit less than full-screen (prevent 'overflow' on multi-monitor):
+  (equake-size-width 0.99)
+  ;; set distinct face for Equake: very light terminal green
+  ;; foreground with dark blue background, and different font (the
+  ;; Martian Mono font [see https://evilmartians.com/products/martian-mono ]
+  ;; is quite nice if you want to set a smallish type size and still
+  ;; have it be readable; see also the Nerd Fonts version:
+  ;; https://www.nerdfonts.com/font-downloads ;
+  ;; https://formulae.brew.sh/cask/font-martian-mono-nerd-font ):
+  :custom-face
+  (equake-buffer-face
+   ((t (:inherit 'default
+                 :height 80
+                 :background "#000022"
+                 :foreground "#B3F2B3"
+                 :weight 'medium
+                 :family "Martian Mono"))))
+  :config
+  ;; prevent accidental frame closure:
+  (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
+  ;; binding to restore last Equake tab when viewing a non-Equake buffer
+  (global-set-key (kbd "C-M-^") #'equake-restore-last-etab)
+  ;; set default shell
+  (setq equake-default-shell 'vterm)
+  ;; set list of available shells
+  (setq equake-available-shells
+   '("shell"
+     "vterm"
+     "rash"
+     "eshell")))
+#+end_src
+(You can of course add the additional configuration as per the example above to any of the other use-package examples below.)
+
+** Elpaca
+You can also use an enhanced package manager, like [[https://github.com/progfolio/elpaca][elpaca]], to install directly from this git repo:
+#+begin_src elisp
+(use-package equake
+  :ensure (:host github :repo "emacsomancer/equake")
+  :config
+  (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
+  ;; ....
+  )
+#+end_src
+
+** vc-use-package
+Or [[https://github.com/slotThe/vc-use-package][vc-use-package]] (probably the lightest-weight option):
+#+begin_src elisp
+(use-package equake
+  :vc (:fetcher github :repo "emacsomancer/equake")
+  :ensure t
+  :config
+  (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
+  ;; ....
+  )
+#+end_src
+
+** package-vc
+Or Emacs 30+'s built-in ~package-vc~ instead of vc-use-package:
+#+begin_src elisp
+(use-package org-daily-reflection
+  :vc (equake :fetcher github :repo "emacsomancer/equake")
+  :ensure t
+  :config
+  (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
+  ;; ....
+  )
 #+end_src
 
 ** Quelpa
-[[https://framagit.org/steckerhalter/quelpa-use-package][quelpa-use-package]] can be used to install directly from this git repo:
+Or [[https://framagit.org/steckerhalter/quelpa-use-package][quelpa-use-package]]:
 
 #+BEGIN_SRC elisp
-  (use-package equake
-    :quelpa (equake :fetcher gitlab :repo "emacsomancer/equake")
-    :ensure t
-    :config
-    (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice))
+(use-package equake
+  :quelpa (equake :fetcher github :repo "emacsomancer/equake")
+  :ensure t
+  :config
+  (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
+  ;; .....
+  )
 #+END_SRC
+
+&c.
 
 ** Manual
 Clone the git repo somewhere and get it into your Emacs' load-path, e.g.,
@@ -112,6 +163,7 @@ add something like this to your =init.el= (assuming you put it into
             "~/.emacs.d/equake/")
 (require 'equake)
 (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)
+;; .....
 #+END_SRC
 
 * Usage

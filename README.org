@@ -76,7 +76,7 @@ You can install this package from Melpa, including via =use-package=, e.g.
     ;; set distinct face for Equake: very light terminal green foreground with dark blue background, and different font (the Martian Mono font [see https://evilmartians.com/products/martian-mono ] is quite nice if you want to set a smallish type size and still have it be readable; see also the Nerd Fonts version: https://www.nerdfonts.com/font-downloads ; https://formulae.brew.sh/cask/font-martian-mono-nerd-font ):
     :custom-face
     (equake-buffer-face
-     ((t (:inherit 'default :height 80 :background "#000022" :foreground "white" :weight 'medium :family "Martian Mono"))))
+     ((t (:inherit 'default :height 80 :background "#000022" :foreground "#B3F2B3" :weight 'medium :family "Martian Mono"))))
     :config
     ;; prevent accidental frame closure:
     (advice-add #'save-buffers-kill-terminal :before-while #'equake-kill-emacs-advice)

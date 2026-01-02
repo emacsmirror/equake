@@ -521,8 +521,8 @@ Intended as `:before-while' advice for
 
 (defun equake--open-in-new-frame (buffer alist)
   "A predicate indicating whether equake should open in a new frame.
-Called during processing of the 'display-buffer-alist'.  Both arguments
-BUFFER and ALIST are unused."
+Called during processing of the `display-buffer-alist'.  Both arguments
+\='BUFFER\=' and \='ALIST\=' are unused."
   (and (symbolp 'equake-mode)
        (symbol-value 'equake-mode)
        equake-open-non-terminal-in-new-frame))
@@ -997,7 +997,7 @@ If focus is lost, hide or destroy the frame."
       (setq equake--last-frame-focus-state nil))))
 
 (defvar equake--focus-change-timer nil
-  "Holds the scheduled call to 'equake--after-focus-change'.")
+  "Holds the scheduled call to `equake--after-focus-change'.")
 
 (defvar equake--focus-change-debounce-delay 0.015
   "Delay in seconds to use when debouncing focus change events.
@@ -1043,14 +1043,14 @@ selection anyway.  Thus, selection change is of no concern."
       (select-frame graphic-frame t)))
 
 (defun equake--shift-item (list item shift)
-  "Shift ITEM in LIST by SHIFT places.
+  "Shift \='ITEM\=' in \='LIST\=' by \='SHIFT\=' places.
 
-Perform shifting as if swapping ITEM with its adjacent element
-until ITEM takes the place it's supposed to take.
+Perform shifting as if swapping \='ITEM\=' with its adjacent element
+until \='ITEM\=' takes the place it's supposed to take.
 
-E.g. (equake--shift-item '(1 2 3 4 5) 1 2)  -> (2 3 1 4 5)
-     (equake--shift-item '(1 2 3 4 5) 1 -1) -> (2 3 4 5 1)
-     (equake--shift-item '(1 2 3 4 5) 1 8) -> (2 3 4 1 5)"
+E.g. (equake--shift-item \='(1 2 3 4 5) 1 2)  -> (2 3 1 4 5)
+     (equake--shift-item \='(1 2 3 4 5) 1 -1) -> (2 3 4 5 1)
+     (equake--shift-item \='(1 2 3 4 5) 1 8) -> (2 3 4 1 5)"
   (let* ((i (-elem-index item list))
          (j (mod (+ i shift) (length list))))
     (if (< i j) ; shift the range by one

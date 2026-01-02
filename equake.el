@@ -235,7 +235,7 @@
   :keymap (let ((map (make-sparse-keymap)))
             map))
 
-(define-minor-mode rash-mode
+(define-minor-mode equake-rash-mode
   "Minor mode for drop-down consoles for rash console."
   :lighter " rash"
   :keymap (let ((map (make-sparse-keymap)))
@@ -585,7 +585,7 @@ Needed to assign a new name for a new tab (e.g. its number)")
              (tab-name (number-to-string tab-no)))
         (setf (alist-get monitor equake--max-tab-no) tab-no)
         (cl-callf -snoc (alist-get monitor equake--tab-list) new-tab)
-        (when rash-mode
+        (when equake-rash-mode
           (comint-send-string nil "racket -l rash/repl --\n"))
         (puthash new-tab `((monitor . ,monitor)
                            (tab-name . ,tab-name))
@@ -733,7 +733,7 @@ includes BASE-NAME."
 (defun equake--style-shell-type (mode)
   "Style the shell-type indicator as per MODE."
   (pcase mode
-    ((guard rash-mode)
+    ((guard equake-rash-mode)
      (propertize "((rash))" 'font-lock-face 'equake-shell-type-rash))
     ('vterm-mode
      (propertize "((vterm))" 'font-lock-face 'equake-shell-type-vterm))
@@ -1094,7 +1094,7 @@ HISTORY is of format given by `window-prev-buffers'."
                    (vterm)
                  (shell)
                  (delete-other-windows))
-             (rash-mode)))
+             (equake-rash-mode)))
           ((equal launchshell 'ansi-term)
            (ansi-term sh-command))
           ((equal launchshell 'term)

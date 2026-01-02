@@ -274,7 +274,9 @@
 
 (defcustom equake-shell-mode-setup nil
   "Shell commands to run when opening a tab in shell-mode.
-E.g. \"bash \n clear \n\" to run bash and clear the screen.")
+E.g. \"bash \n clear \n\" to run bash and clear the screen."
+  :group 'equake
+  :type 'string)
 
 (defcustom equake-display-buffer-function #'display-buffer-pop-up-frame
   "Sensible choices are are `display-buffer-pop-up-frame' for

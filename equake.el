@@ -109,7 +109,7 @@
 ;;          (equake-height (round (* .40 (cadr (calc-screen-dimensions))))))
 ;;     (when (and equake-on-top (not (find-equake-globally (screen-groups (current-screen)))))
 ;;       (setf (group-on-top-windows (current-group)) (remove equake-on-top on-top-windows)))
-;;     (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))  
+;;     (if (and equake-on-top (eq (current-group) (window-group (find-equake-globally (screen-groups (current-screen))))))
 ;;         (progn (if (eq (find-class 'float-group) (class-of (current-group)))
 ;;                    (when (> (length (group-windows (current-group))) 1)
 ;;                      (xwin-hide equake-on-top)

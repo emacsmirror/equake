@@ -501,8 +501,8 @@ Intended as `:before-while' advice for
 
 (defun equake-ask-before-closing-equake ()
   "Make sure user really wants to close Equake, ask again."
-  (interactive)
   (declare (obsolete equake-kill-emacs-advice "Equake 0.96"))
+  (interactive)
   (if (y-or-n-p (concat
                  "PLEASE, CHANGE YOUR CONFIGURATION FILE TO USE `equake-kill-emacs-advice' "
                  "INSTEAD OF `equake-check-if-in-equake-frame-before-closing'.\n"
@@ -513,8 +513,8 @@ Intended as `:before-while' advice for
 
 (defun equake-check-if-in-equake-frame-before-closing ()
   "Check if we're in an Equake frame."
-  (interactive)
   (declare (obsolete equake-kill-emacs-advice "Equake 0.96"))
+  (interactive)
   (if (frame-parameter nil 'equakep)
       (equake-ask-before-closing-equake)
     (save-buffers-kill-terminal)))

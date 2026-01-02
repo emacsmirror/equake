@@ -536,7 +536,7 @@ Called during processing of the `display-buffer-alist'.  Both arguments
 
 (defun equake-invoke ()
   "Toggle Equake frames.
-Invoke Equake externally via \"emacsclient -n -e \'(equake-invoke)\'\"."
+Invoke Equake externally via \"emacsclient -n -e \='(equake-invoke)\='\"."
   (interactive)
   (equake--select-some-graphic-frame)
   (let* ((monitor (equake--get-monitor))

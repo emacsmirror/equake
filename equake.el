@@ -18,7 +18,7 @@
 ;; URL: https://github.com/emacsomancer/equake
 ;; Package-Version: 0.991111
 ;; Version: 0.991111
-;; Package-Requires: ((emacs "26.1") (dash "2.14.1"))
+;; Package-Requires: ((emacs "27.1") (dash "2.14.1"))
 ;; Created: 2018-12-12
 ;; Keywords: convenience, frames, terminals, tools, window-system
 
